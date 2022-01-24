@@ -18,7 +18,7 @@ Melee: Scoop, Short Sword, Long Sword, Axe, Hammer, Fist, Sabre Tooth, Circular 
 
 ## Shield
 
-Shield, Shell
+Tortoise, Fluffy Kitten, Aligator, Tiger, Emperor Tamarin
 
 ## Skin
 
