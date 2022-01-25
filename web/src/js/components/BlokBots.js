@@ -91,16 +91,12 @@ function updateVelocity(velocity, keysPressed) {
   return velocity;
 }
 
-let room = 0;
-
 function BlokBots(props) {
-  const color1 = props.color1;
-  const strangeJuice = props.strangeJuice;
+  const nftData = props.nftData;
   const execute = props.execute;
   const processingActions = props.processingActions;
 
-  const isGlowing = window.isGlowing = strangeJuice.evolution > 0;
-  window.strangeJuice = strangeJuice;
+  window.nftData = nftData;
 
   const threeRef = React.createRef();
   const [scene, setScene] = useState();
@@ -136,17 +132,6 @@ function BlokBots(props) {
   const controls = sceneConfig[sceneIndex].controls;
   const storySection = sceneConfig[sceneIndex].storySection;
 
-  const styleChanged = useCallback((element) => {
-    let elementKey = `style_${element}`;
-    let changed = oldStrangeJuice[elementKey] !== strangeJuice[elementKey];
-    return changed;
-  }, [oldStrangeJuice, strangeJuice]);
-
-  const juiceChanged = useCallback((elementKey) => {
-    let changed = oldStrangeJuice[elementKey] !== strangeJuice[elementKey];
-    return changed;
-  }, [oldStrangeJuice, strangeJuice]);
-
   function getTextureURL(element, style) {
     let url = baseImageURL + `lifeform-1-${element}-${style}.png`;
     return url;
@@ -156,78 +141,6 @@ function BlokBots(props) {
     let url = baseImageURL + `icons-1-${element}-${style}.png`;
     return url;
   }
-
-  useEffect(() => {
-    if(sjScene) {
-
-      sjScene.traverse(o => {
-        if(o.material) {
-          console.log('sj', strangeJuice.evolution, oldStrangeJuice.evolution, styleChanged('evolution'))
-
-          if(juiceChanged('color_body')) {
-            if(o.material.name === 'Body1' || o.material.name === 'Badge1') {
-              o.material.emissive = new THREE.Color(hueToColor(strangeJuice.color_body));
-            }
-          }
-
-          if(styleChanged('body')) {
-              if(o.material.name === 'Body1') {
-                loadImageToMaterial(o.material, getTextureURL('body', '1'));
-              }
-              else if(o.material.name === 'Badge1') {
-                loadImageToMaterial(o.material, getTextureURL('badge', strangeJuice.style_body));
-              }
-          }
-
-          if(styleChanged('head')) {
-            console.log('head change', strangeJuice.style_head)
-            if(o.material.name === 'Head1') {
-              loadImageToMaterial(o.material, getTextureURL('head', strangeJuice.style_head));
-            }
-          }
-
-          if(styleChanged('head_wear')) {
-            if(o.material.name === 'HeadWear1') {
-              o.material.emissive = new THREE.Color(hueToColor(strangeJuice.color_head_wear));
-              let headWearURL = getTextureURL('headwear', strangeJuice.style_head_wear);
-              loadImageToMaterial(o.material, headWearURL);
-            }
-          }
-
-          if(styleChanged('legs')) {
-            let legsURL = getTextureURL('legs', strangeJuice.style_legs);
-
-            if(o.material.name === 'Leg1') {
-              loadImageToMaterial(o.material, legsURL);
-            }
-            if(o.material.name === 'Arm1') {
-              loadImageToMaterial(o.material, legsURL);
-            }
-          }
-
-          if(elems && o.name in elems) {
-            let condition = elems[o.name].condition;
-
-            if(condition) {
-              if(condition(strangeJuice, storyInfo)) {
-                o.visible = true;
-              }
-              else {
-                o.visible = false;
-              }
-            }
-          }
-        }
-      });
-
-      if(strangeJuice.room !== oldStrangeJuice.room) {
-        setSceneIndex(strangeJuice.room);
-      }
-
-      setOldStrangeJuice(strangeJuice);
-    }
-
-  }, [strangeJuice, oldStrangeJuice, sjScene, styleChanged, juiceChanged, storyInfo]);
 
   function startHidden(name) {
     let hidden = false;
@@ -285,7 +198,6 @@ function BlokBots(props) {
         if(o.name === 'BotBody1') {
           for(let child of o.children) {
             if(child.material.name === 'MatBody') {
-              console.log(child.material);
               child.material.color = new THREE.Color(controlEntry.color);
 
               if(controlEntry.skin === 'SkinPlastic') {
@@ -368,7 +280,7 @@ function BlokBots(props) {
           let condition = elems[o.name].condition;
 
           if(condition) {
-            if(condition(strangeJuice, storyInfo)) {
+            if(condition(nftData, storyInfo)) {
               o.visible = true;
             }
             else {
@@ -392,91 +304,7 @@ function BlokBots(props) {
           const clips = gltf.animations;
           setSJScene(gltf.scene);
 
-          var textureLoader = new THREE.TextureLoader();
-          var texture = textureLoader.load(envTexture);
-
-          gltf.scene.traverse(o => {
-            if (o.isMesh) o.material.envMap = texture;
-          });
-
-          let lifeformModel = gltf.scene.getObjectByName('EmptyLifeform');
-          const clipWalk = THREE.AnimationClip.findByName( clips, 'Walk1' );
-          const clipIdle = THREE.AnimationClip.findByName( clips, 'Movement1' );
-          const idleAction = mixer.clipAction( clipIdle );
-          const walkAction = mixer.clipAction( clipWalk );
-          idleAction.play();
-
           let { sceneName, bounds, triggers } = sceneConfig[sceneIndex];
-
-          let prevPosition = new THREE.Vector3();
-          prevPosition.copy(lifeformModel.position);
-          let isWalking = false;
-
-          var animateLifeform = function () {
-            let delta = clock.getDelta();
-
-            velocity = updateVelocity(velocity, keysPressed);
-            let speed = velocity.length();
-
-            if(speed && !isWalking) {
-              walkAction.play();
-              idleAction.crossFadeTo(walkAction)
-              isWalking = true;
-            }
-            else if(!speed && isWalking) {
-              walkAction.crossFadeTo(idleAction);
-              isWalking = false;
-            }
-
-            if(lifeformModel && velocity) {
-              velocity.multiplyScalar(delta);
-              prevPosition.copy(lifeformModel.position);
-              
-              if(velocity.x < 0) {
-                lifeformModel.rotation.y = -Math.PI / 4; 
-              }
-              else if(velocity.x > 0) {
-                lifeformModel.rotation.y = Math.PI / 4; 
-              }
-              else {
-                lifeformModel.rotation.y = 0;
-              }
-
-              lifeformModel.position.add(velocity);
-
-              let pos = lifeformModel.position;
-              if(pos.x < bounds.x[0] || pos.x > bounds.x[1]) {
-                lifeformModel.position.x = prevPosition.x;
-              }
-              if(pos.z < bounds.z[0] || pos.z > bounds.z[1]) {
-                lifeformModel.position.z = prevPosition.z;
-              }
-
-              for(let obstacle of obstacles) {
-                collisionVec.set(lifeformModel.position.x, lifeformModel.position.y, lifeformModel.position.z);
-                obstaclePos.set(obstacle.pos[0], obstacle.pos[1], obstacle.pos[2]);
-                collisionVec.sub(obstaclePos);
-
-                if(collisionVec.length() < obstacle.geometry.radius) {
-                  resolutionVec.set(collisionVec.x, collisionVec.y, collisionVec.z);
-                  resolutionVec.normalize();
-                  resolutionVec.multiplyScalar(obstacle.geometry.radius + 0.02);
-                  resolutionPos.set(obstacle.pos[0], obstacle.pos[1], obstacle.pos[2]);
-                  resolutionPos.add(resolutionVec);
-                  lifeformModel.position.copy(resolutionPos);
-                }
-              }
-
-              for(let t of hitTesters) { t.test(lifeformModel) }
-
-            }
-
-
-            requestAnimationFrame( animateLifeform );
-            mixer.update(delta);
-          };
-      
-          animateLifeform();
 
           const raycaster = new THREE.Raycaster();
           const mouse = new THREE.Vector2();
@@ -683,7 +511,7 @@ function BlokBots(props) {
 
       for(let elem of elems) {
         optionsWeapon.push(
-          <option key={elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
         )
       }
 
@@ -691,13 +519,13 @@ function BlokBots(props) {
 
       for(let elem of elems) {
         optionsShield.push(
-          <option key={elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
         )
       }
 
-      controlSetUI.push(<option key="none" value="empty">Empty</option>)
-      controlSetUI.push(<optgroup label="Weapons">{optionsWeapon}</optgroup>)
-      controlSetUI.push(<optgroup label="Shields">{optionsShield}</optgroup>)
+      controlSetUI.push(<option key={setId + "none"} value="empty">Empty</option>)
+      controlSetUI.push(<optgroup key={setId + "Weapons"} label="Weapons">{optionsWeapon}</optgroup>)
+      controlSetUI.push(<optgroup key={setId + "Shields"} label="Shields">{optionsShield}</optgroup>)
     }
     else {
       if(setId === 'front') {
@@ -711,30 +539,29 @@ function BlokBots(props) {
       }
 
       if(setId !== 'transport' && setId !== 'skin') {
-        controlSetUI.push(<option key="none" value="empty">Empty</option>)
+        controlSetUI.push(<option key={setId + "none"} value="empty">Empty</option>)
       }
 
       for(let elem of elems) {
         controlSetUI.push(
-          <option key={elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
         )
       }
     }
 
-    return <select className="br-feature-select" value={controlEntry[setId]} onChange={e => changeControl(setId, e.target.value)}>
+    return <select key={setId + 'select'} className="br-feature-select" value={controlEntry[setId]} onChange={e => changeControl(setId, e.target.value)}>
       {controlSetUI}
-    </select>
+    </select>;
   }
 
   function changeControl(setId, value) {
     let _controlEntry = {...controlEntry};
     _controlEntry[setId] = value;
-    console.log(_controlEntry);
     setControlEntry(_controlEntry);
   }
 
   function getControlRow(title, control) {
-    return <div className="br-feature-row">
+    return <div className="br-feature-row" key={title}>
       <div className="br-feature-title">
         {title}
       </div>
@@ -764,7 +591,7 @@ function BlokBots(props) {
     controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
     controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
     controlUI.push(getControlRow('Skin', getControlSet('skin', gameConfig)))
-    controlUI.push(getColorChooser());
+    controlUI.push(<div key="ColorChooser">{getColorChooser()}</div>);
 
     return controlUI;
   }
@@ -827,7 +654,7 @@ function BlokBots(props) {
         </div>
       </div>
       <div className="br-strange-juice-overlay">
-        { getControlUI(gameConfig, strangeJuice) } 
+        { getControlUI(gameConfig, nftData) } 
       </div>
     </div>
     <div className="br-strage-juice-controls">

@@ -1,8 +1,8 @@
-import getConfig from '../../data/config.js';
+import getConfig from '../../data/nearConfig.js';
 import * as nearAPI from 'near-api-js';
 
 // Initializing contract
-export async function initContract(env, contractName) {
+export async function initNear(env, contractName) {
   // get network configuration values from config.js
   // based on the network ID we pass to getConfig()
   const nearConfig = getConfig(env, contractName);

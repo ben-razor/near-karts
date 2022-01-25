@@ -4,15 +4,21 @@ import './scss/styles.scss';
 import { useToasts } from 'react-toast-notifications';
 import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
-import { initContract } from './js/helpers/near';
+import { initNear } from './js/helpers/near';
 import BlokBots from './js/components/BlokBots';
 import { SketchPicker } from 'react-color';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
 const BOATLOAD_OF_GAS = '30000000000000';
-const viewMethods = ['nft_tokens_for_owner', 'nft_get_strange_juice'];
-const changeMethods = ['drink_strange_juice', 'do_action'];
+
+const nearkartsAddress = 'nearkarts.benrazor.testnet';
+const nearContractConfig = {
+  'nearkarts.benrazor.testnet': {
+    viewMethods: ['nft_tokens_for_owner', 'nft_get_near_karts'],
+    changeMethods: ['nft_configure']
+  }
+}
 
 function App() {
   const [ messages, setMessages ] = useState();
@@ -23,8 +29,9 @@ function App() {
   const [wallet, setWallet] = useState();
   const [nftContract, setNFTContract] = useState();
   const [nftRes, setNFTRes] = useState();
-  const [strangeJuice, setStrangeJuice] = useState({});
+  const [nftData, setNFTData] = useState({});
   const [processingActions, setProcessingActions] = useState({});
+  const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
 
   const { addToast } = useToasts();
 
@@ -40,9 +47,8 @@ function App() {
     (async () => {
       console.log('connecting');
       let { currentUser, nearConfig, walletConnection } = 
-        await initContract(NEAR_ENV, 'nft1.benrazor.testnet');
+        await initNear(NEAR_ENV, '.benrazor.testnet');
 
-        console.log('connecting 2');
       setContract(contract);
       setCurrentUser(currentUser);
       setNearConfig(nearConfig);
@@ -57,15 +63,12 @@ function App() {
     connect();
   }, [connect]);
 
-  const connectNFT = useCallback(async () => {
+  const connectNFT = useCallback(async (contractAddress) => {
     console.log('connecting nft');
+    const { viewMethods, changeMethods } = nearContractConfig[contractAddress];
     const _nftContract = await new nearAPI.Contract(
-      // User's accountId as a string
       wallet.account(),
-      // accountId of the contract we will be loading
-      // NOTE: All contracts on NEAR are deployed to an account and
-      // accounts can only have one contract deployed to them.
-      'nft1.benrazor.testnet',
+      contractAddress,
       {
         viewMethods, changeMethods, sender: wallet.getAccountId(),
       }
@@ -75,28 +78,32 @@ function App() {
   }, [wallet]);
 
   useEffect(() => {
-    if(wallet) {
-      connectNFT();
+    if(wallet && wallet?.isSignedIn()) {
+      connectNFT(nearkartsAddress);
     }
   }, [wallet, connectNFT]);
 
   const signIn = () => {
-    if(wallet.isSignedIn()) {
-      wallet.signOut();
-      setWallet();
+    if(wallet?.isSignedIn()) {
+      (async () => {
+        wallet.signOut();
+        setMightBeSignedIn(false);
+      })();
     }
     else {
+      const { changeMethods } = nearContractConfig[nearkartsAddress];
+
       wallet.requestSignIn(
-        {contractId: 'nft1.benrazor.testnet', methodNames: changeMethods }, //contract requesting access
-        'Strange Juice', //optional name
+        {contractId: nearkartsAddress, methodNames: changeMethods }, //contract requesting access
+        'NEAR Karts', //optional name
         null, //optional URL to redirect to if the sign in was successful
         null //optional URL to redirect to if the sign in was NOT successful
       );
+      setWallet(wallet);
     }
-    setWallet(wallet);
   };
 
-  async function execute(action) {
+  async function execute(action, data) {
     if(!processingActions[action]) {
       const tokenId = nftRes?.[0].token_id;
 
@@ -104,11 +111,8 @@ function App() {
       _processingActions[action] = true;
       setProcessingActions(_processingActions);
 
-      if(action === 'drink_strange_juice') {
-        await nftContract.drink_strange_juice({ token_id: tokenId }, BOATLOAD_OF_GAS, '0');
-      }
-      else {
-        await nftContract.do_action({ token_id: tokenId, action }, BOATLOAD_OF_GAS, '0');
+      if(action === 'configure') {
+        await nftContract.configure_nft({ token_id: tokenId, near_kart_new: data}, BOATLOAD_OF_GAS, '0');
       }
 
       let tokensForOwnerRes = await nftContract.nft_tokens_for_owner({ account_id: wallet.getAccountId()});
@@ -121,7 +125,7 @@ function App() {
   }
 
   useEffect(() => {
-    if(nftContract) {
+    if(nftContract && wallet && wallet.getAccountId()) {
       (async () => {
         let res = await nftContract.nft_tokens_for_owner({ account_id: wallet.getAccountId()});
         setNFTRes(res);
@@ -132,17 +136,19 @@ function App() {
   useEffect(() => {
     if(nftRes) {
       (async () => {
-        const tokenId = nftRes[0].token_id;
-        let strangeJuice = await nftContract.nft_get_strange_juice({ token_id: tokenId });
-        setStrangeJuice(strangeJuice);
+        let nftData = {};
+        if(nftRes.length) {
+          const tokenId = nftRes[0].token_id;
+          let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
+        }
+        setNFTData(nftData);
       })();
     }
   }, [nftRes, nftContract]);
   
-  console.log(strangeJuice);
-  const isGlowing = strangeJuice.evolution;
-  const color1 = isGlowing;
+  console.log('nftData', nftData);
 
+  console.log('wallet', wallet, wallet?.isSignedIn())
   return (
     <div className="br-page">
       <div className="br-header">
@@ -153,15 +159,14 @@ function App() {
 
       </div>
       <div className="br-content">
-        <div className="br-threejs-container">
-          <BlokBots isGlowing={isGlowing} color1={color1} execute={execute} strangeJuice={strangeJuice} 
-                    processingActions={processingActions} />
-        </div>
+        { (wallet?.isSignedIn() && mightBeSignedIn) &&
+            <div className="br-threejs-container">
+              <BlokBots nftData={nftData} processingActions={processingActions} />
+            </div>
+        }
         { 
           <Fragment>
             <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
-            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} />
-            <BrButton label="Connect NFT" id="connectNFT" className="br-button br-icon-button" onClick={connectNFT} />
           </Fragment>
         }
       </div>
