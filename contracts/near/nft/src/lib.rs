@@ -41,22 +41,25 @@ pub struct Contract {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-pub struct StrangeJuice {
-    evolution: u8,
-    room: u8,
-    style_body: u8,
-    style_head: u8,
-    style_head_wear: u8,
-    style_arms: u8,
-    style_legs: u8,
-    color_body: u8,
-    color_head: u8,
-    color_head_wear: u8,
-    color_arms: u8,
-    color_legs: u8,
+pub struct NearKart {
+    level: u8,
+    left: u8,
+    right: u8,
+    top: u8,
+    front: u8,
+    skin: u8,
+    transport: u8,
+    color1: u32,
+    color2: u32,
+    decal1: String,
+    decal2: String,
+    decal3: String,
+    extra1: String,
+    extra2: String,
+    extra3: String
 }
 
-impl StrangeJuice {
+impl NearKart {
     pub fn new() -> Self {
         Self::default()
     }
@@ -76,7 +79,7 @@ impl StrangeJuice {
     pub fn deserialize(&mut self, data: &String) -> &Self {
         if String::len(data) > 16 {
             let sj_vec = hex::decode(data).unwrap_or(Vec::new());
-            let sj_old: StrangeJuice = rmp_serde::decode::from_slice(&sj_vec).unwrap();
+            let sj_old: NearKart = rmp_serde::decode::from_slice(&sj_vec).unwrap();
             self.clone_from(&sj_old);
         }
         self
@@ -187,9 +190,9 @@ impl Contract {
         return metadata.extra.unwrap_or("".to_string());
     }
 
-    pub fn nft_get_strange_juice(&self, token_id: TokenId) -> StrangeJuice {
+    pub fn nft_get_near_kart(&self, token_id: TokenId) -> NearKart {
         let extra = self.nft_get_metadata_extra(token_id);
-        let sj = StrangeJuice::from_data(&extra);
+        let sj = NearKart::from_data(&extra);
         return sj;
     }
 
@@ -211,35 +214,29 @@ impl Contract {
         assert_eq!( valid, true, "Caller must be relative of contract owner");
     }
 
-    pub fn drink_strange_juice(&mut self, token_id: TokenId) {
+    pub fn configure(&mut self, token_id: TokenId, near_kart_new: NearKart) {
         self.assert_nft_owner(token_id.clone());
-
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
         let extra = metadata.extra.unwrap_or(String::from(""));
-        let mut sj = StrangeJuice::from_data(&extra);
+        let mut nk = NearKart::from_data(&extra);
 
-        if sj.room == 0 {
-            sj.evolution = cmp::max(1, sj.evolution);
-            sj.color_body = Contract::get_new_color(sj.color_body);
+        nk.clone_from(&near_kart_new);
 
-            let extra = sj.serialize();
-            metadata.extra = Some(extra);
-            lookup_map.insert(&token_id, &metadata);
-        }
-        else {
-            panic!("Lifeforms may only partake of strange juice in room zero");
-        }
+        let extra = nk.serialize();
+        metadata.extra = Some(extra);
+        lookup_map.insert(&token_id, &metadata);
     }
 
+    /*
     pub fn do_action(&mut self, token_id: TokenId, action: String) {
         self.assert_nft_owner(token_id.clone());
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
         let extra = metadata.extra.unwrap_or(String::from(""));
-        let mut sj = StrangeJuice::from_data(&extra);
+        let mut sj = NearKart::from_data(&extra);
 
-        if action == "electrify" {
+        if action == "configure" {
             if sj.room != 0 {
                 panic!("Lifeforms may only get electrified in room zero");
             }
@@ -288,6 +285,7 @@ impl Contract {
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
     }
+    */
 
     fn get_random_u8() -> u8 {
         let rand = near_sdk::env::random_seed()[0];
@@ -389,27 +387,20 @@ mod tests {
     }
 
     #[test]
-    fn test_strange_juice() {
-        let mut context = get_context(accounts(0));
-        testing_env!(context.build());
+    fn test_near_kart() {
+        configure_env_for_storage(get_context(accounts(0)));
         let mut contract = Contract::new_default_meta(accounts(0).into());
-
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
-
+        
         let token_id = "0".to_string();
         let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
         assert_eq!(token.token_id, token_id);
 
-        contract.drink_strange_juice(token_id.clone());
+        let mut new_near_kart = NearKart::new();
+        new_near_kart.front = 2;
+        contract.configure(token_id.clone(), new_near_kart);
 
-        let sj = contract.nft_get_strange_juice(token_id.clone());
-        assert_eq!(sj.evolution, 1);
-        assert_eq!(sj.style_arms, 0);
-        assert_eq!(sj.style_legs, 0);
+        let nk = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk.front, 2);
     }
 
     fn configure_env_for_storage(mut context: VMContextBuilder) {
@@ -420,87 +411,7 @@ mod tests {
             .predecessor_account_id(accounts(0))
             .build());
     }
-
-    #[test]
-    #[should_panic(expected = "Lifeforms do not know how to perform this action")]
-    #[test]
-    fn test_unknown_action() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
-        contract.do_action(token_id.clone(), "get_funky_with_your_monkey".to_string());
-    }
-
-    #[test]
-    #[should_panic(expected = "Lifeforms may only get electrified after drinking strange juice")]
-    fn test_electrify_fail() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
-        contract.do_action(token_id.clone(), "electrify".to_string());
-    }
-
-    #[test]
-    fn test_electrify() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
-
-        contract.drink_strange_juice(token_id.clone());
-        contract.do_action(token_id.clone(), "electrify".to_string());
-
-        let sj = contract.nft_get_strange_juice(token_id.clone());
-        assert_eq!(sj.evolution, 2);
-        assert_gt!(sj.style_head_wear, 0);
-        assert_gt!(sj.color_head_wear, 0);
-    }
-
-    #[test]
-    #[should_panic(expected = "Caller must be the token owner.")]
-    fn test_drink_not_owner() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(1), sample_token_metadata());
-
-        contract.drink_strange_juice(token_id.clone());
-    }
-
-    #[test]
-    #[should_panic(expected = "Caller must be the token owner.")]
-    fn test_electrify_not_owner() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(1), sample_token_metadata());
-
-        contract.do_action(token_id.clone(), "electrify".to_string());
-    }
-
-    #[test]
-    fn test_scavenge_in_bin() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-        let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
-
-        contract.drink_strange_juice(token_id.clone());
-        contract.do_action(token_id.clone(), "electrify".to_string());
-        contract.do_action(token_id.clone(), "scavenge_in_bin".to_string());
-        contract.do_action(token_id.clone(), "leave_room_zero".to_string());
-
-        let sj = contract.nft_get_strange_juice(token_id.clone());
-        assert_eq!(sj.evolution, 3);
-        assert_gt!(sj.style_arms, 0);
-        assert_lt!(sj.style_arms, 5);
-        assert_gt!(sj.style_legs, 0);
-        assert_lt!(sj.style_legs, 5);
-        assert_eq!(sj.room, 1);
-    }
-
+    
     #[test]
     fn test_mint() {
         let mut context = get_context(accounts(0));
