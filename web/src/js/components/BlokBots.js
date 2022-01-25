@@ -18,6 +18,7 @@ import getText from '../../data/world/text';
 import story from '../../data/story/story.js';
 import { SketchPicker } from 'react-color';
 import { CompactPicker } from 'react-color';
+import { hasUncaughtExceptionCaptureCallback } from 'process';
 
 const loader = new GLTFLoader();
 
@@ -366,7 +367,6 @@ function BlokBots(props) {
     controls.maxDistance = 5;
     controls.minPolarAngle = 0;
     controls.maxPolarAngle = Math.PI / 2.1;
-    controls.autoRotate = true;
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
     
@@ -629,7 +629,16 @@ function BlokBots(props) {
     */
   }, [storySection, storyIndex]);
 
+  function mint() {
+    let data = {
+      name: 'Destruction'
+    }
+    execute('mint', data);
+  }
 
+  function getContractControls() {
+    return <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+  }
 
   function getTextUI(storyLines) {
     let linesUI = [];
@@ -655,6 +664,7 @@ function BlokBots(props) {
       </div>
       <div className="br-strange-juice-overlay">
         { getControlUI(gameConfig, nftData) } 
+        { getContractControls() }
       </div>
     </div>
     <div className="br-strage-juice-controls">

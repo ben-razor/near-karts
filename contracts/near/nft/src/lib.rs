@@ -148,6 +148,9 @@ impl Contract {
         receiver_id: ValidAccountId,
         token_metadata: TokenMetadata,
     ) -> Token {
+        if env::attached_deposit() < 1e23 as u128 {
+            panic!("Minting requires an attached deposit of at least 0.1 NEAR");
+        }
         self.tokens.mint(token_id, receiver_id, Some(token_metadata))
     }
 
@@ -341,7 +344,7 @@ mod tests {
 
     use super::*;
 
-    const MINT_STORAGE_COST: u128 = 5870000000000000000000;
+    const MINT_STORAGE_COST: u128 = 1e23 as u128;
 
     fn get_context(predecessor_account_id: ValidAccountId) -> VMContextBuilder {
         let mut builder = VMContextBuilder::new();

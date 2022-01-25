@@ -16,7 +16,7 @@ const nearkartsAddress = 'nearkarts.benrazor.testnet';
 const nearContractConfig = {
   'nearkarts.benrazor.testnet': {
     viewMethods: ['nft_tokens_for_owner', 'nft_get_near_karts'],
-    changeMethods: ['nft_configure']
+    changeMethods: ['nft_mint', 'nft_configure']
   }
 }
 
@@ -28,8 +28,9 @@ function App() {
   const [nearConfig, setNearConfig] = useState();
   const [wallet, setWallet] = useState();
   const [nftContract, setNFTContract] = useState();
-  const [nftRes, setNFTRes] = useState();
-  const [nftData, setNFTData] = useState({});
+  const [nftRes, setNFTRes] = useState([]);
+  const [activeTokenId, setActiveTokenId] = useState(0);
+  const [nftData, setNFTData] = useState([]);
   const [processingActions, setProcessingActions] = useState({});
   const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
 
@@ -105,14 +106,40 @@ function App() {
 
   async function execute(action, data) {
     if(!processingActions[action]) {
-      const tokenId = nftRes?.[0].token_id;
-
       let _processingActions = {...processingActions };
       _processingActions[action] = true;
       setProcessingActions(_processingActions);
 
-      if(action === 'configure') {
-        await nftContract.configure_nft({ token_id: tokenId, near_kart_new: data}, BOATLOAD_OF_GAS, '0');
+      let nearPenny = (10n**22n);
+      let pointOneNear = nearPenny * 10n;
+
+      /*
+'{"token_id": "1", "receiver_id": "benrazor.testnet", 
+"token_metadata": { "title": "Ben Razor Logo Colors", "description": "The Ben Razor logo in color", 
+"media": "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
+"copies": 1}}' 
+--accountId nft1.benrazor.testnet --deposit 0.1
+      */
+
+
+      if(action === 'mint') {
+        let name = data.name.slice(0, 32);
+        let tokenId = name + Date.now().toString();
+
+        console.log('pre mint');
+        let res = await nftContract.nft_mint({
+          token_id: tokenId,
+          receiver_id: wallet.getAccountId(),
+          token_metadata: {
+            title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
+            media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
+            copies: 1
+          }
+        }, BOATLOAD_OF_GAS, pointOneNear.toString());
+        console.log('post mint', res);
+      }
+      else if(action === 'configure') {
+        await nftContract.configure_nft({ token_id: activeTokenId, near_kart_new: data}, BOATLOAD_OF_GAS, '0');
       }
 
       let tokensForOwnerRes = await nftContract.nft_tokens_for_owner({ account_id: wallet.getAccountId()});
@@ -133,35 +160,36 @@ function App() {
     }
   }, [nftContract, wallet]);
 
-  useEffect(() => {
-    if(nftRes) {
-      (async () => {
-        let nftData = {};
-        if(nftRes.length) {
-          const tokenId = nftRes[0].token_id;
+  function selectNFT(tokenId) {
+    (async () => {
+      for(let token of nftRes) {
+        if(token.token_id === tokenId) {
           let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
+          setNFTData(nftData);
+          setActiveTokenId(tokenId);
         }
-        setNFTData(nftData);
-      })();
-    }
-  }, [nftRes, nftContract]);
-  
-  console.log('nftData', nftData);
+      }
+    })();
+  }
 
+  console.log('nftRes', nftRes);
+  console.log('nftData', nftData);
   console.log('wallet', wallet, wallet?.isSignedIn())
+
   return (
     <div className="br-page">
       <div className="br-header">
         <div className="br-title-panel">
           <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
-          <h1 className="br-title">Blok Bots</h1>
+          <h1 className="br-title">NEAR Karts</h1>
         </div>
 
       </div>
       <div className="br-content">
         { (wallet?.isSignedIn() && mightBeSignedIn) &&
             <div className="br-threejs-container">
-              <BlokBots nftData={nftData} processingActions={processingActions} />
+              <BlokBots nftRes={nftRes} nftData={nftData} selectNFT={selectNFT}
+                        processingActions={processingActions} execute={execute} />
             </div>
         }
         { 
