@@ -118,8 +118,8 @@ function BlokBots(props) {
     left: '',
     right: '',
     top: '',
-    transport: '',
-    skin: '',
+    transport: 'TransportWheels',
+    skin: 'SkinPlastic',
     color: '#fe0'
   });
 
@@ -529,15 +529,15 @@ function BlokBots(props) {
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
     camera.position.x = 0;
-    camera.position.y = 2;
-    camera.position.z = 2.2;
+    camera.position.y = 0.5;
+    camera.position.z = 3;
 
     let controls = new OrbitControls( camera, threeElem );
-    controls.center = new THREE.Vector3(0, 2, 0);
+    controls.target.set(0, 0.4, 0);
     controls.minDistance = 2;
     controls.maxDistance = 5;
     controls.minPolarAngle = 0;
-    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.maxPolarAngle = Math.PI / 2.1;
     controls.autoRotate = true;
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
@@ -675,23 +675,50 @@ function BlokBots(props) {
     let controlSetUI = [];
     let elems = [];
 
-    if(setId === 'front') {
-      elems = gameConfig.weapons_melee;
-    }
-    else if(setId === 'skin') {
-      elems = gameConfig.skin;
-    }
-    else if(setId === 'transport') {
-      elems = gameConfig.transport;
+    if(setId === 'left' || setId === 'right') {
+      let optionsWeapon = [];
+      let optionsShield = []
+
+      elems = gameConfig.weapons_range.concat(gameConfig.shields_side);
+
+      for(let elem of elems) {
+        optionsWeapon.push(
+          <option key={elem.id} value={elem.id}>{elem.name}</option>
+        )
+      }
+
+      elems = gameConfig.shields_side;
+
+      for(let elem of elems) {
+        optionsShield.push(
+          <option key={elem.id} value={elem.id}>{elem.name}</option>
+        )
+      }
+
+      controlSetUI.push(<option key="none" value="empty">Empty</option>)
+      controlSetUI.push(<optgroup label="Weapons">{optionsWeapon}</optgroup>)
+      controlSetUI.push(<optgroup label="Shields">{optionsShield}</optgroup>)
     }
     else {
-      elems = gameConfig.weapons_range.concat(gameConfig.shields_side);
-    }
+      if(setId === 'front') {
+        elems = gameConfig.weapons_melee;
+      }
+      else if(setId === 'skin') {
+        elems = gameConfig.skin;
+      }
+      else if(setId === 'transport') {
+        elems = gameConfig.transport;
+      }
 
-    for(let elem of elems) {
-      controlSetUI.push(
-        <option key={elem.id} value={elem.id}>{elem.name}</option>
-      )
+      if(setId !== 'transport' && setId !== 'skin') {
+        controlSetUI.push(<option key="none" value="empty">Empty</option>)
+      }
+
+      for(let elem of elems) {
+        controlSetUI.push(
+          <option key={elem.id} value={elem.id}>{elem.name}</option>
+        )
+      }
     }
 
     return <select className="br-feature-select" value={controlEntry[setId]} onChange={e => changeControl(setId, e.target.value)}>
