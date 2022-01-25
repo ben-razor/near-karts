@@ -12,9 +12,12 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, HitTester } from '../helpers/3d';
+import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import story from '../../data/story/story.js';
+import { SketchPicker } from 'react-color';
+import { CompactPicker } from 'react-color';
 
 const loader = new GLTFLoader();
 
@@ -33,7 +36,7 @@ void main() {
 
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
-const w = 900;
+const w = 500;
 const h = 400;
 const storyDelay = 4000;
 
@@ -400,6 +403,7 @@ function BlokBots(props) {
   useEffect(() => {
 
     const threeElem = threeRef.current;
+    const controlsElem = threeRef.current;
 
     const ENTIRE_SCENE = 0, BLOOM_SCENE = 1;
     const bloomLayer = new THREE.Layers();
@@ -441,8 +445,9 @@ function BlokBots(props) {
     light2.position.set(-5,5,5);
     scene.add( light2 );
 
-    const ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
-    scene.add( ambientLight );
+    const light3 = new THREE.PointLight( 0xffffff, 10, 10 );
+    light3.position.set(0,5,-2);
+    scene.add( light3 );
 
     const renderScene = new RenderPass( scene, camera );
 
@@ -553,16 +558,63 @@ function BlokBots(props) {
     </div>
   }
 
-  function getControlUI(controls, strangeJuice) {
+  function getControlSet(setId, gameConfig) {
+    let controlSetUI = [];
+    let elems = [];
+
+    if(setId === 'front') {
+      elems = gameConfig.weapons_melee;
+    }
+    else if(setId === 'skin') {
+      elems = gameConfig.skin;
+    }
+    else if(setId === 'transport') {
+      elems = gameConfig.transport;
+    }
+    else {
+      elems = gameConfig.weapons_range.concat(gameConfig.shields_side);
+    }
+
+    for(let elem of elems) {
+      controlSetUI.push(
+        <option key={elem.id} value={elem.id}>{elem.name}</option>
+      )
+    }
+
+    return <select className="br-feature-select">
+      {controlSetUI}
+    </select>
+  }
+
+  function getControlRow(title, control) {
+    return <div className="br-feature-row">
+      <div className="br-feature-title">
+        {title}
+      </div>
+      <div className="br-feature-control">
+        {control}
+      </div>
+    </div>
+  }
+
+  function getColorChooser() {
+    const pickerStyle = {
+      padding: '0.5em'
+    };
+    
+    return <div style={pickerStyle}><CompactPicker /></div>;
+  }
+
+  function getControlUI(gameConfig, strangeJuice) {
     let controlUI = [];
 
-    if(controls) {
-      for(let control of controls) {
-        if(!control.condition || control.condition(strangeJuice, storyInfo)) {
-          controlUI.push(getControl(control.id, getIconURL(control.icon)));
-        }
-      }
-    }
+    controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)))
+    controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
+    controlUI.push(getControlRow('Top', getControlSet('top', gameConfig)))
+    controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
+    controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
+    controlUI.push(getControlRow('Skin', getControlSet('skin', gameConfig)))
+    controlUI.push(getColorChooser());
 
     return controlUI;
   }
@@ -618,12 +670,14 @@ function BlokBots(props) {
   }
 
   return <div className="br-strange-juice">
-    <div className="br-strange-juice-3d" ref={threeRef}>
-      <div className="br-strange-juice-text-overlay">
-        { getTextUI(storyLines) } 
+    <div className="br-garage">
+      <div className="br-strange-juice-3d" ref={threeRef}>
+        <div className="br-strange-juice-text-overlay">
+          { getTextUI(storyLines) } 
+        </div>
       </div>
       <div className="br-strange-juice-overlay">
-        { getControlUI(controls, strangeJuice) } 
+        { getControlUI(gameConfig, strangeJuice) } 
       </div>
     </div>
     <div className="br-strage-juice-controls">

@@ -6,6 +6,7 @@ import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initContract } from './js/helpers/near';
 import BlokBots from './js/components/BlokBots';
+import { SketchPicker } from 'react-color';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';

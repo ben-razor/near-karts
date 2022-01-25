@@ -108,8 +108,7 @@
     position: absolute;
     color: white;
     top: 10px;
-    left: 50%;
-    transform: translate(-50%);
+    left: 10px;
     width: 400px;
     font-family: StrangeJuiceRegular, sans-serif;
     border: 1px solid hsl(0%, 0%, 70%);
@@ -123,8 +122,12 @@
     position: absolute;
     color: white;
     right: 10px;
-    top: 10px;
     font-family: StrangeJuiceRegular, sans-serif;
+    border: 1px solid hsl(0%, 0%, 70%);
+    border-radius: 1em;
+    background-color:hsla(0%, 0%, 10%, 0.1);
+    width: 40%;
+    background-color: hsla(230deg, 10%, 30%, 0.8);
 }
 
 .br-strange-juice-control {
@@ -157,4 +160,48 @@
 
 .br-border-hide {
     border: 0;
+}
+
+.br-feature-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.br-feature-row {
+    display: flex;
+    padding: 0.8em 0.5em;
+    justify-items: left;
+}
+
+.br-feature-title {
+    flex: 1;
+    text-align: left;
+}
+
+.br-feature-control {
+    flex: 2;
+    text-align: left;
+}
+
+.br-feature-select {
+    background-color: hsl(200, 50%, 50%);
+    color: white;
+    display: inline-block;
+    height: 1.5em;
+    vertical-align: middle;
+    margin: auto auto auto 0;
+    padding-right: 0.5em;
+    font-size: 1rem;
+    border-radius: 0.3em;
+    border: 0 solid black;
+    outline: none;
+    width: 100%;
+}
+
+.br-feature-select:focus {
+    border: 1px solid rgb(255, 255, 255);
+}
+
+.br-garage {
+    display: flex;
 }
