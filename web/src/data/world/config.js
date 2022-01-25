@@ -1,33 +1,33 @@
 const config = {
   weapons_range: [
-    { id: "laser", name: "Laser" },
-    { id: "rocket", name: "Rocket" },
-    { id: "fist", name: "Fist Full Of Nuts" },
-    { id: "flamethrower", name: "Flamethrower" },
-    { id: "aceed", name: "Aceed" },
+    { id: "WeaponLaser", name: "Laser" },
+    { id: "WeaponRocket", name: "Rocket" },
+    { id: "WeaponFist", name: "Fist Full Of Nuts" },
+    { id: "WeaponFlamethrower", name: "Flamethrower" },
+    { id: "WeaponAceed", name: "Aceed" },
   ],
   weapons_melee: [
-    { id: "flipper", name: "Flipper" },
-    { id: "sword", name: "Sword" },
-    { id: "axe", name: "Axe" },
-    { id: "hammer", name: "Hammer" },
+    { id: "WeaponFlipper", name: "Flipper" },
+    { id: "WeaponSword", name: "Sword" },
+    { id: "WeaponAxe", name: "Axe" },
+    { id: "WeaponHammer", name: "Hammer" },
   ],
   shields_side: [
-    { id: "kitten", name: "Fluffy Kitten"},
-    { id: "kevlar", name: "Kevlar"},
+    { id: "ShieldFluffyKitten", name: "Fluffy Kitten"},
+    { id: "ShieldStrong", name: "Kevlar"},
   ],
   skin: [
-    { id: "plastic", name: "Plastic" },
-    { id: "carbon_fibre", name: "Carbon Fibre" },
-    { id: "aluminium", name: "Aluminium" },
-    { id: "steel", name: "Steel" }
+    { id: "SkinPlastic", name: "Plastic" },
+    { id: "SkinCarbonFibre", name: "Carbon Fibre" },
+    { id: "SkinAluminium", name: "Aluminium" },
+    { id: "SkinSteel", name: "Steel" }
   ],
   transport: [
-    { id: "wheels", name: "Wheels" },
-    { id: "tracks", name: "Tracks" },
-    { id: "double_tracks", name: "Double Tracks" },
-    { id: "hover", name: "Hover" }
-  ]
+    { id: "BotTransportWheels", name: "Wheels" },
+    { id: "BotTransportTracks", name: "Tracks" },
+    { id: "BotTransportDoubleTracks", name: "Double Tracks" },
+  ],
+  start_hidden: [ 'BotTransport', 'BotTurret', 'Weapon', 'Shield']
 }
 
 export default config;

@@ -113,6 +113,24 @@ function BlokBots(props) {
   const [storyLines, setStoryLines] = useState([]);
   const [storyIndex, setStoryIndex] = useState(0);
   const [storyInfo, setStoryInfo] = useState({});
+  const [controlEntry, setControlEntry] = useState({
+    front: '',
+    left: '',
+    right: '',
+    top: '',
+    transport: '',
+    skin: ''
+  });
+
+  const [botConfig, setBotConfig] = useState({
+    left: 3,
+    right: 0,
+    top: 2,
+    front: 0,
+    transport: 0,
+    skin: 0,
+    color: '#fffe00',
+  });
 
   const controls = sceneConfig[sceneIndex].controls;
   const storySection = sceneConfig[sceneIndex].storySection;
@@ -209,6 +227,86 @@ function BlokBots(props) {
     }
 
   }, [strangeJuice, oldStrangeJuice, sjScene, styleChanged, juiceChanged, storyInfo]);
+
+  function startHidden(name) {
+    let hidden = false;
+    for(let start of gameConfig.start_hidden) {
+      if(name.startsWith(start)) {
+        hidden = true;
+      }
+    }
+    return hidden;
+  }
+
+  useEffect(() => {
+    if(sjScene) {
+      sjScene.traverse(o => {
+        if(startHidden(o.name)) {
+          o.visible = false;
+        }
+
+        if(controlEntry.left) {
+          if(o.name === 'BotTurretL' && controlEntry.left.startsWith('Weapon')) {
+            o.visible = true;
+          }
+
+          if(controlEntry.left.startsWith('Shield')) {
+            if(o.name.startsWith(controlEntry.left + 'L')) {
+              o.visible = true;
+            }
+          }
+          else {
+            if(o.name.startsWith(controlEntry.left)) {
+              o.visible = true;
+            }
+          }
+        }
+
+        if(controlEntry.right) {
+          if(o.name === 'BotTurretR' && controlEntry.right.startsWith('Weapon')) {
+            o.visible = true;
+          }
+
+          if(controlEntry.right.startsWith('Shield')) {
+            if(o.name.startsWith(controlEntry.right + 'R')) {
+              o.visible = true;
+            }
+          }
+          else {
+            if(o.name.startsWith(controlEntry.right)) {
+              o.visible = true;
+            }
+          }
+        }
+
+        if(controlEntry.top) {
+          if(o.name === 'BotTurretTop' && controlEntry.top.startsWith('Weapon')) {
+            o.visible = true;
+          }
+
+          if(o.name.startsWith(controlEntry.top)) {
+            o.visible = true;
+          }
+        }
+
+        if(controlEntry.front) {
+          if(o.name === 'BotTurretFront' && controlEntry.front.startsWith('Weapon')) {
+            o.visible = true;
+          }
+
+          if(o.name.startsWith(controlEntry.front)) {
+            o.visible = true;
+          }
+        }
+
+        if(controlEntry.transport) {
+          if(o.name.startsWith(controlEntry.transport)) {
+            o.visible = true;
+          }
+        }
+      });
+    }
+  }, [sjScene, controlEntry]);
 
   let triggerCallback = useCallback((id, isColliding) => {
     console.log('Trigger: ', id, isColliding);
@@ -420,13 +518,17 @@ function BlokBots(props) {
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
-    camera.position.x = -1;
-    camera.position.y = 1.4;
+    camera.position.x = 0;
+    camera.position.y = 2;
     camera.position.z = 2.2;
-    camera.lookAt(0, 0, 0);
 
     let controls = new OrbitControls( camera, threeElem );
-    controls.minDistance = 3;
+    controls.center = new THREE.Vector3(0, 2, 0);
+    controls.minDistance = 2;
+    controls.maxDistance = 5;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.autoRotate = true;
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
     
@@ -581,9 +683,16 @@ function BlokBots(props) {
       )
     }
 
-    return <select className="br-feature-select">
+    return <select className="br-feature-select" value={controlEntry[setId]} onChange={e => changeControl(setId, e.target.value)}>
       {controlSetUI}
     </select>
+  }
+
+  function changeControl(setId, value) {
+    let _controlEntry = {...controlEntry};
+    _controlEntry[setId] = value;
+    console.log(_controlEntry);
+    setControlEntry(_controlEntry);
   }
 
   function getControlRow(title, control) {
