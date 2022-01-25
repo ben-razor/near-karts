@@ -251,15 +251,8 @@ function BlokBots(props) {
             o.visible = true;
           }
 
-          if(controlEntry.left.startsWith('Shield')) {
-            if(o.name.startsWith(controlEntry.left + 'L')) {
-              o.visible = true;
-            }
-          }
-          else {
-            if(o.name.startsWith(controlEntry.left)) {
-              o.visible = true;
-            }
+          if(o.name.startsWith(controlEntry.left + 'L')) {
+            o.visible = true;
           }
         }
 
@@ -268,24 +261,7 @@ function BlokBots(props) {
             o.visible = true;
           }
 
-          if(controlEntry.right.startsWith('Shield')) {
-            if(o.name.startsWith(controlEntry.right + 'R')) {
-              o.visible = true;
-            }
-          }
-          else {
-            if(o.name.startsWith(controlEntry.right)) {
-              o.visible = true;
-            }
-          }
-        }
-
-        if(controlEntry.top) {
-          if(o.name === 'BotTurretTop' && controlEntry.top.startsWith('Weapon')) {
-            o.visible = true;
-          }
-
-          if(o.name.startsWith(controlEntry.top)) {
+          if(o.name.startsWith(controlEntry.right + 'R')) {
             o.visible = true;
           }
         }
@@ -734,7 +710,6 @@ function BlokBots(props) {
 
     controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)))
     controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
-    controlUI.push(getControlRow('Top', getControlSet('top', gameConfig)))
     controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
     controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
     controlUI.push(getControlRow('Skin', getControlSet('skin', gameConfig)))
