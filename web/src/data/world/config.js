@@ -13,8 +13,8 @@ const config = {
     { id: "WeaponHammer", name: "Hammer" },
   ],
   shields_side: [
-    { id: "ShieldFluffyKitten", name: "Fluffy Kitten"},
-    { id: "ShieldStrong", name: "Kevlar"},
+    { id: "ShieldKitten", name: "Fluffy Kitten"},
+    { id: "ShieldKevlar", name: "Kevlar"},
   ],
   skin: [
     { id: "SkinPlastic", name: "Plastic" },
@@ -23,11 +23,11 @@ const config = {
     { id: "SkinSteel", name: "Steel" }
   ],
   transport: [
-    { id: "BotTransportWheels", name: "Wheels" },
-    { id: "BotTransportTracks", name: "Tracks" },
-    { id: "BotTransportDoubleTracks", name: "Double Tracks" },
+    { id: "TransportWheels", name: "Wheels" },
+    { id: "TransportTracks", name: "Tracks" },
+    { id: "TransportDoubleTracks", name: "Double Tracks" },
   ],
-  start_hidden: [ 'BotTransport', 'BotTurret', 'Weapon', 'Shield']
+  start_hidden: [ 'Transport', 'BotTurret', 'Weapon', 'Shield']
 }
 
 export default config;

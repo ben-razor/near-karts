@@ -119,7 +119,8 @@ function BlokBots(props) {
     right: '',
     top: '',
     transport: '',
-    skin: ''
+    skin: '',
+    color: '#fe0'
   });
 
   const [botConfig, setBotConfig] = useState({
@@ -302,6 +303,15 @@ function BlokBots(props) {
         if(controlEntry.transport) {
           if(o.name.startsWith(controlEntry.transport)) {
             o.visible = true;
+          }
+        }
+
+        if(o.name === 'BotBody1') {
+          for(let child of o.children) {
+            if(child.material.name === 'MatBody') {
+              child.material.color = new THREE.Color(controlEntry.color);
+              break;
+            }
           }
         }
       });
@@ -539,15 +549,16 @@ function BlokBots(props) {
     renderer.toneMappingExposure = params.exposure;
     threeElem.appendChild( renderer.domElement );
 
-    const light = new THREE.PointLight( 0xffffff, 10, 10 );
+    const INTENSITY = 14;
+    const light = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
     light.position.set( 5, 5, 5 );
     scene.add( light );
 
-    const light2 = new THREE.PointLight( 0xffffff, 10, 10 );
+    const light2 = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
     light2.position.set(-5,5,5);
     scene.add( light2 );
 
-    const light3 = new THREE.PointLight( 0xffffff, 10, 10 );
+    const light3 = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
     light3.position.set(0,5,-2);
     scene.add( light3 );
 
@@ -706,12 +717,16 @@ function BlokBots(props) {
     </div>
   }
 
+  function colorChanged(color, event) {
+    changeControl('color', color.hex);
+  }
+
   function getColorChooser() {
     const pickerStyle = {
       padding: '0.5em'
     };
     
-    return <div style={pickerStyle}><CompactPicker /></div>;
+    return <div style={pickerStyle}><CompactPicker onChange={ colorChanged }/></div>;
   }
 
   function getControlUI(gameConfig, strangeJuice) {
