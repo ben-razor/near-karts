@@ -1,0 +1,637 @@
+import React, {useEffect, useState, useCallback} from 'react';
+import * as THREE from 'three';
+import * as Tone from 'tone';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import lifeform from '../../data/models/bot-1.gltf';
+import BrButton from './lib/BrButton';
+import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from '../3d/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from '../3d/jsm/postprocessing/ShaderPass.js';
+import envTexture from '../../images/tex/studio.exr';
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { setAlphaToEmissive, loadImageToMaterial, hueToColor, HitTester } from '../helpers/3d';
+import sceneConfig from '../../data/world/scenes';
+import getText from '../../data/world/text';
+import story from '../../data/story/story.js';
+
+const loader = new GLTFLoader();
+
+const VERTEX_SHADER = `varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+}`;
+
+const FRAGMENT_SHADER = `uniform sampler2D baseTexture;
+uniform sampler2D bloomTexture;
+varying vec2 vUv;
+void main() {
+  gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );
+}`;
+
+const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
+
+const w = 900;
+const h = 400;
+const storyDelay = 4000;
+
+const keysPressed = {};
+const speed = 1.5;
+let velocity = new THREE.Vector3();
+let obstaclePos = new THREE.Vector3();
+let collisionVec = new THREE.Vector3();
+let resolutionVec = new THREE.Vector3();
+let resolutionPos = new THREE.Vector3();
+
+let sceneName = '';
+let obstacles = [];
+let triggers = [];
+let hitTesters = [];
+let bounds = { z: [], x: []};
+let startPos = { x: 0, y: 0, z: 0 };
+let elems = {};
+
+document.addEventListener('keydown', e => {
+  keysPressed[e.key.toLowerCase()] = true;
+})
+document.addEventListener('keyup', e => {
+  keysPressed[e.key.toLowerCase()] = false;
+});
+
+function updateVelocity(velocity, keysPressed) {
+  let speedF = 0;
+  let speedL = 0;
+  velocity.set(0, 0, 0);
+
+  if(keysPressed['s']) {
+    speedF = speed;
+  }
+  else if(keysPressed['w']) {
+    speedF = -speed;
+  }
+
+  if(keysPressed['a']) {
+    speedL = -speed;
+  }
+  else if(keysPressed['d']) {
+    speedL = speed;
+  }
+
+  let moving = speedF || speedL;
+  if(moving) {
+    velocity.set(speedL, 0, speedF);
+    velocity.normalize().multiplyScalar(speed);
+  }
+
+  return velocity;
+}
+
+let room = 0;
+
+function BlokBots(props) {
+  const color1 = props.color1;
+  const strangeJuice = props.strangeJuice;
+  const execute = props.execute;
+  const processingActions = props.processingActions;
+
+  const isGlowing = window.isGlowing = strangeJuice.evolution > 0;
+  window.strangeJuice = strangeJuice;
+
+  const threeRef = React.createRef();
+  const [scene, setScene] = useState();
+  const [camera, setCamera] = useState();
+  const [clock, setClock] = useState();
+  const [audioInitialized, setAudioInitialized] = useState();
+  const [sjScene, setSJScene] = useState();
+  const [oldStrangeJuice, setOldStrangeJuice] = useState({});
+  const [sceneIndex, setSceneIndex] = useState(0);
+  const [storyLines, setStoryLines] = useState([]);
+  const [storyIndex, setStoryIndex] = useState(0);
+  const [storyInfo, setStoryInfo] = useState({});
+
+  const controls = sceneConfig[sceneIndex].controls;
+  const storySection = sceneConfig[sceneIndex].storySection;
+
+  const styleChanged = useCallback((element) => {
+    let elementKey = `style_${element}`;
+    let changed = oldStrangeJuice[elementKey] !== strangeJuice[elementKey];
+    return changed;
+  }, [oldStrangeJuice, strangeJuice]);
+
+  const juiceChanged = useCallback((elementKey) => {
+    let changed = oldStrangeJuice[elementKey] !== strangeJuice[elementKey];
+    return changed;
+  }, [oldStrangeJuice, strangeJuice]);
+
+  function getTextureURL(element, style) {
+    let url = baseImageURL + `lifeform-1-${element}-${style}.png`;
+    return url;
+  }
+
+  function getIconURL(element, style='1') {
+    let url = baseImageURL + `icons-1-${element}-${style}.png`;
+    return url;
+  }
+
+  useEffect(() => {
+    if(sjScene) {
+
+      sjScene.traverse(o => {
+        if(o.material) {
+          console.log('sj', strangeJuice.evolution, oldStrangeJuice.evolution, styleChanged('evolution'))
+
+          if(juiceChanged('color_body')) {
+            if(o.material.name === 'Body1' || o.material.name === 'Badge1') {
+              o.material.emissive = new THREE.Color(hueToColor(strangeJuice.color_body));
+            }
+          }
+
+          if(styleChanged('body')) {
+              if(o.material.name === 'Body1') {
+                loadImageToMaterial(o.material, getTextureURL('body', '1'));
+              }
+              else if(o.material.name === 'Badge1') {
+                loadImageToMaterial(o.material, getTextureURL('badge', strangeJuice.style_body));
+              }
+          }
+
+          if(styleChanged('head')) {
+            console.log('head change', strangeJuice.style_head)
+            if(o.material.name === 'Head1') {
+              loadImageToMaterial(o.material, getTextureURL('head', strangeJuice.style_head));
+            }
+          }
+
+          if(styleChanged('head_wear')) {
+            if(o.material.name === 'HeadWear1') {
+              o.material.emissive = new THREE.Color(hueToColor(strangeJuice.color_head_wear));
+              let headWearURL = getTextureURL('headwear', strangeJuice.style_head_wear);
+              loadImageToMaterial(o.material, headWearURL);
+            }
+          }
+
+          if(styleChanged('legs')) {
+            let legsURL = getTextureURL('legs', strangeJuice.style_legs);
+
+            if(o.material.name === 'Leg1') {
+              loadImageToMaterial(o.material, legsURL);
+            }
+            if(o.material.name === 'Arm1') {
+              loadImageToMaterial(o.material, legsURL);
+            }
+          }
+
+          if(elems && o.name in elems) {
+            let condition = elems[o.name].condition;
+
+            if(condition) {
+              if(condition(strangeJuice, storyInfo)) {
+                o.visible = true;
+              }
+              else {
+                o.visible = false;
+              }
+            }
+          }
+        }
+      });
+
+      if(strangeJuice.room !== oldStrangeJuice.room) {
+        setSceneIndex(strangeJuice.room);
+      }
+
+      setOldStrangeJuice(strangeJuice);
+    }
+
+  }, [strangeJuice, oldStrangeJuice, sjScene, styleChanged, juiceChanged, storyInfo]);
+
+  let triggerCallback = useCallback((id, isColliding) => {
+    console.log('Trigger: ', id, isColliding);
+    if(isColliding) {
+      setTimeout(() => {
+        execute('leave_room_zero');
+      }, 10);
+    }
+  }, [execute]);
+
+  useEffect(() => {
+    for(let hitTester of hitTesters) {
+      hitTester.callback = triggerCallback;
+    }
+  }, [execute, triggerCallback]);
+
+  useEffect(() => {
+    if(sjScene) {
+      console.log('Scene index: ', sceneIndex);
+      
+      ({ sceneName, obstacles, triggers, bounds, startPos, elems } = sceneConfig[sceneIndex]);
+
+      let lifeformModel = sjScene.getObjectByName('BotEmpty');
+      lifeformModel.position.copy(startPos);
+
+      hitTesters = [];
+      for(let triggerConfig of triggers) {
+        let positionModel = sjScene.getObjectByName(triggerConfig.objId);
+        let hitTester = new HitTester(triggerConfig, positionModel, triggerCallback)
+        hitTesters.push(hitTester);
+        hitTester.test(lifeformModel, true);
+      }
+
+      console.log('RESCENING');
+      sjScene.traverse(o => {
+        if(o.name.startsWith('Scene') && o.name !== 'Scene') {
+          console.log('NAME', o.name, sceneName);
+          if(o.name.startsWith(sceneName)) {
+            o.visible = true;
+            console.log('visible', o.visible);
+          }
+          else {
+            o.visible = false;
+            console.log('visible', o.visible);
+          }
+        }
+
+        if(elems && o.name in elems) {
+          let condition = elems[o.name].condition;
+
+          if(condition) {
+            if(condition(strangeJuice, storyInfo)) {
+              o.visible = true;
+            }
+            else {
+              o.visible = false;
+            }
+          }
+        }
+      });
+
+      setStoryIndex(0);
+      setStoryInfo({});
+    }
+  }, [sjScene, sceneIndex]);
+
+  useEffect(() => {
+    if(scene) {
+      loader.load( lifeform, function ( gltf ) {
+        console.log('RELOADING');
+          scene.add( gltf.scene );
+          const mixer = new THREE.AnimationMixer(gltf.scene);
+          const clips = gltf.animations;
+          setSJScene(gltf.scene);
+
+          var textureLoader = new THREE.TextureLoader();
+          var texture = textureLoader.load(envTexture);
+
+          gltf.scene.traverse(o => {
+            if (o.isMesh) o.material.envMap = texture;
+          });
+
+          let lifeformModel = gltf.scene.getObjectByName('EmptyLifeform');
+          const clipWalk = THREE.AnimationClip.findByName( clips, 'Walk1' );
+          const clipIdle = THREE.AnimationClip.findByName( clips, 'Movement1' );
+          const idleAction = mixer.clipAction( clipIdle );
+          const walkAction = mixer.clipAction( clipWalk );
+          idleAction.play();
+
+          let { sceneName, bounds, triggers } = sceneConfig[sceneIndex];
+
+          let prevPosition = new THREE.Vector3();
+          prevPosition.copy(lifeformModel.position);
+          let isWalking = false;
+
+          var animateLifeform = function () {
+            let delta = clock.getDelta();
+
+            velocity = updateVelocity(velocity, keysPressed);
+            let speed = velocity.length();
+
+            if(speed && !isWalking) {
+              walkAction.play();
+              idleAction.crossFadeTo(walkAction)
+              isWalking = true;
+            }
+            else if(!speed && isWalking) {
+              walkAction.crossFadeTo(idleAction);
+              isWalking = false;
+            }
+
+            if(lifeformModel && velocity) {
+              velocity.multiplyScalar(delta);
+              prevPosition.copy(lifeformModel.position);
+              
+              if(velocity.x < 0) {
+                lifeformModel.rotation.y = -Math.PI / 4; 
+              }
+              else if(velocity.x > 0) {
+                lifeformModel.rotation.y = Math.PI / 4; 
+              }
+              else {
+                lifeformModel.rotation.y = 0;
+              }
+
+              lifeformModel.position.add(velocity);
+
+              let pos = lifeformModel.position;
+              if(pos.x < bounds.x[0] || pos.x > bounds.x[1]) {
+                lifeformModel.position.x = prevPosition.x;
+              }
+              if(pos.z < bounds.z[0] || pos.z > bounds.z[1]) {
+                lifeformModel.position.z = prevPosition.z;
+              }
+
+              for(let obstacle of obstacles) {
+                collisionVec.set(lifeformModel.position.x, lifeformModel.position.y, lifeformModel.position.z);
+                obstaclePos.set(obstacle.pos[0], obstacle.pos[1], obstacle.pos[2]);
+                collisionVec.sub(obstaclePos);
+
+                if(collisionVec.length() < obstacle.geometry.radius) {
+                  resolutionVec.set(collisionVec.x, collisionVec.y, collisionVec.z);
+                  resolutionVec.normalize();
+                  resolutionVec.multiplyScalar(obstacle.geometry.radius + 0.02);
+                  resolutionPos.set(obstacle.pos[0], obstacle.pos[1], obstacle.pos[2]);
+                  resolutionPos.add(resolutionVec);
+                  lifeformModel.position.copy(resolutionPos);
+                }
+              }
+
+              for(let t of hitTesters) { t.test(lifeformModel) }
+
+            }
+
+
+            requestAnimationFrame( animateLifeform );
+            mixer.update(delta);
+          };
+      
+          animateLifeform();
+
+          const raycaster = new THREE.Raycaster();
+          const mouse = new THREE.Vector2();
+
+          function onPointerDown( event ) {
+            var rect = event.target.getBoundingClientRect();            
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+            mouse.x = ( x / w) * 2 - 1;
+            mouse.y = -( y / h) * 2 + 1;
+            console.log('cxy', event.clientX, event.clientY, x, y, mouse.x, mouse.y);
+
+            raycaster.setFromCamera( mouse, camera );
+            const intersects = raycaster.intersectObjects( gltf.scene.children, true );
+            if ( intersects.length > 0 ) {
+              const object = intersects[ 0 ].object;
+              console.log(object);
+            }
+            else {
+              console.log('no intersect');
+            }
+          }
+
+          window.addEventListener('pointerdown', onPointerDown); 
+
+        }, undefined, function ( error ) {
+          console.error( error );
+      } );  
+    }
+  }, [scene]);
+
+  useEffect(() => {
+
+    const threeElem = threeRef.current;
+
+    const ENTIRE_SCENE = 0, BLOOM_SCENE = 1;
+    const bloomLayer = new THREE.Layers();
+    bloomLayer.set( BLOOM_SCENE );
+
+    const params = {
+      exposure: 1,
+      bloomStrength: 4,
+      bloomThreshold: 0,
+      bloomRadius: 0.1,
+      scene: "Scene with Glow"
+    };
+
+    var clock = new THREE.Clock();
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
+    camera.position.x = -1;
+    camera.position.y = 1.4;
+    camera.position.z = 2.2;
+    camera.lookAt(0, 0, 0);
+
+    let controls = new OrbitControls( camera, threeElem );
+    controls.minDistance = 3;
+
+    var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
+    
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( w, h);
+    renderer.setClearColor(0x000000);
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.toneMappingExposure = params.exposure;
+    threeElem.appendChild( renderer.domElement );
+
+    const light = new THREE.PointLight( 0xffffff, 10, 10 );
+    light.position.set( 5, 5, 5 );
+    scene.add( light );
+
+    const light2 = new THREE.PointLight( 0xffffff, 10, 10 );
+    light2.position.set(-5,5,5);
+    scene.add( light2 );
+
+    const ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+    scene.add( ambientLight );
+
+    const renderScene = new RenderPass( scene, camera );
+
+    /* * Bloom settings: *   10, 4, 1, 2 - Desert */
+    //const bloomPass = new BloomPass(20, 8, 0.1, 2); 
+    const bloomPass = new UnrealBloomPass( new THREE.Vector2( w, h), 1.5, 0.4, 0.85 );
+    bloomPass.threshold = params.bloomThreshold;
+    bloomPass.strength = params.bloomStrength * 0.3;
+    bloomPass.radius = params.bloomRadius;
+    bloomPass.bloomTintColors[1] = new THREE.Vector3(1, 1, 1);
+
+    const bloomComposer = new EffectComposer( renderer );
+    bloomComposer.renderToScreen = false;
+    bloomComposer.addPass( renderScene );
+    bloomComposer.addPass( bloomPass );
+
+    const finalPass = new ShaderPass(
+      new THREE.ShaderMaterial( {
+        uniforms: {
+          baseTexture: { value: null },
+          bloomTexture: { value: bloomComposer.renderTarget2.texture }
+        },
+        vertexShader: VERTEX_SHADER,
+        fragmentShader: FRAGMENT_SHADER,
+        defines: {}
+      } ), "baseTexture"
+    );
+    finalPass.needsSwap = true;
+
+    const finalComposer = new EffectComposer( renderer );
+    finalComposer.addPass( renderScene );
+    finalComposer.addPass( finalPass );
+    const smaaPass = new SMAAPass(10, 10)
+    finalComposer.addPass(smaaPass);
+
+    /*
+    const filmPass = new FilmPass(
+      0.05,   // noise intensity
+      0.225,  // scanline intensity
+      500,    // scanline count
+      true,  // grayscale
+    );
+    finalComposer.addPass(filmPass);
+    */
+
+    renderer.setSize( w, h);
+    bloomComposer.setSize( w, h);
+    finalComposer.setSize( w, h);
+
+    let i = 0;
+
+    var animate = function () {
+      requestAnimationFrame( animate );
+      controls.update();
+      if(i++ % 4 === 0) {
+        camera.layers.set( ENTIRE_SCENE );
+
+        /*
+        if(window.strangeJuice.evolution > 0) {
+          bloomPass.strength = params.bloomStrength * 0.3;
+        }
+        else {
+          bloomPass.strength = 0;
+        }
+        bloomComposer.render();
+        */
+        finalComposer.render();
+      }
+    };
+
+    animate();
+    setScene(scene);
+    setCamera(camera);
+    setClock(clock);
+  }, []);
+
+  async function startAudio() {
+    await Tone.start();
+    setAudioInitialized(true);
+  }
+
+  useEffect(() => {
+    if(audioInitialized) {
+      const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+      const now = Tone.now()
+      synth.triggerAttack("D4", now);
+      synth.triggerAttack("F4", now + 0.5);
+      synth.triggerAttack("A4", now + 1);
+      synth.triggerAttack("C5", now + 1.5);
+      synth.triggerAttack("E5", now + 2);
+      synth.triggerRelease(["D4", "F4", "A4", "C5", "E5"], now + 4);
+      const feedbackDelay = new Tone.FeedbackDelay(0.33, 0.8).toDestination();
+      synth.connect(feedbackDelay);
+    }
+  }, [audioInitialized]);
+
+  function getControl(action, src) {
+    console.log('PA', processingActions);
+    let processing = processingActions?.[action];
+
+    return <div className={"br-strange-juice-control " + (processing ? 'br-border-hide' : '')} onClick={e => execute(action)} key={action}>
+      <div className="br-strange-juice-overlay-image-container">
+        <img className={"br-strange-juice-overlay-image " + (processing ? 'br-anim-shake' : '')} alt="Plug socket" src={src} />
+      </div>
+      <div className={"br-strange-juice-overlay-text " + (processing ? 'br-anim-text-pulse' : '')}>
+        { getText('icon_' + action )}
+      </div>
+    </div>
+  }
+
+  function getControlUI(controls, strangeJuice) {
+    let controlUI = [];
+
+    if(controls) {
+      for(let control of controls) {
+        if(!control.condition || control.condition(strangeJuice, storyInfo)) {
+          controlUI.push(getControl(control.id, getIconURL(control.icon)));
+        }
+      }
+    }
+
+    return controlUI;
+  }
+
+  useEffect(() => {
+    /*
+    let timer = setTimeout(() => {
+      setStoryIndex(storyIndex + 1);
+    }, storyDelay);
+
+    return () => { clearInterval(timer) }
+    */
+
+  }, [storyIndex]);
+
+  useEffect(() => {
+    /*
+    if(storySection) {
+      setStoryIndex(0);
+      setStoryLines([]);
+    }
+    */
+  }, [storySection]);
+
+  useEffect(() => {
+    /*
+    let lines = story[storySection]['text'];
+    console.log('STORY', storySection, storyIndex, lines[storyIndex], story);
+    if(storyIndex < lines.length) {
+      let _storyLines = [...storyLines];
+      _storyLines.push(lines[storyIndex]);
+      setStoryLines(_storyLines);
+      setStoryInfo({storySection, storyIndex});
+    }
+    */
+  }, [storySection, storyIndex]);
+
+
+
+  function getTextUI(storyLines) {
+    let linesUI = [];
+
+    let i = 0;
+    for(let line of storyLines) {
+      linesUI.push(<div className="br-strange-juice-story-line" key={i++}>
+        {line}
+      </div>);
+    }
+
+    return <div className="br-strange-juice-story-lines">
+      {linesUI}
+    </div>
+  }
+
+  return <div className="br-strange-juice">
+    <div className="br-strange-juice-3d" ref={threeRef}>
+      <div className="br-strange-juice-text-overlay">
+        { getTextUI(storyLines) } 
+      </div>
+      <div className="br-strange-juice-overlay">
+        { getControlUI(controls, strangeJuice) } 
+      </div>
+    </div>
+    <div className="br-strage-juice-controls">
+      <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
+      <BrButton label="Reset" id="reset" className="br-button br-icon-button" onClick={e => execute('do_naughty_reset')} />
+    </div>
+  </div>
+  
+}
+
+export default BlokBots;

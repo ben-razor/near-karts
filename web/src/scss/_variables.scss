@@ -1,0 +1,12 @@
+$color-1-hue: 202deg;
+
+$color-1-base: hsl($color-1-hue, 50%, 50%);
+$color-1-l2: $color-1-base;
+$color-1-l3: lighten($color-1-base, 20%);
+$color-1-l4: lighten($color-1-base, 30%);
+
+$color-1-alt1: hsl($color-1-hue, 48%, 42%);
+$color-1-alt2: hsl($color-1-hue, 70%, 43%);
+
+$color-disabled: hsl(0deg, 0%, 50%);
+$color-disabled-2: darken($color-disabled, 20%);

@@ -1,0 +1,160 @@
+.br-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
+}
+
+.br-header-logo {
+    width: 4em;
+    height: 4em;
+}
+
+.br-title-panel {
+    display: flex;
+    align-items: center;
+}
+
+.br-title {
+    margin-left: 0.5em;
+}
+
+.br-page {
+    margin: 0em 10em 0em 10em;
+}
+
+.br-content {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    padding: 0.5em;
+    text-align: center;
+}
+
+.br-balances {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.br-balance-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 14em;
+}
+
+.br-staking-panel {
+    margin: 2em;
+    padding: 1em;
+    width: 50%;
+    margin: auto;
+    border: 1px solid $color-1-base;
+    border-radius: 1em;
+}
+
+.br-nft-image-panel {
+    display: flex;
+    flex-direction: column;
+    width: 15em;
+    height: 15em;
+    background-color: hsl(0%, 0%, 90%);
+    border: 1px solid grey;
+    border-radius: 2em;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 0.5em auto;
+    padding: 0.5em;
+}
+
+.br-nft-title {
+    font-weight: bold;
+}
+
+.br-nft-image {
+    object-fit: cover;
+    max-width: 12em;
+}
+
+.br-button {
+    position: relative;
+    z-index: 10;
+    min-width: 7em;
+    padding: 0.2em 0.8em;
+    margin: 0 0.05em;
+    border-radius: 0.4em;
+    border-width: 1px 0 0 1px;
+    font-size: 0.9em;
+    min-height: 2.5em;
+    max-height: 3em;
+    background-image: linear-gradient(0deg, transparent 0%, hsla($color-1-hue, 100%, 50%, 0.8) 100%);
+    background-color: $color-1-alt2;
+    border-color: $color-1-l3;
+    color: white;
+
+    &:disabled {
+        background-image: linear-gradient(0deg, transparent 0%, $color-disabled 100%);
+        background-color: $color-disabled;
+        border-color: $color-disabled-2;
+    }
+}
+
+.br-threejs-container {
+    width: 900px;
+    margin: auto;
+    position: relative;
+}
+
+.br-strange-juice-text-overlay {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    color: white;
+    top: 10px;
+    left: 50%;
+    transform: translate(-50%);
+    width: 400px;
+    font-family: StrangeJuiceRegular, sans-serif;
+    border: 1px solid hsl(0%, 0%, 70%);
+    border-radius: 1em;
+    padding: 0.4em;
+}
+
+.br-strange-juice-overlay {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    color: white;
+    right: 10px;
+    top: 10px;
+    font-family: StrangeJuiceRegular, sans-serif;
+}
+
+.br-strange-juice-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5em;
+    margin: 0.2em;
+    border: 4px solid hsl(0%, 0%, 70%);
+    border-radius: 1em;
+    background-color:hsla(0%, 0%, 10%, 0.1);
+}
+
+.br-strange-juice-control:hover {
+    background-color:hsla(0%, 0%, 10%, 0.2);
+}
+
+.br-strange-juice-overlay-image-container {
+    width: 50px;
+}
+
+.br-strange-juice-overlay-image {
+    width: 100%;
+}
+
+.br-strange-juice-overlay-text {
+    text-shadow: 1px 1px 5px lightgreen;
+    cursor: default;
+}
+
+.br-border-hide {
+    border: 0;
+}

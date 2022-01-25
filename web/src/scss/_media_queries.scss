@@ -1,0 +1,21 @@
+@media (max-width: 992px) {
+    .tiny-hide {
+        display: none;
+    }
+    .br-page {
+        margin: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 576px) {
+    .br-header {
+        flex-direction: column;
+        font-size: 0.9em;
+    }
+}
