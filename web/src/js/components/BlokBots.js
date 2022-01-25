@@ -285,7 +285,31 @@ function BlokBots(props) {
         if(o.name === 'BotBody1') {
           for(let child of o.children) {
             if(child.material.name === 'MatBody') {
+              console.log(child.material);
               child.material.color = new THREE.Color(controlEntry.color);
+
+              if(controlEntry.skin === 'SkinPlastic') {
+                child.material.flatShading = false;
+                child.material.roughness = 0;
+                child.material.metalness = 0;
+              }
+              if(controlEntry.skin === 'SkinCarbonFibre') {
+                child.material.flatShading = true;
+                child.material.roughness = 0.8;
+                child.material.metalness = 0;
+              }
+              if(controlEntry.skin === 'SkinAluminium') {
+                child.material.flatShading = true;
+                child.material.roughness = 0.4;
+                child.material.metalness = 0.5;
+              }
+              if(controlEntry.skin === 'SkinSteel') {
+                child.material.flatShading = true;
+                child.material.roughness = 0.2;
+                child.material.metalness = 1;
+              }
+
+              child.material.needsUpdate = true;
               break;
             }
           }

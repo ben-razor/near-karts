@@ -1211,7 +1211,7 @@
         },
         {
             "mesh" : 35,
-            "name" : "WeaponLaser.001",
+            "name" : "WeaponLaserL",
             "rotation" : [
                 -0.7071068286895752,
                 0,
@@ -1231,7 +1231,7 @@
         },
         {
             "mesh" : 36,
-            "name" : "WeaponLaserFixture.001",
+            "name" : "WeaponLaserLFixture",
             "rotation" : [
                 -0.7071068286895752,
                 0,
@@ -4284,7 +4284,7 @@
                         "TEXCOORD_0" : 150
                     },
                     "indices" : 74,
-                    "material" : 7
+                    "material" : 0
                 }
             ]
         },
@@ -4328,7 +4328,7 @@
                         "WEIGHTS_0" : 161
                     },
                     "indices" : 86,
-                    "material" : 7
+                    "material" : 0
                 }
             ]
         },
@@ -4599,7 +4599,7 @@
                         "TEXCOORD_0" : 216
                     },
                     "indices" : 74,
-                    "material" : 7
+                    "material" : 0
                 }
             ]
         },
@@ -4643,7 +4643,7 @@
                         "WEIGHTS_0" : 227
                     },
                     "indices" : 86,
-                    "material" : 7
+                    "material" : 0
                 }
             ]
         },
@@ -4845,7 +4845,7 @@
                         "TEXCOORD_0" : 268
                     },
                     "indices" : 269,
-                    "material" : 9
+                    "material" : 0
                 }
             ]
         },
