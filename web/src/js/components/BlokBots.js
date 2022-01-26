@@ -1,6 +1,5 @@
 import React, {useEffect, useState, useCallback, Fragment} from 'react';
 import * as THREE from 'three';
-import * as Tone from 'tone';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import lifeform from '../../data/models/bot-1.gltf';
 import BrButton from './lib/BrButton';
@@ -119,7 +118,6 @@ function BlokBots(props) {
   const [scene, setScene] = useState();
   const [camera, setCamera] = useState();
   const [clock, setClock] = useState();
-  const [audioInitialized, setAudioInitialized] = useState();
   const [sjScene, setSJScene] = useState();
   const [sceneIndex, setSceneIndex] = useState(0);
   const [storyLines, setStoryLines] = useState([]);
@@ -552,27 +550,7 @@ function BlokBots(props) {
     setCamera(camera);
     setClock(clock);
   }, []);
-
-  async function startAudio() {
-    await Tone.start();
-    setAudioInitialized(true);
-  }
-
-  useEffect(() => {
-    if(audioInitialized) {
-      const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-      const now = Tone.now()
-      synth.triggerAttack("D4", now);
-      synth.triggerAttack("F4", now + 0.5);
-      synth.triggerAttack("A4", now + 1);
-      synth.triggerAttack("C5", now + 1.5);
-      synth.triggerAttack("E5", now + 2);
-      synth.triggerRelease(["D4", "F4", "A4", "C5", "E5"], now + 4);
-      const feedbackDelay = new Tone.FeedbackDelay(0.33, 0.8).toDestination();
-      synth.connect(feedbackDelay);
-    }
-  }, [audioInitialized]);
-
+  
   function getControl(action, src) {
     console.log('PA', processingActions);
     let processing = processingActions?.[action];
@@ -813,9 +791,6 @@ function BlokBots(props) {
         { getControlUI(gameConfig, nftData) } 
         { getContractControls() }
       </div>
-    </div>
-    <div className="br-strage-juice-controls">
-      <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
     </div>
   </div>
 }

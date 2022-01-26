@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import Logo from './images/logo-1.png';
+import * as Tone from 'tone';
 import './scss/styles.scss';
 import { useToasts } from 'react-toast-notifications';
 import * as nearAPI from 'near-api-js';
@@ -25,12 +26,13 @@ function App() {
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
   const [wallet, setWallet] = useState();
+  const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
   const [nftContract, setNFTContract] = useState();
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
   const [activeTokenId, setActiveTokenId] = useState('');
   const [processingActions, setProcessingActions] = useState({});
-  const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
+  const [audioInitialized, setAudioInitialized] = useState();
 
   const { addToast } = useToasts();
 
@@ -242,12 +244,33 @@ function App() {
     return ui;
   }
 
+  useEffect(() => {
+    if(audioInitialized) {
+      const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+      const now = Tone.now()
+      synth.triggerAttack("D4", now);
+      synth.triggerAttack("F4", now + 0.5);
+      synth.triggerAttack("A4", now + 1);
+      synth.triggerAttack("C5", now + 1.5);
+      synth.triggerAttack("E5", now + 2);
+      synth.triggerRelease(["D4", "F4", "A4", "C5", "E5"], now + 4);
+      const feedbackDelay = new Tone.FeedbackDelay(0.33, 0.8).toDestination();
+      synth.connect(feedbackDelay);
+    }
+  }, [audioInitialized]);
+
+  async function startAudio() {
+    await Tone.start();
+    setAudioInitialized(true);
+  }
+
   return (
     <div className="br-page">
       <div className="br-header">
         <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
         <h1 className="br-header-title">NEAR Karts</h1>
         <div className="br-header-controls">
+          <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
           <Fragment>
             <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
           </Fragment>
