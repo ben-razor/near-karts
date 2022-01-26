@@ -9,12 +9,12 @@
     height: 4em;
 }
 
-.br-title-panel {
+.br-header-title-panel {
     display: flex;
     align-items: center;
 }
 
-.br-title {
+.br-header-title {
     margin-left: $spacing-sm;
 }
 
@@ -28,6 +28,24 @@
     margin: auto;
     padding: $spacing-sm;
     text-align: center;
+}
+
+.br-intro-panel {
+    border: 1px solid black;
+    border-radius: $spacing-sm;
+    padding: $spacing-md;
+    width: 75%;
+    margin: auto;
+}
+
+.br-intro {
+    display: flex;
+    flex-direction: column;
+}
+
+.br-intro-section {
+    padding: $spacing-sm;
+    font-family: NearKartsRegular, monospace;
 }
 
 .br-balances {

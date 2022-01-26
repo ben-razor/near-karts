@@ -218,27 +218,51 @@ function App() {
   console.log('nftData', nftData);
   console.log('wallet', wallet, wallet?.isSignedIn())
 
+  function getIntroPanel() {
+    let ui = <div className="br-intro-panel">
+      <div className="br-intro">
+        <div className="br-intro-section">
+          Humanity is in peril
+        </div>
+        <div className="br-intro-section">
+          Many disagreements reign
+        </div>
+        <div className="br-intro-section">
+          To settle this we battle... in NEAR Karts!
+        </div>
+        <div className="br-intro-section">
+          Own your carts. Win your battles. Humanity will be saved.
+        </div>
+      </div>
+      <Fragment>
+        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
+      </Fragment>
+    </div>
+
+    return ui;
+  }
+
   return (
     <div className="br-page">
       <div className="br-header">
-        <div className="br-title-panel">
-          <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
-          <h1 className="br-title">NEAR Karts</h1>
+        <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
+        <h1 className="br-header-title">NEAR Karts</h1>
+        <div className="br-header-controls">
+          <Fragment>
+            <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
+          </Fragment>
         </div>
-
       </div>
       <div className="br-content">
-        { (wallet?.isSignedIn() && mightBeSignedIn) &&
+        { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <div className="br-threejs-container">
               <BlokBots nftList={nftList} nftData={nftData} selectNFT={selectNFT} activeTokenId={activeTokenId}
                         processingActions={processingActions} execute={execute} />
             </div>
+            :
+            ''
         }
-        { 
-          <Fragment>
-            <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
-          </Fragment>
-        }
+        { !wallet?.isSignedIn() ? getIntroPanel() : '' }
       </div>
     </div>
   );
