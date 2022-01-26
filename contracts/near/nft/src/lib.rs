@@ -217,14 +217,14 @@ impl Contract {
         assert_eq!( valid, true, "Caller must be relative of contract owner");
     }
 
-    pub fn configure(&mut self, token_id: TokenId, near_kart_new: NearKart) {
+    pub fn nft_configure(&mut self, token_id: TokenId, near_kart_new: NearKart) {
         self.assert_nft_owner(token_id.clone());
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
         let extra = metadata.extra.unwrap_or(String::from(""));
         let mut nk = NearKart::from_data(&extra);
 
-        nk.clone_from(&near_kart_new);
+        nk.clone_from(&near_kart_new); 
 
         let extra = nk.serialize();
         metadata.extra = Some(extra);
@@ -400,7 +400,7 @@ mod tests {
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
-        contract.configure(token_id.clone(), new_near_kart);
+        contract.nft_configure(token_id.clone(), new_near_kart);
 
         let nk = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk.front, 2);

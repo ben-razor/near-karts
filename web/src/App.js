@@ -129,8 +129,11 @@ function App() {
 
         reloadTokens = true;
       }
-      else if(action === 'configure') {
-        await nftContract.configure_nft({ token_id: activeTokenId, near_kart_new: data}, BOATLOAD_OF_GAS, '0');
+      else if(action === 'saveKart') {
+        console.log('pre save', data);
+        let tokenId = nftList[activeTokenId].token_id;
+        let res = await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
+        console.log('post save', res, data);
         reloadTokens = true;
       }
       else if(action === 'selectNFT') {
@@ -156,7 +159,7 @@ function App() {
       })();
     }
   }, [nftContract, wallet]);
-  
+
   const selectNFT = useCallback(tokenId => {
     (async () => {
       for(let token of nftList) {

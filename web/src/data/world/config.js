@@ -1,5 +1,5 @@
 const config = {
-  shield_index: 200,
+  shield_index_start: 200,
   weapons_range: [
     { id: "WeaponRangeEmpty", name: "Empty" },
     { id: "WeaponLaser", name: "Laser" },

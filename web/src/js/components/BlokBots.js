@@ -1,7 +1,7 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, Fragment} from 'react';
 import * as THREE from 'three';
 import * as Tone from 'tone';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import lifeform from '../../data/models/bot-1.gltf';
 import BrButton from './lib/BrButton';
 import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
@@ -10,7 +10,7 @@ import { ShaderPass } from '../3d/jsm/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { setAlphaToEmissive, loadImageToMaterial, hueToColor, HitTester } from '../helpers/3d';
+import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
 import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
@@ -18,6 +18,24 @@ import story from '../../data/story/story.js';
 import { SketchPicker } from 'react-color';
 import { CompactPicker } from 'react-color';
 import { hasUncaughtExceptionCaptureCallback } from 'process';
+
+const baseNFTData = {
+    "level": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+    "front": 0,
+    "skin": 0,
+    "transport": 0,
+    "color1": 0,
+    "color2": 0,
+    "decal1": "",
+    "decal2": "",
+    "decal3": "",
+    "extra1": "",
+    "extra2": "",
+    "extra3": ""
+};
 
 const loader = new GLTFLoader();
 
@@ -118,25 +136,14 @@ function BlokBots(props) {
     top: '',
     transport: 'TransportWheels',
     skin: 'SkinPlastic',
-    color: '#fe0'
-  });
-
-  const [botConfig, setBotConfig] = useState({
-    left: 3,
-    right: 0,
-    top: 2,
-    front: 0,
-    transport: 0,
-    skin: 0,
-    color: '#fffe00',
+    color: '#ffee00'
   });
 
   const controls = sceneConfig[sceneIndex].controls;
   const storySection = sceneConfig[sceneIndex].storySection;
 
   function kartChanged(nftData, prevNFTData) {
-    let keys = ['color1', 'color2', 'decal1', 'decal2', 'decal3', 'extra1', 'extra2', 'extra3', 
-                'front', 'left', 'level', 'right', 'skin', 'top', 'transport'];
+    let keys = Object.keys(baseNFTData);
 
     let changedKeys = [];
 
@@ -145,7 +152,6 @@ function BlokBots(props) {
         changedKeys.push(key);
       }
     }
-
 
     return changedKeys;
   }
@@ -165,38 +171,40 @@ function BlokBots(props) {
     kartConfig.skin = gameConfig.skin[nftData.skin]?.id || 'SkinPlastic';
     kartConfig.transport = gameConfig.transport[nftData.transport]?.id || 'TransportWheels';
 
+    kartConfig.color = intToHexColor(nftData.color1);
+
     return kartConfig;
   }
 
+
   function kartConfigToNFTData(kartConfig) {
-    let nftData = {};
+    let nftData = {...baseNFTData};
     let index;
 
     for(let side of ['left', 'right']) {
       let elem = kartConfig[side];
       if(elem.startsWith('Weapon')) {
         index = gameConfig.weapons_range.findIndex(x => x.id === elem); 
+        console.log('F', elem, index, side);
         nftData[side] = index > 0 ? index : 0;
       }
       else if(elem.startsWith('Shield')) {
         index = gameConfig.shields_side.findIndex(x => x.id === elem);
-        nftData[side] = index > 0 ? index : gameConfig.shieldIndex;
+        nftData[side] = index > -1 ? index + gameConfig.shield_index_start: 0;
       }
     }
 
-    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.transport);
+    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.front);
     nftData.front = index > 0 ? index : 0;
-    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.skin);
+    index = gameConfig.skin.findIndex(x => x.id === kartConfig.skin);
     nftData.skin = index > 0 ? index : 0;
-    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.transport);
+    index = gameConfig.transport.findIndex(x => x.id === kartConfig.transport);
     nftData.transport = index > 0 ? index : 0;
+
+    nftData.color1 = hexColorToInt(kartConfig.color);
 
     return nftData;
   }
-
-  let kartConfig = nftDataToKartConfig(nftData);
-  console.log('kart config', kartConfig);
-  console.log('new nft data', kartConfigToNFTData(kartConfig));
 
   useEffect(() => {
     let changedKeys = kartChanged(nftData, prevNFTData);
@@ -235,31 +243,37 @@ function BlokBots(props) {
         }
 
         if(controlEntry.left) {
-          if(o.name === 'BotTurretL' && controlEntry.left.startsWith('Weapon')) {
+          let name = controlEntry.left;
+
+          if(o.name === 'BotTurretL' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
             o.visible = true;
           }
 
-          if(o.name.startsWith(controlEntry.left + 'L')) {
+          if(o.name.startsWith(name + 'L')) {
             o.visible = true;
           }
         }
 
         if(controlEntry.right) {
-          if(o.name === 'BotTurretR' && controlEntry.right.startsWith('Weapon')) {
+          let name = controlEntry.right;
+
+          if(o.name === 'BotTurretR' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
             o.visible = true;
           }
 
-          if(o.name.startsWith(controlEntry.right + 'R')) {
+          if(o.name.startsWith(name + 'R')) {
             o.visible = true;
           }
         }
 
         if(controlEntry.front) {
-          if(o.name === 'BotTurretFront' && controlEntry.front.startsWith('Weapon')) {
+          let name = controlEntry.front;
+
+          if(o.name === 'BotTurretFront' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
             o.visible = true;
           }
 
-          if(o.name.startsWith(controlEntry.front)) {
+          if(o.name.startsWith(name)) {
             o.visible = true;
           }
         }
@@ -582,7 +596,7 @@ function BlokBots(props) {
       let optionsWeapon = [];
       let optionsShield = []
 
-      elems = gameConfig.weapons_range.concat(gameConfig.shields_side);
+      elems = gameConfig.weapons_range;
 
       for(let elem of elems) {
         optionsWeapon.push(
@@ -711,8 +725,19 @@ function BlokBots(props) {
     execute('mint', data);
   }
 
+  function saveKart() {
+    let nftData = kartConfigToNFTData(controlEntry);
+    console.log(controlEntry, nftData)
+    execute('saveKart', nftData);
+  }
+
   function getContractControls() {
-    return <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+    return <div className="br-contract-controls">
+      { nftData && 
+        <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+      }
+      <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
+    </div>;
   }
 
   function getTextUI(storyLines) {

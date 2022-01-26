@@ -31,6 +31,30 @@ export function hueToColor(hueIndex) {
   return colorStr;
 }
 
+export function hexColorToInt(hexColor) {
+  let intColor = 0;
+
+  if(hexColor.length === 7) {
+    try {
+      intColor = parseInt(hexColor.substring(1), 16)
+    } catch(e) {}
+  }
+
+  return intColor;
+}
+
+export function intToHexColor(intColor) {
+  let hexColor = intColor.toString(16)
+  if(hexColor.length <= 6) {
+    hexColor = hexColor.padStart(6, 0);
+  }
+  else {
+    hexColor = '000000';
+  }
+
+  return '#' + hexColor;
+}
+
 export class HitTester {
   /**
    * @param {*} conf e.g. { id: 'door', geometry: { type: "sphere", radius: 0.5 } }
