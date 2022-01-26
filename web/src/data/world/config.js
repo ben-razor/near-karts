@@ -1,5 +1,7 @@
 const config = {
+  shield_index: 200,
   weapons_range: [
+    { id: "WeaponRangeEmpty", name: "Empty" },
     { id: "WeaponLaser", name: "Laser" },
     { id: "WeaponRocket", name: "Rocket" },
     { id: "WeaponFist", name: "Fist Full Of Nuts" },
@@ -7,6 +9,7 @@ const config = {
     { id: "WeaponAceed", name: "Aceed" },
   ],
   weapons_melee: [
+    { id: "WeaponMeleeEmpty", name: "Empty" },
     { id: "WeaponFlipper", name: "Flipper" },
     { id: "WeaponSword", name: "Sword" },
     { id: "WeaponAxe", name: "Axe" },

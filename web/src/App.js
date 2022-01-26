@@ -6,7 +6,6 @@ import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
 import BlokBots from './js/components/BlokBots';
-import { SketchPicker } from 'react-color';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -21,16 +20,14 @@ const nearContractConfig = {
 }
 
 function App() {
-  const [ messages, setMessages ] = useState();
-  const [ message, setMessage] = useState('');
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
   const [wallet, setWallet] = useState();
   const [nftContract, setNFTContract] = useState();
   const [nftList, setNFTList] = useState([]);
+  const [nftData, setNFTData] = useState({});
   const [activeTokenId, setActiveTokenId] = useState(0);
-  const [nftData, setNFTData] = useState([]);
   const [processingActions, setProcessingActions] = useState({});
   const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
 
@@ -41,7 +38,7 @@ function App() {
       appearance: type,
       autoDismiss: true,
       autoDismissTimeout: TOAST_TIMEOUT
-    });
+  });
   }
 
   const connect = useCallback(async() => {
@@ -65,7 +62,6 @@ function App() {
   }, [connect]);
 
   const connectNFT = useCallback(async (contractAddress) => {
-    console.log('connecting nft');
     const { viewMethods, changeMethods } = nearContractConfig[contractAddress];
     const _nftContract = await new nearAPI.Contract(
       wallet.account(),
@@ -88,6 +84,9 @@ function App() {
     if(wallet?.isSignedIn()) {
       (async () => {
         wallet.signOut();
+        setNFTData({});
+        setNFTList([]);
+        setActiveTokenId(0);
         setMightBeSignedIn(false);
       })();
     }
@@ -135,7 +134,7 @@ function App() {
         reloadTokens = true;
       }
       else if(action === 'selectNFT') {
-        selectNFT(data);
+        setActiveTokenId(data);
       }
 
       if(reloadTokens) {
@@ -157,6 +156,17 @@ function App() {
       })();
     }
   }, [nftContract, wallet]);
+  
+  const selectNFT = useCallback(tokenId => {
+    (async () => {
+      for(let token of nftList) {
+        if(token.token_id === tokenId) {
+          let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
+          setNFTData(nftData);
+        }
+      }
+    })();
+  }, [nftList, nftContract]);
 
   useEffect(() => {
     if(nftList.length) {
@@ -171,19 +181,7 @@ function App() {
         selectNFT(nftList[0].token_id);
       }
     }
-  }, [nftList]);
-
-  function selectNFT(tokenId) {
-    (async () => {
-      for(let token of nftList) {
-        if(token.token_id === tokenId) {
-          let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
-          setNFTData(nftData);
-          setActiveTokenId(tokenId);
-        }
-      }
-    })();
-  }
+  }, [nftList, activeTokenId, selectNFT]);
 
   console.log('nftList', nftList);
   console.log('nftData', nftData);

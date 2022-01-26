@@ -7,7 +7,6 @@ import BrButton from './lib/BrButton';
 import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../3d/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from '../3d/jsm/postprocessing/ShaderPass.js';
-import envTexture from '../../images/tex/studio.exr';
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -107,11 +106,11 @@ function BlokBots(props) {
   const [clock, setClock] = useState();
   const [audioInitialized, setAudioInitialized] = useState();
   const [sjScene, setSJScene] = useState();
-  const [oldStrangeJuice, setOldStrangeJuice] = useState({});
   const [sceneIndex, setSceneIndex] = useState(0);
   const [storyLines, setStoryLines] = useState([]);
   const [storyIndex, setStoryIndex] = useState(0);
   const [storyInfo, setStoryInfo] = useState({});
+  const [prevNFTData, setPrevNFTData] = useState({});
   const [controlEntry, setControlEntry] = useState({
     front: '',
     left: '',
@@ -134,6 +133,79 @@ function BlokBots(props) {
 
   const controls = sceneConfig[sceneIndex].controls;
   const storySection = sceneConfig[sceneIndex].storySection;
+
+  function kartChanged(nftData, prevNFTData) {
+    let keys = ['color1', 'color2', 'decal1', 'decal2', 'decal3', 'extra1', 'extra2', 'extra3', 
+                'front', 'left', 'level', 'right', 'skin', 'top', 'transport'];
+
+    let changedKeys = [];
+
+    for(let key of keys) {
+      if(nftData[key] !== prevNFTData[key]) {
+        changedKeys.push(key);
+      }
+    }
+
+
+    return changedKeys;
+  }
+
+  function nftDataToKartConfig(nftData) {
+    let kartConfig = {};
+    for(let side of ['left', 'right']) {
+      if(nftData[side] > gameConfig.shield_index) {
+        kartConfig[side] = gameConfig.shields_side[nftData[side] - gameConfig.shieldIndex]?.id || 'empty';
+      }
+      else {
+        kartConfig[side] = gameConfig.weapons_range[nftData[side]]?.id || 'empty';
+      }
+    }
+
+    kartConfig.front = gameConfig.weapons_melee[nftData.front]?.id || 'empty';
+    kartConfig.skin = gameConfig.skin[nftData.skin]?.id || 'SkinPlastic';
+    kartConfig.transport = gameConfig.transport[nftData.transport]?.id || 'TransportWheels';
+
+    return kartConfig;
+  }
+
+  function kartConfigToNFTData(kartConfig) {
+    let nftData = {};
+    let index;
+
+    for(let side of ['left', 'right']) {
+      let elem = kartConfig[side];
+      if(elem.startsWith('Weapon')) {
+        index = gameConfig.weapons_range.findIndex(x => x.id === elem); 
+        nftData[side] = index > 0 ? index : 0;
+      }
+      else if(elem.startsWith('Shield')) {
+        index = gameConfig.shields_side.findIndex(x => x.id === elem);
+        nftData[side] = index > 0 ? index : gameConfig.shieldIndex;
+      }
+    }
+
+    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.transport);
+    nftData.front = index > 0 ? index : 0;
+    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.skin);
+    nftData.skin = index > 0 ? index : 0;
+    index = gameConfig.weapons_melee.findIndex(x => x.id === kartConfig.transport);
+    nftData.transport = index > 0 ? index : 0;
+
+    return nftData;
+  }
+
+  let kartConfig = nftDataToKartConfig(nftData);
+  console.log('kart config', kartConfig);
+  console.log('new nft data', kartConfigToNFTData(kartConfig));
+
+  useEffect(() => {
+    let changedKeys = kartChanged(nftData, prevNFTData);
+
+    if(changedKeys.length) {
+      setPrevNFTData({...nftData});
+    }
+
+  }, [nftData, prevNFTData]);
 
   function getTextureURL(element, style) {
     let url = baseImageURL + `lifeform-1-${element}-${style}.png`;
@@ -369,6 +441,7 @@ function BlokBots(props) {
     controls.maxDistance = 5;
     controls.minPolarAngle = 0;
     controls.maxPolarAngle = Math.PI / 2.1;
+    controls.autoRotate = true;
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
     
@@ -525,7 +598,6 @@ function BlokBots(props) {
         )
       }
 
-      controlSetUI.push(<option key={setId + "none"} value="empty">Empty</option>)
       controlSetUI.push(<optgroup key={setId + "Weapons"} label="Weapons">{optionsWeapon}</optgroup>)
       controlSetUI.push(<optgroup key={setId + "Shields"} label="Shields">{optionsShield}</optgroup>)
     }
