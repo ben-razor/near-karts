@@ -110,7 +110,7 @@
     top: 10px;
     left: 10px;
     width: 400px;
-    font-family: StrangeJuiceRegular, sans-serif;
+    font-family: NearKartsRegular, sans-serif;
     border: 1px solid hsl(0%, 0%, 70%);
     border-radius: 1em;
     padding: 0.4em;
@@ -120,7 +120,7 @@
     display: flex;
     flex-direction: column;
     color: white;
-    font-family: StrangeJuiceRegular, sans-serif;
+    font-family: NearKartsRegular, sans-serif;
     border: 1px solid hsl(0%, 0%, 70%);
     border-radius: 1em;
     background-color:hsla(0%, 0%, 10%, 0.1);
@@ -198,7 +198,7 @@
 }
 
 .br-feature-select {
-    background-color: hsl(200, 50%, 50%);
+    background-color: $color-1-base;
     color: white;
     display: inline-block;
     height: 1.5em;
