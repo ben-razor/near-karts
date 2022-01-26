@@ -102,6 +102,10 @@
     position: relative;
 }
 
+.br-strange-juice {
+    min-height: 800px;
+}
+
 .br-strange-juice-text-overlay {
     display: flex;
     flex-direction: column;
@@ -222,7 +226,20 @@
 }
 
 .br-nft-gallery {
+    border: 1px solid hsl(0%, 0%, 70%);
+    margin: $spacing-sm;
+    border-radius: 1em;
     padding: $spacing-sm;
+    box-sizing: content-box;
+}
+
+.br-nft-gallery-heading {
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: -0.5em;
+    left: 1em;
+    background-color: white;
 }
 
 .br-nft-list {
@@ -233,6 +250,7 @@
     border: 1px solid hsl(0%, 0%, 70%);
     border-radius: 1em;
     padding: $spacing-sm;
+    margin-right: $spacing-sm;
     user-select: none;
     cursor: default;
 }

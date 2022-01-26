@@ -14,10 +14,7 @@ import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, int
 import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
-import story from '../../data/story/story.js';
-import { SketchPicker } from 'react-color';
 import { CompactPicker } from 'react-color';
-import { hasUncaughtExceptionCaptureCallback } from 'process';
 
 const baseNFTData = {
     "level": 0,
@@ -140,7 +137,6 @@ function BlokBots(props) {
     color: '#ffee00'
   });
 
-  const controls = sceneConfig[sceneIndex].controls;
   const storySection = sceneConfig[sceneIndex].storySection;
 
   function kartChanged(nftData, prevNFTData) {
@@ -782,19 +778,28 @@ function BlokBots(props) {
 
       nftUI.push(<div className={"br-nft-list-item " + (active ? 'br-nft-list-item-selected' : '')} 
                       key={nft.token_id} onClick={e => execute('selectNFT', nft.token_id)}>
-        {nft.metadata.title}
+        {nft.metadata.title.replace('A NEAR Kart Called ', '')}
       </div>);
     }
 
-    return <div className="br-nft-list">
-      { nftUI }
-    </div>
+    return <Fragment>
+      <div className="br-nft-list">
+        { nftUI }
+      </div>
+    </Fragment>
   }
 
   return <div className="br-strange-juice">
-    <div className="br-nft-gallery">
-      { displayNFTs(nftList, activeTokenId) }
-    </div>
+
+    { nftList.length ? 
+      <div className="br-nft-gallery">
+        <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
+        { displayNFTs(nftList, activeTokenId) }
+      </div>
+      :
+      ''
+    }
+
     <div className="br-garage">
       <div className="br-strange-juice-3d" ref={threeRef}>
       </div>

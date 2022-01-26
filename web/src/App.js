@@ -179,8 +179,11 @@ function App() {
   useEffect(() => {
     if(nftContract && wallet && wallet.getAccountId()) {
       (async () => {
-        let res = await nftContract.nft_tokens_for_owner({ account_id: wallet.getAccountId()});
-        setNFTList(res);
+        let _nftList = await nftContract.nft_tokens_for_owner({ account_id: wallet.getAccountId()});
+        if(_nftList.length && !activeTokenId) {
+          setActiveTokenId(_nftList[0].token_id);
+        }
+        setNFTList(_nftList);
       })();
     }
   }, [nftContract, wallet]);
