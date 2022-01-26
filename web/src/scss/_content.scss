@@ -205,3 +205,18 @@
 .br-garage {
     display: flex;
 }
+
+.br-nft-list {
+    display: flex;
+}
+
+.br-nft-list-item {
+    border: 1px solid hsl(0%, 0%, 70%);
+    border-radius: 1em;
+    padding: 0.5em;
+}
+
+.br-nft-list-item-selected {
+    background-color: black;
+    color: white;
+}

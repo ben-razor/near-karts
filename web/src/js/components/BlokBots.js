@@ -93,9 +93,11 @@ function updateVelocity(velocity, keysPressed) {
 }
 
 function BlokBots(props) {
+  const nftList = props.nftList;
   const nftData = props.nftData;
   const execute = props.execute;
   const processingActions = props.processingActions;
+  const activeTokenId = props.activeTokenId;
 
   window.nftData = nftData;
 
@@ -632,7 +634,8 @@ function BlokBots(props) {
   function mint() {
     let data = {
       name: 'Destruction'
-    }
+    };
+
     execute('mint', data);
   }
 
@@ -655,12 +658,32 @@ function BlokBots(props) {
     </div>
   }
 
+  function displayNFTs(nftList, activeTokenId) {
+    let nftUI = [];
+    let active = false;
+
+    for(let nft of nftList) {
+      if(activeTokenId === nft.token_id) {
+        active = true;
+      }
+
+      nftUI.push(<div className={"br-nft-list-item " + (active ? 'br-nft-list-item-selected' : '')} 
+                      key={nft.token_id} onClick={e => execute('selectNFT', nft.token_id)}>
+        {nft.metadata.title}
+      </div>);
+    }
+
+    return <div className="br-nft-list">
+      { nftUI }
+    </div>
+  }
+
   return <div className="br-strange-juice">
+    <div className="br-nft-gallery">
+      { displayNFTs(nftList, activeTokenId) }
+    </div>
     <div className="br-garage">
       <div className="br-strange-juice-3d" ref={threeRef}>
-        <div className="br-strange-juice-text-overlay">
-          { getTextUI(storyLines) } 
-        </div>
       </div>
       <div className="br-strange-juice-overlay">
         { getControlUI(gameConfig, nftData) } 
