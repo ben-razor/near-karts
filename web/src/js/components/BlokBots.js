@@ -456,7 +456,7 @@ function BlokBots(props) {
     controls.maxPolarAngle = Math.PI / 2.1;
     controls.autoRotate = true;
 
-    var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true });
+    var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true });
     
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( w, h);
@@ -725,7 +725,7 @@ function BlokBots(props) {
   }
 
   function render() {
-    let dataURL = threeRef.current.toDataURL();
+    let dataURL = threeRef.current.getElementsByTagName('canvas')[0].toDataURL();
     console.log(dataURL);
   }
 
@@ -750,6 +750,9 @@ function BlokBots(props) {
       }
       <div className="br-text-entry-row">
         <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
+      </div>
+      <div className="br-text-entry-row">
+        <BrButton label="Render" id="render" className="br-button br-icon-button" onClick={render} />
       </div>
     </div>
   }
