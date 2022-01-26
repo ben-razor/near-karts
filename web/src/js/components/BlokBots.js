@@ -129,6 +129,7 @@ function BlokBots(props) {
   const [storyIndex, setStoryIndex] = useState(0);
   const [storyInfo, setStoryInfo] = useState({});
   const [prevNFTData, setPrevNFTData] = useState({});
+  const [kartNameEntry, setKartNameEntry] = useState('');
   const [controlEntry, setControlEntry] = useState({
     front: '',
     left: '',
@@ -721,7 +722,7 @@ function BlokBots(props) {
 
   function mint() {
     let data = {
-      name: 'Destruction'
+      name: kartNameEntry
     };
 
     execute('mint', data);
@@ -736,10 +737,20 @@ function BlokBots(props) {
   function getContractControls() {
     return <div className="br-contract-controls">
       { nftData && 
-        <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+        <div className="br-text-entry-row">
+          <div className="br-text-entry-row-label">
+            <input type="text" placeholder={getText('text_kart_name_label')} 
+                  value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
+          </div>
+          <div className="br-text-entry-row-control">
+            <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+          </div>
+        </div>
       }
-      <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
-    </div>;
+      <div className="br-text-entry-row">
+        <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
+      </div>
+    </div>
   }
 
   function getTextUI(storyLines) {
@@ -764,6 +775,9 @@ function BlokBots(props) {
     for(let nft of nftList) {
       if(activeTokenId === nft.token_id) {
         active = true;
+      }
+      else {
+        active = false;
       }
 
       nftUI.push(<div className={"br-nft-list-item " + (active ? 'br-nft-list-item-selected' : '')} 

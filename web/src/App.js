@@ -6,6 +6,7 @@ import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
 import BlokBots from './js/components/BlokBots';
+import getText from './data/world/text';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -27,7 +28,7 @@ function App() {
   const [nftContract, setNFTContract] = useState();
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
-  const [activeTokenId, setActiveTokenId] = useState(0);
+  const [activeTokenId, setActiveTokenId] = useState('');
   const [processingActions, setProcessingActions] = useState({});
   const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
 
@@ -38,7 +39,11 @@ function App() {
       appearance: type,
       autoDismiss: true,
       autoDismissTimeout: TOAST_TIMEOUT
-  });
+    });
+  }
+
+  function doubleToast(message1, message2, type='info') {
+    toast( <Fragment><div>{message1}</div><div>{message2}</div></Fragment>, type)
   }
 
   const connect = useCallback(async() => {
@@ -115,26 +120,46 @@ function App() {
 
       if(action === 'mint') {
         let name = data.name.slice(0, 32);
-        let tokenId = name + Date.now().toString();
 
-        await nftContract.nft_mint({
-          token_id: tokenId,
-          receiver_id: wallet.getAccountId(),
-          token_metadata: {
-            title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
-            media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
-            copies: 1
+        if(!name) {
+          doubleToast(getText('error_mint_kart'), getText('error_no_kart_name'), 'warning');
+        }
+        else {
+          let tokenId = name + Date.now().toString();
+
+          try {
+            await nftContract.nft_mint({
+              token_id: tokenId,
+              receiver_id: wallet.getAccountId(),
+              token_metadata: {
+                title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
+                media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
+                copies: 1
+              }
+            }, BOATLOAD_OF_GAS, pointOneNear.toString());
+
+            reloadTokens = true;
+          } catch(e) {
+            toast(getText('error_mint_kart'), 'error');
           }
-        }, BOATLOAD_OF_GAS, pointOneNear.toString());
-
-        reloadTokens = true;
-      }
+        }
+     }
       else if(action === 'saveKart') {
-        console.log('pre save', data);
-        let tokenId = nftList[activeTokenId].token_id;
-        let res = await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
-        console.log('post save', res, data);
-        reloadTokens = true;
+        try {
+          let tokenId = activeTokenId;
+          if(!tokenId) {
+            doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
+          }
+          else {
+            await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
+            toast(getText('success_save_kart'));
+            reloadTokens = true;
+          }
+        }
+        catch(e) {
+          toast(getText('error_save_kart'), 'error');
+          console.log(e);
+        }
       }
       else if(action === 'selectNFT') {
         setActiveTokenId(data);
