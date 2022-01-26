@@ -159,8 +159,8 @@ function BlokBots(props) {
   function nftDataToKartConfig(nftData) {
     let kartConfig = {};
     for(let side of ['left', 'right']) {
-      if(nftData[side] > gameConfig.shield_index) {
-        kartConfig[side] = gameConfig.shields_side[nftData[side] - gameConfig.shieldIndex]?.id || 'empty';
+      if(nftData[side] >= gameConfig.shield_index_start) {
+        kartConfig[side] = gameConfig.shields_side[nftData[side] - gameConfig.shield_index_start]?.id || 'empty';
       }
       else {
         kartConfig[side] = gameConfig.weapons_range[nftData[side]]?.id || 'empty';
@@ -185,7 +185,6 @@ function BlokBots(props) {
       let elem = kartConfig[side];
       if(elem.startsWith('Weapon')) {
         index = gameConfig.weapons_range.findIndex(x => x.id === elem); 
-        console.log('F', elem, index, side);
         nftData[side] = index > 0 ? index : 0;
       }
       else if(elem.startsWith('Shield')) {
@@ -210,6 +209,9 @@ function BlokBots(props) {
     let changedKeys = kartChanged(nftData, prevNFTData);
 
     if(changedKeys.length) {
+      let kartConfig = nftDataToKartConfig(nftData);
+      console.log('KC', kartConfig, nftData);
+      setControlEntry(kartConfig);
       setPrevNFTData({...nftData});
     }
 
