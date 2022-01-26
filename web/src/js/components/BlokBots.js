@@ -724,6 +724,11 @@ function BlokBots(props) {
     execute('mint', data);
   }
 
+  function render() {
+    let dataURL = threeRef.current.toDataURL();
+    console.log(dataURL);
+  }
+
   function saveKart() {
     let nftData = kartConfigToNFTData(controlEntry);
     console.log(controlEntry, nftData)
@@ -790,7 +795,6 @@ function BlokBots(props) {
   }
 
   return <div className="br-strange-juice">
-
     { nftList.length ? 
       <div className="br-nft-gallery">
         <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
@@ -799,7 +803,6 @@ function BlokBots(props) {
       :
       ''
     }
-
     <div className="br-garage">
       <div className="br-strange-juice-3d" ref={threeRef}>
       </div>
@@ -810,10 +813,8 @@ function BlokBots(props) {
     </div>
     <div className="br-strage-juice-controls">
       <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
-      <BrButton label="Reset" id="reset" className="br-button br-icon-button" onClick={e => execute('do_naughty_reset')} />
     </div>
   </div>
-  
 }
 
 export default BlokBots;
