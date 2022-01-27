@@ -53,6 +53,8 @@ const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.c
 
 const w = 500;
 const h = 400;
+const wPhoto = 400;
+const hPhoto = 400;
 const storyDelay = 4000;
 
 const keysPressed = {};
@@ -118,10 +120,12 @@ function BlokBots(props) {
   window.nftData = nftData;
 
   const threeRef = React.createRef();
+  const threePhotoRef = React.createRef();
   const [scene, setScene] = useState();
   const [camera, setCamera] = useState();
-  const [clock, setClock] = useState();
   const [sjScene, setSJScene] = useState();
+  const [photoScene, setPhotoScene] = useState();
+  const [photoSubScene, setPhotoSubScene] = useState();
   const [sceneIndex, setSceneIndex] = useState(0);
   const [storyLines, setStoryLines] = useState([]);
   const [storyIndex, setStoryIndex] = useState(0);
@@ -235,325 +239,179 @@ function BlokBots(props) {
     return hidden;
   }
 
-  useEffect(() => {
-    if(sjScene) {
-      sjScene.traverse(o => {
-        if(startHidden(o.name)) {
-          o.visible = false;
-        }
-
-        if(controlEntry.left) {
-          let name = controlEntry.left;
-
-          if(o.name === 'BotTurretL' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
-            o.visible = true;
-          }
-
-          if(o.name.startsWith(name + 'L')) {
-            o.visible = true;
-          }
-        }
-
-        if(controlEntry.right) {
-          let name = controlEntry.right;
-
-          if(o.name === 'BotTurretR' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
-            o.visible = true;
-          }
-
-          if(o.name.startsWith(name + 'R')) {
-            o.visible = true;
-          }
-        }
-
-        if(controlEntry.front) {
-          let name = controlEntry.front;
-
-          if(o.name === 'BotTurretFront' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
-            o.visible = true;
-          }
-
-          if(o.name.startsWith(name)) {
-            o.visible = true;
-          }
-        }
-
-        if(controlEntry.transport) {
-          if(o.name.startsWith(controlEntry.transport)) {
-            o.visible = true;
-          }
-        }
-
-        if(o.name === 'BotBody1') {
-          for(let child of o.children) {
-            if(child.material.name === 'MatBody') {
-              child.material.color = new THREE.Color(controlEntry.color);
-
-              if(controlEntry.skin === 'SkinPlastic') {
-                child.material.flatShading = false;
-                child.material.roughness = 0;
-                child.material.metalness = 0;
-              }
-              if(controlEntry.skin === 'SkinCarbonFibre') {
-                child.material.flatShading = true;
-                child.material.roughness = 0.8;
-                child.material.metalness = 0;
-              }
-              if(controlEntry.skin === 'SkinAluminium') {
-                child.material.flatShading = true;
-                child.material.roughness = 0.4;
-                child.material.metalness = 0.5;
-              }
-              if(controlEntry.skin === 'SkinSteel') {
-                child.material.flatShading = true;
-                child.material.roughness = 0.2;
-                child.material.metalness = 1;
-              }
-
-              child.material.needsUpdate = true;
-              break;
-            }
-          }
-        }
-      });
-    }
-  }, [sjScene, controlEntry]);
-
-  let triggerCallback = useCallback((id, isColliding) => {
-    console.log('Trigger: ', id, isColliding);
-    if(isColliding) {
-      setTimeout(() => {
-        execute('leave_room_zero');
-      }, 10);
-    }
-  }, [execute]);
-
-  useEffect(() => {
-    for(let hitTester of hitTesters) {
-      hitTester.callback = triggerCallback;
-    }
-  }, [execute, triggerCallback]);
-
-  useEffect(() => {
-    if(sjScene) {
-      console.log('Scene index: ', sceneIndex);
-      
-      ({ sceneName, obstacles, triggers, bounds, startPos, elems } = sceneConfig[sceneIndex]);
-
-      let lifeformModel = sjScene.getObjectByName('BotEmpty');
-      lifeformModel.position.copy(startPos);
-
-      hitTesters = [];
-      for(let triggerConfig of triggers) {
-        let positionModel = sjScene.getObjectByName(triggerConfig.objId);
-        let hitTester = new HitTester(triggerConfig, positionModel, triggerCallback)
-        hitTesters.push(hitTester);
-        hitTester.test(lifeformModel, true);
+  const styleScene = useCallback((scene, controlEntry) => {
+    scene.traverse(o => {
+      if(startHidden(o.name)) {
+        o.visible = false;
       }
 
-      console.log('RESCENING');
-      sjScene.traverse(o => {
-        if(o.name.startsWith('Scene') && o.name !== 'Scene') {
-          console.log('NAME', o.name, sceneName);
-          if(o.name.startsWith(sceneName)) {
-            o.visible = true;
-            console.log('visible', o.visible);
-          }
-          else {
-            o.visible = false;
-            console.log('visible', o.visible);
-          }
+      if(controlEntry.left) {
+        let name = controlEntry.left;
+
+        if(o.name === 'BotTurretL' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
+          o.visible = true;
         }
 
-        if(elems && o.name in elems) {
-          let condition = elems[o.name].condition;
+        if(o.name.startsWith(name + 'L')) {
+          o.visible = true;
+        }
+      }
 
-          if(condition) {
-            if(condition(nftData, storyInfo)) {
-              o.visible = true;
+      if(controlEntry.right) {
+        let name = controlEntry.right;
+
+        if(o.name === 'BotTurretR' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
+          o.visible = true;
+        }
+
+        if(o.name.startsWith(name + 'R')) {
+          o.visible = true;
+        }
+      }
+
+      if(controlEntry.front) {
+        let name = controlEntry.front;
+
+        if(o.name === 'BotTurretFront' && name.startsWith('Weapon') && !name.endsWith('Empty')) {
+          o.visible = true;
+        }
+
+        if(o.name.startsWith(name)) {
+          o.visible = true;
+        }
+      }
+
+      if(controlEntry.transport) {
+        if(o.name.startsWith(controlEntry.transport)) {
+          o.visible = true;
+        }
+      }
+
+      if(o.name === 'BotBody1') {
+        for(let child of o.children) {
+          if(child.material.name === 'MatBody') {
+            child.material.color = new THREE.Color(controlEntry.color);
+
+            if(controlEntry.skin === 'SkinPlastic') {
+              child.material.flatShading = false;
+              child.material.roughness = 0;
+              child.material.metalness = 0;
             }
-            else {
-              o.visible = false;
+            if(controlEntry.skin === 'SkinCarbonFibre') {
+              child.material.flatShading = true;
+              child.material.roughness = 0.8;
+              child.material.metalness = 0;
             }
+            if(controlEntry.skin === 'SkinAluminium') {
+              child.material.flatShading = true;
+              child.material.roughness = 0.4;
+              child.material.metalness = 0.5;
+            }
+            if(controlEntry.skin === 'SkinSteel') {
+              child.material.flatShading = true;
+              child.material.roughness = 0.2;
+              child.material.metalness = 1;
+            }
+
+            child.material.needsUpdate = true;
+            break;
           }
         }
-      });
+      }
+    });
+  }, []);
 
-      setStoryIndex(0);
-      setStoryInfo({});
+  useEffect(() => {
+    if(sjScene) {
+      styleScene(sjScene, controlEntry);
     }
-  }, [sjScene, sceneIndex]);
+  }, [sjScene, controlEntry, styleScene]);
+
+  useEffect(() => {
+    if(photoSubScene) {
+      styleScene(photoSubScene, controlEntry);
+    }
+  }, [photoSubScene, controlEntry, styleScene]);
 
   useEffect(() => {
     if(scene) {
-      loader.load( lifeform, function ( gltf ) {
-        console.log('RELOADING');
-          scene.add( gltf.scene );
-          const mixer = new THREE.AnimationMixer(gltf.scene);
-          const clips = gltf.animations;
+      loader.load(lifeform, function ( gltf ) {
+          scene.add(gltf.scene);
           setSJScene(gltf.scene);
-
-          let { sceneName, bounds, triggers } = sceneConfig[sceneIndex];
-
-          const raycaster = new THREE.Raycaster();
-          const mouse = new THREE.Vector2();
-
-          function onPointerDown( event ) {
-            var rect = event.target.getBoundingClientRect();            
-            let x = event.clientX - rect.left;
-            let y = event.clientY - rect.top;
-            mouse.x = ( x / w) * 2 - 1;
-            mouse.y = -( y / h) * 2 + 1;
-            console.log('cxy', event.clientX, event.clientY, x, y, mouse.x, mouse.y);
-
-            raycaster.setFromCamera( mouse, camera );
-            const intersects = raycaster.intersectObjects( gltf.scene.children, true );
-            if ( intersects.length > 0 ) {
-              const object = intersects[ 0 ].object;
-              console.log(object);
-            }
-            else {
-              console.log('no intersect');
-            }
-          }
-
-          window.addEventListener('pointerdown', onPointerDown); 
-
-        }, undefined, function ( error ) {
-          console.error( error );
-      } );  
+        }, undefined, function ( error ) { console.error( error ); } );  
     }
   }, [scene]);
 
   useEffect(() => {
+    if(photoScene) {
+      loader.load(lifeform, function ( gltf ) {
+          photoScene.add(gltf.scene);
+          setPhotoSubScene(gltf.scene);
+        }, undefined, function ( error ) { console.error( error ); } );  
+    }
+  }, [photoScene]);
 
-    const threeElem = threeRef.current;
-    const controlsElem = threeRef.current;
-
-    const ENTIRE_SCENE = 0, BLOOM_SCENE = 1;
-    const bloomLayer = new THREE.Layers();
-    bloomLayer.set( BLOOM_SCENE );
-
-    const params = {
-      exposure: 1,
-      bloomStrength: 4,
-      bloomThreshold: 0,
-      bloomRadius: 0.1,
-      scene: "Scene with Glow"
-    };
-
-    var clock = new THREE.Clock();
+  const createScene = useCallback((threeElem, w, h, orbitControls=false, refreshEvery=1) => {
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
-    camera.position.x = 0;
-    camera.position.y = 0.5;
-    camera.position.z = 3;
+    camera.position.set(0, 0.5, 3);
 
-    let controls = new OrbitControls( camera, threeElem );
-    controls.target.set(0, 0.4, 0);
-    controls.minDistance = 2;
-    controls.maxDistance = 5;
-    controls.minPolarAngle = 0;
-    controls.maxPolarAngle = Math.PI / 2.1;
-    controls.autoRotate = true;
+    let controls;
+
+    if(orbitControls) {
+      controls = new OrbitControls( camera, threeElem );
+      controls.target.set(0, 0.4, 0);
+      controls.minDistance = 2;
+      controls.maxDistance = 5;
+      controls.minPolarAngle = 0;
+      controls.maxPolarAngle = Math.PI / 2.1;
+      controls.autoRotate = true;
+    }
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true });
     
     renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( w, h);
+    renderer.setSize(w, h);
     renderer.setClearColor(0x000000);
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = params.exposure;
+    renderer.toneMappingExposure = 1;
     threeElem.appendChild( renderer.domElement );
 
-    const INTENSITY = 14;
-    const light = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
-    light.position.set( 5, 5, 5 );
-    scene.add( light );
-
-    const light2 = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
-    light2.position.set(-5,5,5);
-    scene.add( light2 );
-
-    const light3 = new THREE.PointLight( 0xffffff, INTENSITY, 10 );
-    light3.position.set(0,5,-2);
-    scene.add( light3 );
-
-    const renderScene = new RenderPass( scene, camera );
-
-    /* * Bloom settings: *   10, 4, 1, 2 - Desert */
-    //const bloomPass = new BloomPass(20, 8, 0.1, 2); 
-    const bloomPass = new UnrealBloomPass( new THREE.Vector2( w, h), 1.5, 0.4, 0.85 );
-    bloomPass.threshold = params.bloomThreshold;
-    bloomPass.strength = params.bloomStrength * 0.3;
-    bloomPass.radius = params.bloomRadius;
-    bloomPass.bloomTintColors[1] = new THREE.Vector3(1, 1, 1);
-
-    const bloomComposer = new EffectComposer( renderer );
-    bloomComposer.renderToScreen = false;
-    bloomComposer.addPass( renderScene );
-    bloomComposer.addPass( bloomPass );
-
-    const finalPass = new ShaderPass(
-      new THREE.ShaderMaterial( {
-        uniforms: {
-          baseTexture: { value: null },
-          bloomTexture: { value: bloomComposer.renderTarget2.texture }
-        },
-        vertexShader: VERTEX_SHADER,
-        fragmentShader: FRAGMENT_SHADER,
-        defines: {}
-      } ), "baseTexture"
-    );
-    finalPass.needsSwap = true;
-
-    const finalComposer = new EffectComposer( renderer );
-    finalComposer.addPass( renderScene );
-    finalComposer.addPass( finalPass );
-    const smaaPass = new SMAAPass(10, 10)
-    finalComposer.addPass(smaaPass);
-
-    /*
-    const filmPass = new FilmPass(
-      0.05,   // noise intensity
-      0.225,  // scanline intensity
-      500,    // scanline count
-      true,  // grayscale
-    );
-    finalComposer.addPass(filmPass);
-    */
-
-    renderer.setSize( w, h);
-    bloomComposer.setSize( w, h);
-    finalComposer.setSize( w, h);
+    addPointLights(scene, 0xffffff, 14, 10, [
+      new THREE.Vector3(5, 5, 5), new THREE.Vector3(-5, 5, 5), new THREE.Vector3(0, 5, -2)
+    ])
 
     let i = 0;
-
     var animate = function () {
       requestAnimationFrame( animate );
-      controls.update();
-      if(i++ % 4 === 0) {
-        camera.layers.set( ENTIRE_SCENE );
-
-        /*
-        if(window.strangeJuice.evolution > 0) {
-          bloomPass.strength = params.bloomStrength * 0.3;
-        }
-        else {
-          bloomPass.strength = 0;
-        }
-        bloomComposer.render();
-        */
-        finalComposer.render();
+      if(controls) controls.update();
+      if(i++ % refreshEvery === 0) {
+        renderer.render(scene, camera);
       }
     };
 
     animate();
+
+    return { scene, camera };
+  }, []);
+
+  useEffect(() => {
+    let { scene, camera } = createScene(threeRef.current, w, h, true, 4);
     setScene(scene);
     setCamera(camera);
-    setClock(clock);
+
+    let { scene: photoScene, camera: photoCamera} = createScene(threePhotoRef.current, wPhoto, hPhoto, false, 20);
+    setPhotoScene(photoScene);
   }, []);
   
+  function addPointLights(scene, color, intensity, dist, positions=[]) {
+    for(let pos of positions) {
+      const light = new THREE.PointLight( color, intensity, dist);
+      light.position.copy(pos);
+      scene.add( light );
+    }
+  }
+
   function getControl(action, src) {
     console.log('PA', processingActions);
     let processing = processingActions?.[action];
@@ -821,6 +679,10 @@ function BlokBots(props) {
         { getControlUI(gameConfig, nftData) } 
         { getContractControls() }
       </div>
+    </div>
+
+    <div className="br-photo-booth" ref={threePhotoRef}>
+
     </div>
   </div>
 }
