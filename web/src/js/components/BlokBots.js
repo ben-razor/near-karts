@@ -362,7 +362,7 @@ function BlokBots(props) {
       controls = new OrbitControls( camera, threeElem );
       controls.target.set(0, 0.4, 0);
       controls.minDistance = 2;
-      controls.maxDistance = 5;
+      controls.maxDistance = 4;
       controls.minPolarAngle = 0;
       controls.maxPolarAngle = Math.PI / 2.1;
       controls.autoRotate = true;
@@ -570,9 +570,11 @@ function BlokBots(props) {
 
   const [imageDataURL, setImageDataURL] = useState('');
   function render() {
-    let dataURL = threeRef.current.getElementsByTagName('canvas')[0].toDataURL();
+    let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
+    console.log(dataURL);
     setImageDataURL(dataURL);
 
+    /*
     (async () => {
       let r = await fetch('https://localhost:8926/save_image', {method: 'POST', headers: {
         'Content-Type': 'application/json'
@@ -584,6 +586,7 @@ function BlokBots(props) {
         console.log(getImageURL(j.data.cid));
       }
     })();
+    */
   }
 
   function saveKart() {
