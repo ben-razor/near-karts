@@ -31,6 +31,7 @@ function App() {
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
   const [activeTokenId, setActiveTokenId] = useState('');
+  const [activeKart, setActiveKart] = useState('');
   const [processingActions, setProcessingActions] = useState({});
   const [audioInitialized, setAudioInitialized] = useState();
 
@@ -196,6 +197,7 @@ function App() {
         if(token.token_id === tokenId) {
           let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
           setNFTData(nftData);
+          setActiveKart(token);
         }
       }
     })();
@@ -215,10 +217,6 @@ function App() {
       }
     }
   }, [nftList, activeTokenId, selectNFT]);
-
-  console.log('nftList', nftList);
-  console.log('nftData', nftData);
-  console.log('wallet', wallet, wallet?.isSignedIn())
 
   function getIntroPanel() {
     let ui = <div className="br-intro-panel">
@@ -264,6 +262,10 @@ function App() {
     setAudioInitialized(true);
   }
 
+  console.log('nftList', nftList);
+  console.log('nftData', nftData);
+  console.log('wallet', wallet, wallet?.isSignedIn())
+
   return (
     <div className="br-page">
       <div className="br-header">
@@ -279,7 +281,7 @@ function App() {
       <div className="br-content">
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <div className="br-threejs-container">
-              <BlokBots nftList={nftList} nftData={nftData} selectNFT={selectNFT} activeTokenId={activeTokenId}
+              <BlokBots nftList={nftList} nftData={nftData} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                         processingActions={processingActions} execute={execute} />
             </div>
             :

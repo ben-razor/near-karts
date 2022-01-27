@@ -108,9 +108,10 @@ function updateVelocity(velocity, keysPressed) {
 function BlokBots(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
+  const activeTokenId = props.activeTokenId;
+  const activeKart = props.activeKart;
   const execute = props.execute;
   const processingActions = props.processingActions;
-  const activeTokenId = props.activeTokenId;
 
   window.nftData = nftData;
 
@@ -702,8 +703,10 @@ function BlokBots(props) {
     execute('mint', data);
   }
 
+  const [imageDataURL, setImageDataURL] = useState('');
   function render() {
     let dataURL = threeRef.current.getElementsByTagName('canvas')[0].toDataURL();
+    setImageDataURL(dataURL);
     console.log(dataURL);
   }
 
@@ -714,6 +717,7 @@ function BlokBots(props) {
   }
 
   function getContractControls() {
+    console.log('AK', activeKart);
     return <div className="br-contract-controls">
       { nftData && 
         <div className="br-text-entry-row">
@@ -731,6 +735,9 @@ function BlokBots(props) {
       </div>
       <div className="br-text-entry-row">
         <BrButton label="Render" id="render" className="br-button br-icon-button" onClick={render} />
+        { imageDataURL &&
+          <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
+        }
       </div>
     </div>
   }
@@ -750,6 +757,11 @@ function BlokBots(props) {
     </div>
   }
 
+  function kartName(kartTitle) {
+    kartTitle = kartTitle || '';
+    return kartTitle.replace('A NEAR Kart Called ', '');
+  }
+
   function displayNFTs(nftList, activeTokenId) {
     let nftUI = [];
     let active = false;
@@ -764,7 +776,7 @@ function BlokBots(props) {
 
       nftUI.push(<div className={"br-nft-list-item " + (active ? 'br-nft-list-item-selected' : '')} 
                       key={nft.token_id} onClick={e => execute('selectNFT', nft.token_id)}>
-        {nft.metadata.title.replace('A NEAR Kart Called ', '')}
+        {kartName(nft.metadata.title)}
       </div>);
     }
 
