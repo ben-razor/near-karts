@@ -282,7 +282,7 @@ function App() {
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <div className="br-threejs-container">
               <BlokBots nftList={nftList} nftData={nftData} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
-                        processingActions={processingActions} execute={execute} />
+                        processingActions={processingActions} execute={execute} toast={toast} />
             </div>
             :
             ''

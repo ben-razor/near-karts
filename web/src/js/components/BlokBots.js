@@ -14,6 +14,7 @@ import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
+import { ToastConsumer } from 'react-toast-notifications';
 
 const baseNFTData = {
     "level": 0,
@@ -112,6 +113,7 @@ function BlokBots(props) {
   const activeKart = props.activeKart;
   const execute = props.execute;
   const processingActions = props.processingActions;
+  const toast = props.toast;
 
   window.nftData = nftData;
 
@@ -703,11 +705,27 @@ function BlokBots(props) {
     execute('mint', data);
   }
 
+  function getImageURL(cid) {
+    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`;
+    return imageURL;
+  }
+
   const [imageDataURL, setImageDataURL] = useState('');
   function render() {
     let dataURL = threeRef.current.getElementsByTagName('canvas')[0].toDataURL();
     setImageDataURL(dataURL);
-    console.log(dataURL);
+
+    (async () => {
+      let r = await fetch('https://localhost:8926/save_image', {method: 'POST', headers: {
+        'Content-Type': 'application/json'
+      }, body: JSON.stringify({image_data_url: dataURL})})
+      let j = await r.json();
+
+      if(j.success) {
+        toast('Image uploaded');
+        console.log(getImageURL(j.data.cid));
+      }
+    })();
   }
 
   function saveKart() {
