@@ -60,19 +60,6 @@ const storyDelay = 4000;
 
 const keysPressed = {};
 const speed = 1.5;
-let velocity = new THREE.Vector3();
-let obstaclePos = new THREE.Vector3();
-let collisionVec = new THREE.Vector3();
-let resolutionVec = new THREE.Vector3();
-let resolutionPos = new THREE.Vector3();
-
-let sceneName = '';
-let obstacles = [];
-let triggers = [];
-let hitTesters = [];
-let bounds = { z: [], x: []};
-let startPos = { x: 0, y: 0, z: 0 };
-let elems = {};
 
 document.addEventListener('keydown', e => {
   keysPressed[e.key.toLowerCase()] = true;
@@ -81,33 +68,27 @@ document.addEventListener('keyup', e => {
   keysPressed[e.key.toLowerCase()] = false;
 });
 
-function updateVelocity(velocity, keysPressed) {
-  let speedF = 0;
-  let speedL = 0;
-  velocity.set(0, 0, 0);
-
-  if(keysPressed['s']) {
-    speedF = speed;
-  }
-  else if(keysPressed['w']) {
-    speedF = -speed;
+class StateCheck {
+  constructor() {
+    this.state = {};
   }
 
-  if(keysPressed['a']) {
-    speedL = -speed;
-  }
-  else if(keysPressed['d']) {
-    speedL = speed;
-  }
+  changed(id, state, initial) {
+    let changed = false;
 
-  let moving = speedF || speedL;
-  if(moving) {
-    velocity.set(speedL, 0, speedF);
-    velocity.normalize().multiplyScalar(speed);
-  }
+    if(!(id in this.state)) {
+      this.state[id] = initial;
+    }
 
-  return velocity;
+    console.log('state check ', state, this.state[id]);
+    if(state !== this.state[id]) {
+      changed = true;
+      this.state[id] = state;
+    }
+    return changed;
+  }
 }
+const stateCheck = new StateCheck();
 
 function BlokBots(props) {
   const nftList = props.nftList;
@@ -145,6 +126,9 @@ function BlokBots(props) {
     skin: 'SkinPlastic',
     color: '#ffee00'
   });
+
+  const [imageDataURL, setImageDataURL] = useState('');
+  const [svgOverlay, setSVGOverlay] = useState('');
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -574,7 +558,6 @@ function BlokBots(props) {
     return imageURL;
   }
 
-  const [imageDataURL, setImageDataURL] = useState('');
   function render() {
     let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
     console.log(dataURL);
@@ -587,7 +570,8 @@ function BlokBots(props) {
     }, body: JSON.stringify({image_data_url: dataURL})})
     let j = await r.json();
 
-    if(j.success) {
+    console.log('save im data');
+    if(true) {
       toast('Image uploaded');
       console.log(getImageURL(j.data.cid));
     }
@@ -670,14 +654,12 @@ function BlokBots(props) {
     </Fragment>
   }
 
-  const [svgOverlay, setSVGOverlay] = useState();
-
   useEffect(() => {
     setSVGOverlay(imageDataURL);
   }, [imageDataURL]);
 
   useEffect(() => {
-    if(svgOverlay) {
+    if(stateCheck.changed('svgOverlay', svgOverlay, '')) {
       (async () => {
         const canvas = new OffscreenCanvas(wPhoto, hPhoto);
         const ctx = canvas.getContext('2d');
@@ -694,7 +676,7 @@ function BlokBots(props) {
         var a = new FileReader();
         a.onload = function(e) {
           console.log('url', e.target.result);
-          // saveImageData(e.target.result);
+          saveImageData(e.target.result);
         }
         a.readAsDataURL(blob);
  
