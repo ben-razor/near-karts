@@ -15,6 +15,7 @@ import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
 import { ToastConsumer } from 'react-toast-notifications';
+import Canvg, {presets} from 'canvg';
 
 const baseNFTData = {
     "level": 0,
@@ -121,6 +122,9 @@ function BlokBots(props) {
 
   const threeRef = React.createRef();
   const threePhotoRef = React.createRef();
+  const svgRef = React.createRef();
+  const canvasRef = React.createRef();
+
   const [scene, setScene] = useState();
   const [camera, setCamera] = useState();
   const [sjScene, setSJScene] = useState();
@@ -351,10 +355,11 @@ function BlokBots(props) {
     }
   }, [photoScene]);
 
-  const createScene = useCallback((threeElem, w, h, orbitControls=false, refreshEvery=1) => {
+  const createScene = useCallback((threeElem, w, h, camPos, orbitControls=false, refreshEvery=1) => {
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
-    camera.position.set(0, 0.5, 3);
+    camera.position.copy(camPos);
+    camera.lookAt(0, 0.4, 0);
 
     let controls;
 
@@ -396,11 +401,12 @@ function BlokBots(props) {
   }, []);
 
   useEffect(() => {
-    let { scene, camera } = createScene(threeRef.current, w, h, true, 4);
+    let { scene, camera } = createScene(threeRef.current, w, h, new THREE.Vector3(0, 0.5, 3), true, 4);
     setScene(scene);
     setCamera(camera);
 
-    let { scene: photoScene, camera: photoCamera} = createScene(threePhotoRef.current, wPhoto, hPhoto, false, 20);
+    let { scene: photoScene, camera: photoCamera} = createScene(threePhotoRef.current, wPhoto, hPhoto, 
+      new THREE.Vector3(0, 0.8, 2.8), false, 20);
     setPhotoScene(photoScene);
   }, []);
   
@@ -573,21 +579,19 @@ function BlokBots(props) {
     let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
     console.log(dataURL);
     setImageDataURL(dataURL);
-
-    /*
-    (async () => {
-      let r = await fetch('https://localhost:8926/save_image', {method: 'POST', headers: {
-        'Content-Type': 'application/json'
-      }, body: JSON.stringify({image_data_url: dataURL})})
-      let j = await r.json();
-
-      if(j.success) {
-        toast('Image uploaded');
-        console.log(getImageURL(j.data.cid));
-      }
-    })();
-    */
   }
+
+  const saveImageData = useCallback(async (dataURL) => {
+    let r = await fetch('https://localhost:8926/save_image', {method: 'POST', headers: {
+      'Content-Type': 'application/json'
+    }, body: JSON.stringify({image_data_url: dataURL})})
+    let j = await r.json();
+
+    if(j.success) {
+      toast('Image uploaded');
+      console.log(getImageURL(j.data.cid));
+    }
+  }, [toast]);
 
   function saveKart() {
     let nftData = kartConfigToNFTData(controlEntry);
@@ -666,6 +670,38 @@ function BlokBots(props) {
     </Fragment>
   }
 
+  const [svgOverlay, setSVGOverlay] = useState();
+
+  useEffect(() => {
+    setSVGOverlay(imageDataURL);
+  }, [imageDataURL]);
+
+  useEffect(() => {
+    if(svgOverlay) {
+      (async () => {
+        const canvas = new OffscreenCanvas(wPhoto, hPhoto);
+        const ctx = canvas.getContext('2d');
+        const svg = `<svg height="100" width="100">
+  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+  Sorry, your browser does not support inline SVG.  
+</svg> `
+        const v = await Canvg.fromString(ctx, svgRef.current.outerHTML, presets.offscreen());
+    
+        // Render only first frame, ignoring animations and mouse.
+        await v.render();
+    
+        const blob = await canvas.convertToBlob();
+        var a = new FileReader();
+        a.onload = function(e) {
+          console.log('url', e.target.result);
+          // saveImageData(e.target.result);
+        }
+        a.readAsDataURL(blob);
+ 
+      })();
+          }
+  }, [svgOverlay, svgRef, saveImageData]);
+
   return <div className="br-strange-juice">
     { nftList.length ? 
       <div className="br-nft-gallery">
@@ -687,6 +723,19 @@ function BlokBots(props) {
     <div className="br-photo-booth" ref={threePhotoRef}>
 
     </div>
+
+    <svg ref={svgRef} className="br-photo-overlay" width={wPhoto} height={hPhoto}>
+      <defs>
+        <rect id="rect" x={0} y={0} width={wPhoto} height={hPhoto} rx="15"/>
+        <clipPath id="clip">
+          <use href="#rect"/>
+        </clipPath>
+      </defs>
+
+      <image href={imageDataURL} width={wPhoto} height={hPhoto} clipPath="url(#clip)"/>
+      <text x="50%" y="10%" textAnchor="middle" style={ {fill: 'white', fontSize: '20px'} }>{kartName(activeKart?.metadata?.title)}</text>
+    </svg>
+
   </div>
 }
 

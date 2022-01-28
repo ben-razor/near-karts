@@ -9,7 +9,13 @@ module.exports = function override(config, env) {
             {
                 test: /\.gltf$/,
                 type: 'asset/inline'
-            }
+            },
+            {
+                test: /\.m?js/,
+                resolve: {
+                  fullySpecified: false,
+                }
+            },
         ]
     );
     config.resolve.fallback = {
