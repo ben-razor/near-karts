@@ -10,6 +10,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
+import { StateCheck } from '../helpers/helpers';
 import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
@@ -68,26 +69,6 @@ document.addEventListener('keyup', e => {
   keysPressed[e.key.toLowerCase()] = false;
 });
 
-class StateCheck {
-  constructor() {
-    this.state = {};
-  }
-
-  changed(id, state, initial) {
-    let changed = false;
-
-    if(!(id in this.state)) {
-      this.state[id] = initial;
-    }
-
-    console.log('state check ', state, this.state[id]);
-    if(state !== this.state[id]) {
-      changed = true;
-      this.state[id] = state;
-    }
-    return changed;
-  }
-}
 const stateCheck = new StateCheck();
 
 function BlokBots(props) {
@@ -129,6 +110,7 @@ function BlokBots(props) {
 
   const [imageDataURL, setImageDataURL] = useState('');
   const [svgOverlay, setSVGOverlay] = useState('');
+  const [renderRequested, setRenderRequested] = useState();
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -562,6 +544,7 @@ function BlokBots(props) {
     let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
     console.log(dataURL);
     setImageDataURL(dataURL);
+    setRenderRequested(true);
   }
 
   const saveImageData = useCallback(async (dataURL) => {
@@ -655,34 +638,34 @@ function BlokBots(props) {
   }
 
   useEffect(() => {
-    setSVGOverlay(imageDataURL);
-  }, [imageDataURL]);
+    if(renderRequested) {
+      setSVGOverlay(imageDataURL);
+    }
+  }, [imageDataURL, renderRequested]); 
+
+  const applySVGOverlay = useCallback((photoImageData) => {
+    (async () => {
+      const canvas = new OffscreenCanvas(wPhoto, hPhoto);
+      const ctx = canvas.getContext('2d');
+      const v = await Canvg.fromString(ctx, svgRef.current.outerHTML, presets.offscreen());
+      await v.render();
+  
+      const blob = await canvas.convertToBlob();
+      var a = new FileReader();
+      a.onload = function(e) {
+        console.log('url', e.target.result);
+        saveImageData(e.target.result);
+      }
+      a.readAsDataURL(blob);
+    })();
+  }, [saveImageData, svgRef]);
 
   useEffect(() => {
-    if(stateCheck.changed('svgOverlay', svgOverlay, '')) {
-      (async () => {
-        const canvas = new OffscreenCanvas(wPhoto, hPhoto);
-        const ctx = canvas.getContext('2d');
-        const svg = `<svg height="100" width="100">
-  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-  Sorry, your browser does not support inline SVG.  
-</svg> `
-        const v = await Canvg.fromString(ctx, svgRef.current.outerHTML, presets.offscreen());
-    
-        // Render only first frame, ignoring animations and mouse.
-        await v.render();
-    
-        const blob = await canvas.convertToBlob();
-        var a = new FileReader();
-        a.onload = function(e) {
-          console.log('url', e.target.result);
-          saveImageData(e.target.result);
-        }
-        a.readAsDataURL(blob);
- 
-      })();
-          }
-  }, [svgOverlay, svgRef, saveImageData]);
+    if(stateCheck.changed('svgOverlay', svgOverlay, '') && renderRequested) { 
+      applySVGOverlay(svgOverlay);
+      setRenderRequested(false);
+    }
+  }, [svgOverlay, svgRef, saveImageData, applySVGOverlay, renderRequested]);
 
   return <div className="br-strange-juice">
     { nftList.length ? 

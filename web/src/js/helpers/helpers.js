@@ -39,3 +39,25 @@ export function createErrorInfo(reason='error', code=0, message='') {
 export function result(success, reason, code, message, data) {
   return { success, reason, code, message, data};
 }
+
+export class StateCheck {
+  constructor() {
+    this.state = {};
+  }
+
+  changed(id, state, initial) {
+    let changed = false;
+
+    if(!(id in this.state)) {
+      this.state[id] = initial;
+    }
+
+    console.log('state check ', JSON.stringify(state), JSON.stringify(this.state[id]));
+    if(JSON.stringify(state) !== JSON.stringify(this.state[id])) { 
+      changed = true;
+      this.state[id] = state;
+    }
+    console.log('state check result', changed);
+    return changed;
+  }
+}
