@@ -202,6 +202,12 @@ impl Contract {
         token_id
     }
 
+    pub fn nft_get_token_metadata(&self, token_id: TokenId) -> TokenMetadata {
+        let lookup_map = self.tokens.token_metadata_by_id.as_ref().unwrap();
+        let metadata = lookup_map.get(&token_id.to_string()).unwrap();
+        return metadata;
+    }
+
     pub fn nft_get_metadata_title(&self, token_id: TokenId) -> String {
         let lookup_map = self.tokens.token_metadata_by_id.as_ref().unwrap();
         let metadata = lookup_map.get(&token_id.to_string()).unwrap();
@@ -362,6 +368,7 @@ mod tests {
     use near_sdk::test_utils::{accounts, VMContextBuilder};
     use near_sdk::{testing_env, MockedBlockchain};
     use more_asserts::{assert_gt, assert_lt};
+    use core::convert::TryFrom;
 
     use super::*;
 
@@ -374,6 +381,33 @@ mod tests {
             .signer_account_id(predecessor_account_id.clone())
             .predecessor_account_id(predecessor_account_id);
         builder
+    }
+
+    fn get_context_br(creator_account_id: ValidAccountId, predecessor_account_id: ValidAccountId) -> VMContextBuilder {
+        let mut builder = VMContextBuilder::new();
+        builder
+            .current_account_id(creator_account_id.clone())
+            .signer_account_id(predecessor_account_id.clone())
+            .predecessor_account_id(predecessor_account_id);
+        builder
+    }
+
+    fn configure_env_for_storage(mut context: VMContextBuilder) {
+        testing_env!(context.build());
+        testing_env!(context
+            .storage_usage(env::storage_usage())
+            .attached_deposit(MINT_STORAGE_COST)
+            .predecessor_account_id(accounts(0))
+            .build());
+    }
+
+    fn configure_env_for_storage_br(account_id: ValidAccountId, mut context: VMContextBuilder) {
+        testing_env!(context.build());
+        testing_env!(context
+            .storage_usage(env::storage_usage())
+            .attached_deposit(MINT_STORAGE_COST)
+            .predecessor_account_id(account_id)
+            .build());
     }
 
     fn sample_token_metadata() -> TokenMetadata {
@@ -427,15 +461,6 @@ mod tests {
         assert_eq!(nk.front, 2);
     }
 
-    fn configure_env_for_storage(mut context: VMContextBuilder) {
-        testing_env!(context.build());
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
-    }
-
     #[test]
     fn test_mint() {
         let mut context = get_context(accounts(0));
@@ -454,6 +479,29 @@ mod tests {
         assert_eq!(token.owner_id, accounts(0).to_string());
         assert_eq!(token.metadata.unwrap(), sample_token_metadata());
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
+    }
+
+    #[test]
+    fn test_media_update() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
+        let token_id = "0".to_string();
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
+        assert_eq!(token.token_id, token_id);
+
+        let cid = "bafkreihypa2iaaw7vwgudjgwt7aty54lr2ap56bm2j7atswishy4nkxeku";
+        let t_sig_1 = "f5bec518a59a040c54cc352c9d67ad9be968181f58f1b58cfbd9975e1dfcbaf23e82bb9ed3eb565a3a655200f9252df5bdcfd3982a0a1e6767a1ec2d0419edfb";
+        let t_pub_key_1 = "021840b1a2da64c41db0cabb19bc5cd733138c1f594680013a508094e543e53463";
+        
+        contract.add_signer_key(t_pub_key_1.to_string());
+
+        // contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+
+        let md = contract.nft_get_token_metadata(token_id.clone());
+        assert_eq!("".to_string(), md.media.unwrap_or("".to_string()));
     }
 
     #[test]
