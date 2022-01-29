@@ -31,7 +31,7 @@ use serde::{Serialize, Deserialize};
 use std::cmp;
 use rmp_serde;
 use hex;
-use k256::{ecdsa::{SigningKey, Signature, signature::Signature as Sig, signature::Signer, VerifyingKey, signature::Verifier}};
+use k256::{ecdsa::{Signature, signature::Signature as Sig, VerifyingKey, signature::Verifier}};
 
 near_sdk::setup_alloc!();
 
@@ -45,7 +45,8 @@ pub struct Contract {
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct NearKart {
-    level: u8,
+    version: u8,
+    level: u32,
     left: u8,
     right: u8,
     top: u8,
@@ -54,6 +55,8 @@ pub struct NearKart {
     transport: u8,
     color1: u32,
     color2: u32,
+    ex1: u8,
+    ex2: u32,
     decal1: String,
     decal2: String,
     decal3: String,
