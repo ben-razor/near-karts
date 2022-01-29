@@ -231,7 +231,7 @@ function App() {
           To settle this we battle... in NEAR Karts!
         </div>
         <div className="br-intro-section">
-          Own your carts. Win your battles. Humanity will be saved.
+          Own your Karts. Win your battles. Humanity will be saved.
         </div>
       </div>
       <Fragment>

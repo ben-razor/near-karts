@@ -110,6 +110,7 @@ function BlokBots(props) {
 
   const [imageDataURL, setImageDataURL] = useState('');
   const [svgOverlay, setSVGOverlay] = useState('');
+  const [kartImageRendered, setKartImageRendered] = useState();
   const [renderRequested, setRenderRequested] = useState();
 
   const storySection = sceneConfig[sceneIndex].storySection;
@@ -535,31 +536,6 @@ function BlokBots(props) {
     execute('mint', data);
   }
 
-  function getImageURL(cid) {
-    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`;
-    return imageURL;
-  }
-
-  function render() {
-    let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
-    console.log(dataURL);
-    setImageDataURL(dataURL);
-    setRenderRequested(true);
-  }
-
-  const saveImageData = useCallback(async (dataURL) => {
-    let r = await fetch('https://localhost:8926/save_image', {method: 'POST', headers: {
-      'Content-Type': 'application/json'
-    }, body: JSON.stringify({image_data_url: dataURL})})
-    let j = await r.json();
-
-    console.log('save im data');
-    if(true) {
-      toast('Image uploaded');
-      console.log(getImageURL(j.data.cid));
-    }
-  }, [toast]);
-
   function saveKart() {
     let nftData = kartConfigToNFTData(controlEntry);
     console.log(controlEntry, nftData)
@@ -637,11 +613,54 @@ function BlokBots(props) {
     </Fragment>
   }
 
+
+  function getImageURL(cid) {
+    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`;
+    return imageURL;
+  }
+
+  function render() {
+    let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
+    console.log(dataURL);
+    setImageDataURL(dataURL);
+    setRenderRequested(true);
+  }
+
   useEffect(() => {
     if(renderRequested) {
-      setSVGOverlay(imageDataURL);
+      setKartImageRendered(true);
     }
   }, [imageDataURL, renderRequested]); 
+
+  function dataURLToFile(src, fileName, mimeType){
+    return (fetch(src)
+        .then(function(res){return res.arrayBuffer();})
+        .then(function(buf){return new File([buf], fileName, {type:mimeType});})
+    );
+  }
+
+  const saveImageData = useCallback(async (dataURL) => {
+    let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
+
+    let fd = new FormData();
+    console.log('file', f);
+    fd.append('file', f);
+    let r = await fetch('https://localhost:8926/upload', {method: 'POST', headers: {
+    }, body: fd})
+
+    let j = await r.json();
+    if(j.success) {
+      console.log('save im data');
+      if(true) {
+        toast('Image uploaded');
+        console.log(getImageURL(j.data.cid));
+      }
+    }
+    else {
+      console.log('Image upload failed', j);
+      toast('Image upload failed', 'error');
+    }
+ }, [toast]);
 
   const applySVGOverlay = useCallback((photoImageData) => {
     (async () => {
@@ -661,11 +680,13 @@ function BlokBots(props) {
   }, [saveImageData, svgRef]);
 
   useEffect(() => {
-    if(stateCheck.changed('svgOverlay', svgOverlay, '') && renderRequested) { 
-      applySVGOverlay(svgOverlay);
+    console.log('svgo');
+    if(stateCheck.changed('kartImageRendered', kartImageRendered, '') && renderRequested) { 
+      applySVGOverlay(imageDataURL);
       setRenderRequested(false);
+      setKartImageRendered(false);
     }
-  }, [svgOverlay, svgRef, saveImageData, applySVGOverlay, renderRequested]);
+  }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
 
   return <div className="br-strange-juice">
     { nftList.length ? 
