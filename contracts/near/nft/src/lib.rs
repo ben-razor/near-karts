@@ -31,10 +31,7 @@ use serde::{Serialize, Deserialize};
 use std::cmp;
 use rmp_serde;
 use hex; 
-use ed25519_dalek::Keypair;
-use ed25519_dalek::Signature;
-use ed25519_dalek::Verifier;
-use ed25519_dalek::PublicKey;
+use ed25519_dalek::{ Signature, Verifier, PublicKey};
 
 near_sdk::setup_alloc!();
 
@@ -524,16 +521,16 @@ mod tests {
         let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
         assert_eq!(token.token_id, token_id);
 
-        let cid = "bafkreihypa2iaaw7vwgudjgwt7aty54lr2ap56bm2j7atswishy4nkxeku";
-        let t_sig_1 = "f5bec518a59a040c54cc352c9d67ad9be968181f58f1b58cfbd9975e1dfcbaf23e82bb9ed3eb565a3a655200f9252df5bdcfd3982a0a1e6767a1ec2d0419edfb";
-        let t_pub_key_1 = "021840b1a2da64c41db0cabb19bc5cd733138c1f594680013a508094e543e53463";
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         
         contract.add_signer_key(t_pub_key_1.to_string());
 
         contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
 
         let md = contract.nft_get_token_metadata(token_id.clone());
-        assert_eq!("".to_string(), md.media.unwrap_or("".to_string()));
+        assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
     }
 
     #[test]
