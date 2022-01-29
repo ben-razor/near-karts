@@ -30,7 +30,11 @@ use near_sdk::{
 use serde::{Serialize, Deserialize};
 use std::cmp;
 use rmp_serde;
-use hex;
+use hex; 
+use ed25519_dalek::Keypair;
+use ed25519_dalek::Signature;
+use ed25519_dalek::Verifier;
+use ed25519_dalek::PublicKey;
 
 near_sdk::setup_alloc!();
 
@@ -256,6 +260,34 @@ impl Contract {
         let extra = nk.serialize();
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
+    }
+
+        /**
+     * Content hash is Base64-encoded sha256 hash of content referenced by the cid.
+     */
+    pub fn nft_update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
+        let is_signer = self._is_signer(pub_key.clone());
+        assert_eq!( is_signer, true, "Pub Key is not a registered signer");
+
+        let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
+        assert_eq!( verified, true, "Signature verification of cid failed");
+
+        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
+        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
+
+        metadata.media = Some(cid.clone());
+        lookup_map.insert(&token_id, &metadata);
+    }
+
+    fn verify_sig(message: String, sig: String, pub_key: String) -> bool {
+        let sig_bytes = hex::decode(sig).unwrap();
+        let s = Signature::from_bytes(&sig_bytes).unwrap();
+        let pub_key_bytes = hex::decode(pub_key).unwrap();
+        let pub_key_obj = PublicKey::from_bytes(&pub_key_bytes).unwrap(); 
+      
+        let ok = pub_key_obj.verify(message.as_bytes(), &s).is_ok();
+
+        return ok;
     }
 
     /*
