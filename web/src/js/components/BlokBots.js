@@ -19,38 +19,27 @@ import { ToastConsumer } from 'react-toast-notifications';
 import Canvg, {presets} from 'canvg';
 
 const baseNFTData = {
-    "level": 0,
-    "left": 0,
-    "right": 0,
-    "top": 0,
-    "front": 0,
-    "skin": 0,
-    "transport": 0,
-    "color1": 0,
-    "color2": 0,
-    "decal1": "",
-    "decal2": "",
-    "decal3": "",
-    "extra1": "",
-    "extra2": "",
-    "extra3": ""
+  "version": 0,
+  "level": 0,
+  "left": 0,
+  "right": 0,
+  "top": 0,
+  "front": 0,
+  "skin": 0,
+  "transport": 0,
+  "color1": 0,
+  "color2": 0,
+  "ex1": 0,
+  "ex2": 0,
+  "decal1": "",
+  "decal2": "",
+  "decal3": "",
+  "extra1": "",
+  "extra2": "",
+  "extra3": ""
 };
 
 const loader = new GLTFLoader();
-
-const VERTEX_SHADER = `varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-}`;
-
-const FRAGMENT_SHADER = `uniform sampler2D baseTexture;
-uniform sampler2D bloomTexture;
-varying vec2 vUv;
-void main() {
-  gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );
-}`;
-
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
 const w = 500;
@@ -74,6 +63,7 @@ const stateCheck = new StateCheck();
 function BlokBots(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
+  const nftMetadata = props.nftMetadata;
   const activeTokenId = props.activeTokenId;
   const activeKart = props.activeKart;
   const execute = props.execute;
@@ -654,6 +644,8 @@ function BlokBots(props) {
       if(true) {
         toast('Image uploaded');
         console.log(getImageURL(j.data.cid));
+
+        execute('addImageToNFT', j.data);
       }
     }
     else {

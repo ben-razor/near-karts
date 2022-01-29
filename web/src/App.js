@@ -16,8 +16,8 @@ const BOATLOAD_OF_GAS = '30000000000000';
 const nearkartsAddress = 'nearkarts.benrazor.testnet';
 const nearContractConfig = {
   'nearkarts.benrazor.testnet': {
-    viewMethods: ['nft_tokens_for_owner', 'nft_get_near_kart'],
-    changeMethods: ['nft_mint', 'nft_configure']
+    viewMethods: ['nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata'],
+    changeMethods: ['nft_mint', 'nft_configure', 'nft_update_media']
   }
 }
 
@@ -30,6 +30,7 @@ function App() {
   const [nftContract, setNFTContract] = useState();
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
+  const [nftMetadata, setNFTMetadata] = useState({});
   const [activeTokenId, setActiveTokenId] = useState('');
   const [activeKart, setActiveKart] = useState('');
   const [processingActions, setProcessingActions] = useState({});
@@ -146,7 +147,7 @@ function App() {
             toast(getText('error_mint_kart'), 'error');
           }
         }
-     }
+      }
       else if(action === 'saveKart') {
         try {
           let tokenId = activeTokenId;
@@ -156,6 +157,31 @@ function App() {
           else {
             await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
             toast(getText('success_save_kart'));
+            reloadTokens = true;
+          }
+        }
+        catch(e) {
+          toast(getText('error_save_kart'), 'error');
+          console.log(e);
+        }
+      }
+      else if(action === 'addImageToNFT') {
+        try {
+          let tokenId = activeTokenId;
+          if(!tokenId) {
+            doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
+          }
+          else {
+            await nftContract.nft_update_media({ 
+              token_id: tokenId, 
+              cid: data.cid,
+              sig: data.sigHex,
+              pub_key: data.pubKeyHex
+            }, BOATLOAD_OF_GAS, '0');
+
+            toast(getText('success_save_kart'));
+            let _tokenMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId});
+            setNFTMetadata(_tokenMetadata);
             reloadTokens = true;
           }
         }
@@ -264,6 +290,7 @@ function App() {
 
   console.log('nftList', nftList);
   console.log('nftData', nftData);
+  console.log('nftMetadata', nftMetadata);
   console.log('wallet', wallet, wallet?.isSignedIn())
 
   return (
@@ -281,7 +308,7 @@ function App() {
       <div className="br-content">
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <div className="br-threejs-container">
-              <BlokBots nftList={nftList} nftData={nftData} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
+              <BlokBots nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                         processingActions={processingActions} execute={execute} toast={toast} />
             </div>
             :
