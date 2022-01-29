@@ -22,6 +22,7 @@ use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_contract_standards::non_fungible_token::NonFungibleToken;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::LazyOption;
+use near_sdk::collections::UnorderedSet;
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
     env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
@@ -39,6 +40,7 @@ near_sdk::setup_alloc!();
 pub struct Contract {
     tokens: NonFungibleToken,
     metadata: LazyOption<NFTContractMetadata>,
+    signer_pub_keys: UnorderedSet<String>
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -96,6 +98,7 @@ enum StorageKey {
     TokenMetadata,
     Enumeration,
     Approval,
+    SignerKey
 }
 
 #[near_bindgen]
@@ -131,7 +134,22 @@ impl Contract {
                 Some(StorageKey::Approval),
             ),
             metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
+            signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey)
         }
+    }
+
+    pub fn add_signer_key(&mut self, pub_key: String) {
+        Contract::assert_contract_owner();
+        self.signer_pub_keys.insert(&pub_key);
+    }
+
+    pub fn remove_signer_key(&mut self, pub_key: String) {
+        Contract::assert_contract_owner();
+        self.signer_pub_keys.remove(&pub_key);
+    }
+
+    fn _is_signer(&self, pub_key: String) -> bool {
+        return self.signer_pub_keys.contains(&pub_key);
     }
 
     /// Mint a new token with ID=`token_id` belonging to `receiver_id`.
@@ -242,6 +260,9 @@ impl Contract {
      * Content hash is Base64-encoded sha256 hash of content referenced by the cid.
      */
     pub fn nft_update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
+        let is_signer = self._is_signer(pub_key.clone());
+        assert_eq!( is_signer, true, "Pub Key is not a registered signer");
+
         let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
         assert_eq!( verified, true, "Signature verification of cid failed");
 
@@ -372,6 +393,8 @@ mod tests {
     use near_sdk::test_utils::{accounts, VMContextBuilder};
     use near_sdk::{testing_env, MockedBlockchain};
     use more_asserts::{assert_gt, assert_lt};
+    use near_sdk::json_types::ValidAccountId;
+    use core::convert::TryFrom;
 
     use super::*;
 
@@ -381,6 +404,15 @@ mod tests {
         let mut builder = VMContextBuilder::new();
         builder
             .current_account_id(accounts(0))
+            .signer_account_id(predecessor_account_id.clone())
+            .predecessor_account_id(predecessor_account_id);
+        builder
+    }
+
+    fn get_context_br(creator_account_id: ValidAccountId, predecessor_account_id: ValidAccountId) -> VMContextBuilder {
+        let mut builder = VMContextBuilder::new();
+        builder
+            .current_account_id(creator_account_id.clone())
             .signer_account_id(predecessor_account_id.clone())
             .predecessor_account_id(predecessor_account_id);
         builder
@@ -439,17 +471,21 @@ mod tests {
 
     #[test]
     fn test_media_update() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
         
         let token_id = "0".to_string();
-        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
         assert_eq!(token.token_id, token_id);
 
         let cid = "bafkreihypa2iaaw7vwgudjgwt7aty54lr2ap56bm2j7atswishy4nkxeku";
         let t_sig_1 = "f5bec518a59a040c54cc352c9d67ad9be968181f58f1b58cfbd9975e1dfcbaf23e82bb9ed3eb565a3a655200f9252df5bdcfd3982a0a1e6767a1ec2d0419edfb";
         let t_pub_key_1 = "021840b1a2da64c41db0cabb19bc5cd733138c1f594680013a508094e543e53463";
         
+        contract.add_signer_key(t_pub_key_1.to_string());
+
         contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
 
         let md = contract.nft_get_token_metadata(token_id.clone());
@@ -462,6 +498,15 @@ mod tests {
             .storage_usage(env::storage_usage())
             .attached_deposit(MINT_STORAGE_COST)
             .predecessor_account_id(accounts(0))
+            .build());
+    }
+
+    fn configure_env_for_storage_br(account_id: ValidAccountId, mut context: VMContextBuilder) {
+        testing_env!(context.build());
+        testing_env!(context
+            .storage_usage(env::storage_usage())
+            .attached_deposit(MINT_STORAGE_COST)
+            .predecessor_account_id(account_id)
             .build());
     }
 
