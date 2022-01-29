@@ -530,7 +530,7 @@ mod tests {
         
         contract.add_signer_key(t_pub_key_1.to_string());
 
-        // contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
 
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!("".to_string(), md.media.unwrap_or("".to_string()));
