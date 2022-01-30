@@ -31,7 +31,6 @@ use std::cmp;
 use rmp_serde;
 use hex; 
 use ed25519_dalek::{ Signature, Verifier, PublicKey};
-use byteorder::{LittleEndian};
 
 near_sdk::setup_alloc!();
 
