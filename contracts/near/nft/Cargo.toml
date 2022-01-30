@@ -16,6 +16,7 @@ serde_json = "^1.0.59"
 rmp-serde = "^0.15.0"
 hex = "^0.4.3"
 ed25519-dalek = "1.0.1"
+byteorder = "1.4.3"
 
 [dev-dependencies]
 more-asserts = "^0.2.2"

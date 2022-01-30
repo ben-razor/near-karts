@@ -21,8 +21,7 @@ use near_contract_standards::non_fungible_token::metadata::{
 use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_contract_standards::non_fungible_token::NonFungibleToken;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::LazyOption;
-use near_sdk::collections::UnorderedSet;
+use near_sdk::collections::{ LazyOption, UnorderedSet, Vector };
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
     env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
@@ -32,6 +31,7 @@ use std::cmp;
 use rmp_serde;
 use hex; 
 use ed25519_dalek::{ Signature, Verifier, PublicKey};
+use byteorder::{LittleEndian};
 
 near_sdk::setup_alloc!();
 
@@ -40,7 +40,9 @@ near_sdk::setup_alloc!();
 pub struct Contract {
     tokens: NonFungibleToken,
     metadata: LazyOption<NFTContractMetadata>,
-    signer_pub_keys: UnorderedSet<String>
+    signer_pub_keys: UnorderedSet<String>,
+    prev_block_index: near_sdk::BlockHeight,
+    random_buffer: Vector<u8>
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -101,7 +103,8 @@ enum StorageKey {
     TokenMetadata,
     Enumeration,
     Approval,
-    SignerKey
+    SignerKey,
+    RandomBufferKey
 }
 
 #[near_bindgen]
@@ -137,7 +140,9 @@ impl Contract {
                 Some(StorageKey::Approval),
             ),
             metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
-            signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey)
+            signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey),
+            prev_block_index: 0,
+            random_buffer: Vector::new(StorageKey::RandomBufferKey)
         }
     }
 
@@ -259,9 +264,6 @@ impl Contract {
         lookup_map.insert(&token_id, &metadata);
     }
 
-        /**
-     * Content hash is Base64-encoded sha256 hash of content referenced by the cid.
-     */
     pub fn nft_update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
         let is_signer = self._is_signer(pub_key.clone());
         assert_eq!( is_signer, true, "Pub Key is not a registered signer");
@@ -287,64 +289,80 @@ impl Contract {
         return ok;
     }
 
-    /*
-    pub fn do_action(&mut self, token_id: TokenId, action: String) {
-        self.assert_nft_owner(token_id.clone());
-        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
-        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
-        let extra = metadata.extra.unwrap_or(String::from(""));
-        let mut sj = NearKart::from_data(&extra);
+    fn get_random_u32(&mut self) -> u32 {
+        let is_new_block = self.prev_block_index != env::block_index();
+        let mut rand_bytes = self.random_buffer.get_raw(0).unwrap_or(Vec::new());
 
-        if action == "configure" {
-            if sj.room != 0 {
-                panic!("Lifeforms may only get electrified in room zero");
-            }
-            else if sj.evolution < 1 {
-                panic!("Lifeforms may only get electrified after drinking strange juice");
-            }
-            else {
-                sj.evolution = cmp::max(2, sj.evolution);
-                sj.style_head_wear = Contract::get_new_from_vec((1..5).collect(), sj.style_head_wear);
-                sj.color_head_wear = Contract::get_new_color(sj.color_head_wear);
-            }
-        }
-        else if action == "scavenge_in_bin" {
-            if sj.room != 0 {
-                panic!("Lifeforms may only scavenge in room zero");
-            }
-            else if sj.evolution < 2 {
-                panic!("Lifeforms may only scavenge in bins after being electrocuted");
-            }
-            else {
-                sj.evolution = cmp::max(3, sj.evolution);
-                sj.style_legs = Contract::get_new_from_vec((1..5).collect(), sj.style_legs);
-                sj.style_arms = sj.style_legs;
-            }
-        }
-        else if action == "leave_room_zero" {
-            if sj.room != 0 {
-                panic!("Lifeform is not in room zero");
-            }
-            else if sj.evolution < 3 {
-                panic!("Lifeforms may only leave room zero if they have legs");
-            }
-            else {
-                sj.room = 1;
-            }
-        }
-        else if action == "do_naughty_reset" {
-            Contract::assert_contract_owner();
-            sj = StrangeJuice::default();
+        if is_new_block {
+            let random_seed : &[u8] = &env::random_seed();
+            rand_bytes = env::sha256(random_seed);
+            self.prev_block_index = env::block_index();
         }
         else {
-            panic!("Lifeforms do not know how to perform this action");
+            rand_bytes = env::sha256(&rand_bytes);
         }
 
-        let extra = sj.serialize();
-        metadata.extra = Some(extra);
-        lookup_map.insert(&token_id, &metadata);
+        self.random_buffer.clear();
+        self.random_buffer.extend(rand_bytes.clone().into_iter());
+
+        let mut raw_bytes: [u8; 4] = [ 0, 0, 0, 0];
+
+        for x in 0..4 {
+            raw_bytes[x] = rand_bytes[x];
+        }
+
+        let random_u32 = u32::from_be_bytes(raw_bytes);
+
+        return random_u32;
+    }
+
+    /*
+    export function randomBuffer( len: u32, buffer: Uint8Array | null = null): Uint8Array {
+        let block_index_seeded_at: u64;
+        let random_buffer: Uint8Array;
+        let random_buffer_index_key: i32;
+        let len_i32 = buffer != null ? buffer.length : (len as i32);
+    
+        // Reseed if it was not seeded at all, or was seeded more than one block ago.
+        if (
+          !storage.contains(_BLOCK_INDEX_SEED_AT_KEY) ||
+          storage.getSome<i32>(_BLOCK_INDEX_SEED_AT_KEY) != env.block_index()
+        ) {
+          block_index_seeded_at = env.block_index() as i32;
+          storage.set<u64>(_BLOCK_INDEX_SEED_AT_KEY, block_index_seeded_at);
+          random_buffer = randomSeed();
+          storage.setBytes(_RANDOM_BUFFER_KEY, random_buffer);
+          random_buffer_index_key = 0;
+          storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
+        } else {
+          random_buffer = storage.getBytes(_RANDOM_BUFFER_KEY)!;
+          random_buffer_index_key = storage.getPrimitive<i32>(
+            _RANDOM_BUFFER_INDEX_KEY,
+            0
+          );
+        }
+    
+        let result: Uint8Array =
+          buffer == null || buffer.length < <i32>len ? new Uint8Array(len) : buffer;
+        for (let i = 0; i < len_i32; i++) {
+          result[i] = random_buffer[random_buffer_index_key];
+          if (random_buffer_index_key == random_buffer.length - 1) {
+            random_buffer = sha256(random_buffer);
+            storage.setBytes(_RANDOM_BUFFER_KEY, random_buffer);
+            random_buffer_index_key = 0;
+            storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
+          } else {
+            random_buffer_index_key += 1;
+          }
+        }
+        storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
+        return result;
     }
     */
+    fn get_pub_key(&self) -> String {
+        let pub_key = near_sdk::env::signer_account_pk();
+        return hex::encode(pub_key);
+    }
 
     fn get_random_u8() -> u8 {
         let rand = near_sdk::env::random_seed()[0];
@@ -413,9 +431,11 @@ mod tests {
     }
 
     fn get_context_br(creator_account_id: ValidAccountId, predecessor_account_id: ValidAccountId) -> VMContextBuilder {
+        let pub_key = Vec::from(hex::decode("c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462").unwrap());
         let mut builder = VMContextBuilder::new();
         builder
             .current_account_id(creator_account_id.clone())
+            .signer_account_pk(pub_key)
             .signer_account_id(predecessor_account_id.clone())
             .predecessor_account_id(predecessor_account_id);
         builder
@@ -531,6 +551,22 @@ mod tests {
 
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
+    }
+
+    #[test]
+    fn test_random() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+
+        let pub_key = contract.get_pub_key();
+        assert_eq!(pub_key, "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462");
+
+        let rand_1 = contract.get_random_u32();
+        let rand_2 = contract.get_random_u32();
+
+        assert_ne!(rand_1, rand_2);
     }
 
     #[test]
