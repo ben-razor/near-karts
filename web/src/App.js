@@ -324,22 +324,26 @@ function App() {
   return (
     <div className="br-page">
       <div className="br-header">
-        <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
-        <h1 className="br-header-title">NEAR Karts</h1>
-        <div className="br-header-controls">
-          <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
-          <Fragment>
-            <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
-          </Fragment>
+        <div className="br-header-logo-panel">
+          <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
+        </div>
+        <div className="br-header-title-panel">
+          <h1 className="br-header-title">NEAR Karts</h1>
+        </div>
+        <div className="br-header-controls-panel">
+          <div className="br-header-controls">
+            <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
+            <Fragment>
+              <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
+            </Fragment>
+          </div>
         </div>
       </div>
       <div className="br-content">
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
-            <div className="br-threejs-container">
-              <BlokBots nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
-                        processingActions={processingActions} execute={execute} toast={toast} 
-                        battleResult={battleResult} />
-            </div>
+            <BlokBots nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
+                      processingActions={processingActions} execute={execute} toast={toast} 
+                      battleResult={battleResult} />
             :
             ''
         }

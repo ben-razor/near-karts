@@ -4,9 +4,20 @@
     100% { opacity: 1; }
 }
 
+@keyframes loading-fade-out {
+    0% { opacity: 1; }
+    10% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 @keyframes loading-fade-in-instant {
     0% { opacity: 0; }
     100% { opacity: 1; }
+}
+
+@keyframes loading-fade-out-instant {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 @keyframes loading-fade-in-delay-50 {
@@ -37,6 +48,10 @@
 
 .loading-fade-in-fast {
     animation: loading-fade-in-instant 3s;
+}
+
+.loading-fade-out-fast {
+    animation: loading-fade-out-instant 3s;
 }
 
 .loading-fade-in-delay-50-fast {

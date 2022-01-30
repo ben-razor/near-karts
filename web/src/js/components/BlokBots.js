@@ -60,6 +60,12 @@ document.addEventListener('keyup', e => {
 
 const stateCheck = new StateCheck();
 
+const SCREENS = {
+  garage: 1,
+  battleSetup: 2,
+  battle: 3
+};;
+
 function BlokBots(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
@@ -103,6 +109,8 @@ function BlokBots(props) {
   const [svgOverlay, setSVGOverlay] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState();
   const [renderRequested, setRenderRequested] = useState();
+  const [screen, setScreen] = useState(SCREENS.garage);
+  const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -681,36 +689,109 @@ function BlokBots(props) {
     }
   }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
 
+  function changeScreen(screenID) {
+    setPrevScreen(screen);
+    setScreen(screenID);
+  }
+
   function battle() {
     execute('gameSimpleBattle', {
       opponentTokenId: "Fatkart Slim1643556930075"
-    })
+    });
+
+    setScreen(SCREENS.battle);
   }
 
-  return <div className="br-strange-juice">
-    { nftList.length ? 
-      <div className="br-nft-gallery">
+  function getScreenClass(screenId) {
+    let screenClass = 'br-screen-hidden';
+
+    if(screenId === screen) {
+      screenClass = 'br-screen-current loading-fade-in-fast';
+    }
+    else if(screenId === prevScreen) {
+      screenClass = 'br-screen-prev loading-fade-out-fast';
+    }
+
+    return screenClass;
+  }
+
+  function getScreenGarage() {
+    let nftListUI;
+
+    if(nftList.length) {
+      nftListUI = <div className="br-nft-gallery">
         <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
         { displayNFTs(nftList, activeTokenId) }
-        <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={battle} />
+        <BrButton label="Battle" id="battle" className="br-button br-icon-button" 
+                  onClick={e => changeScreen(SCREENS.battleSetup)} />
       </div>
-      :
-      ''
     }
-    { battleResult.battle ?
-      <div className="br-battle">
-        { JSON.stringify(battleResult, null, 2)}
-      </div> :
-      ''
-    }
-    <div className="br-garage">
-      <div className="br-strange-juice-3d" ref={threeRef}>
+
+    return <Fragment>
+      <div className={ "br-screen br-screen-garage " + getScreenClass(SCREENS.garage)}>
+        {nftListUI}
+        <div className="br-garage loading-fade-in">
+          <div className="br-strange-juice-3d" ref={threeRef}>
+          </div>
+          <div className="br-strange-juice-overlay">
+            { getControlUI(gameConfig, nftData) } 
+            { getContractControls() }
+          </div>
+        </div>
       </div>
-      <div className="br-strange-juice-overlay">
-        { getControlUI(gameConfig, nftData) } 
-        { getContractControls() }
+    </Fragment> 
+  }
+
+  function getScreenBattleSetup() {
+    return <div className={"br-screen br-screen-battle-setup " + getScreenClass(SCREENS.battleSetup)}>
+      <div className="br-back-button-holder">
+        <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-setup-to-garage" 
+                  className="br-button br-icon-button" 
+                  onClick={e => changeScreen(SCREENS.garage)} />
+      </div>
+      <h1>{getText('text_battle_arena')}</h1>
+      <div className="br-battle-setup">
+        <div className="br-battle-setup-home">
+          <h3>{getText('text_your_kart')}</h3>
+        </div>
+        <div className="br-battle-setup-vs">
+          <h1>{getText('text_vs')}</h1>
+          <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={battle} />
+        </div>
+        <div className="br-battle-setup-away">
+          <h3>{getText('text_opponent_kart')}</h3>
+        </div>
       </div>
     </div>
+  }
+
+  function getScreenBattle() {
+    let ui;
+
+    if(battleResult.battle) {
+      ui = JSON.stringify(battleResult, null, 2)
+    }
+    else {
+      ui = <div className="br-screen-battle-no-battle">
+        <h3>{ getText('text_no_battle') }</h3>
+      </div>
+    }
+
+    return <div className={"br-screen br-screen-battle " + getScreenClass(SCREENS.battle)}>
+      <div className="br-back-button-holder">
+        <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-to-garage" 
+                  className="br-button br-icon-button" 
+                  onClick={e => changeScreen(SCREENS.garage)} />
+      </div>
+      <h1>NEAR Kart Battle</h1>
+      { ui }
+    </div>
+  }
+
+  return <div className="br-screen-container">
+    { getScreenGarage() }
+    { getScreenBattleSetup() }
+    { getScreenBattle() }
 
     <div className="br-photo-booth" ref={threePhotoRef}>
 

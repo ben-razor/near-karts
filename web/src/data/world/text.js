@@ -1,12 +1,18 @@
 const text_consts = {
   "app_name": "NEAR Karts",
-  "nft_name": "NEAR Kart"
+  "nft_name": "NEAR Kart",
+  "nft_short_name": "Kart"
 }
 
 const text = {
   "en": {
     "text_kart_name_label": `Enter ${text_consts.nft_name} name...`,
     "text_battle_started": `Battle has commenced!!`,
+    "text_no_battle": `No battle to watch`,
+    "text_battle_arena": `Battle Arena`,
+    "text_your_kart": `Your ${text_consts.nft_short_name}`,
+    "text_opponent_kart": `Opponent ${text_consts.nft_short_name}`,
+    "text_vs": `Vs`,
 
     "success_save_kart": `${text_consts.nft_name} saved!!`,
 

@@ -15,7 +15,28 @@
 }
 
 .br-header-title {
-    margin-left: $spacing-sm;
+
+}
+
+.br-header-logo-panel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: start;
+}
+
+.br-header-title-panel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.br-header-controls-panel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: end;
 }
 
 .br-page {
@@ -25,9 +46,11 @@
 .br-content {
     display: flex;
     flex-direction: column;
+    width: 900px;
     margin: auto;
     padding: $spacing-sm;
     text-align: center;
+    position: relative;
 }
 
 .br-intro-panel {
@@ -114,14 +137,22 @@
     }
 }
 
+.br-back-button-holder {
+    position: absolute;
+    top: 0.5em;
+    left: 0.5em;
+}
+
 .br-threejs-container {
     width: 900px;
     margin: auto;
     position: relative;
 }
 
-.br-strange-juice {
+.br-screen-container {
     min-height: 800px;
+    width: 900px;
+    margin: auto;
 }
 
 .br-strange-juice-text-overlay {
@@ -189,8 +220,9 @@
 
 .br-feature-row {
     display: flex;
-    padding: 0.8em $spacing-sm;
+    padding: 0.6em $spacing-sm;
     justify-items: left;
+    align-items: baseline;
 }
 
 .br-feature-title {
@@ -282,4 +314,64 @@
 
 .br-photo-booth {
     display: none;
+}
+
+.br-photo-overlay {
+    display: none;
+}
+
+.br-screen-hidden {
+    z-index: 100;
+    opacity: 0;
+}
+
+.br-screen-prev {
+    z-index: 101;
+    opacity: 0;
+}
+
+.br-screen-current {
+    z-index: 102;
+    opacity: 1;
+}
+
+.br-screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
+.br-screen-garage {
+}
+
+.br-screen-battle-setup {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+}
+
+.br-screen-battle {
+
+}
+
+.br-battle-setup {
+    display: flex;
+    flex: 1;
+    align-items: center;
+}
+
+.br-battle-setup-home {
+    flex: 1;
+}
+
+.br-battle-setup-vs {
+    display: flex;
+    flex-direction: column;
+}
+
+.br-battle-setup-away {
+    flex: 1;
 }
