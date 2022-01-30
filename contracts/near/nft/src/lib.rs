@@ -251,6 +251,11 @@ impl Contract {
         );
     }
 
+    fn token_owner(&self, token_id: TokenId) -> Option<String> {
+        let account_id = self.tokens.owner_by_id.get(&token_id);
+        return account_id;
+    }
+
     fn assert_contract_owner() {
         let valid = Contract::is_sub_account(env::predecessor_account_id(), env::current_account_id());
         println!("{} {}", env::current_account_id(), env::predecessor_account_id());
@@ -297,6 +302,9 @@ impl Contract {
     }
 
     fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
+        self.assert_nft_owner(token_id.clone());
+        self.token_owner(opponent_token_id.clone()).unwrap_or_else(|| panic!("Opponent token does not exist"));
+
         let battle_rand = self.get_random_u32();
         let winner = (battle_rand % 2) as u8;
 
