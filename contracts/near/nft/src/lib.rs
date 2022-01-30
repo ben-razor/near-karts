@@ -67,6 +67,14 @@ pub struct NearKart {
     extra3: String
 }
 
+#[derive(Default, Clone, Serialize, Deserialize)]
+pub struct SimpleBattle {
+    home_token_id: String,
+    away_token_id: String,
+    winner: u8,
+    battle: u32
+}
+
 impl NearKart {
     pub fn new() -> Self {
         Self::default()
@@ -287,6 +295,20 @@ impl Contract {
         let ok = pub_key_obj.verify(message.as_bytes(), &s).is_ok();
 
         return ok;
+    }
+
+    fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
+        let battle_rand = self.get_random_u32();
+        let winner = (battle_rand % 2) as u8;
+
+        let result = SimpleBattle {
+            home_token_id: token_id, 
+            away_token_id: opponent_token_id, 
+            winner: winner, 
+            battle: battle_rand
+        };
+
+        return result;
     }
 
     fn get_random_u32(&mut self) -> u32 {
@@ -551,6 +573,32 @@ mod tests {
 
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
+    }
+
+    #[test]
+    fn test_simple_battle() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+
+        let token_id = "megakart".to_string();
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
+        assert_eq!(token.token_id, token_id);
+
+        let token_id_away = "fluffykart".to_string();
+        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata());
+        assert_eq!(token_away.token_id, token_id_away);
+
+        let battle_result = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
+        let battle_1 = battle_result.battle;
+        assert_eq!(battle_result.home_token_id, "megakart");
+        assert_eq!(battle_result.away_token_id, "fluffykart");
+        assert_gt!(battle_result.battle, 0);
+
+        let battle_result_2 = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
+        let battle_2 = battle_result_2.battle;
+        assert_ne!(battle_1, battle_2);
     }
 
     #[test]
