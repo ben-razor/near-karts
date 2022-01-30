@@ -290,20 +290,13 @@ impl Contract {
         lookup_map.insert(&token_id, &metadata);
     }
 
-    fn verify_sig(message: String, sig: String, pub_key: String) -> bool {
-        let sig_bytes = hex::decode(sig).unwrap();
-        let s = Signature::from_bytes(&sig_bytes).unwrap();
-        let pub_key_bytes = hex::decode(pub_key).unwrap();
-        let pub_key_obj = PublicKey::from_bytes(&pub_key_bytes).unwrap(); 
-      
-        let ok = pub_key_obj.verify(message.as_bytes(), &s).is_ok();
-
-        return ok;
-    }
-
-    fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
+    pub fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
         self.assert_nft_owner(token_id.clone());
         self.token_owner(opponent_token_id.clone()).unwrap_or_else(|| panic!("Opponent token does not exist"));
+
+        if token_id == opponent_token_id {
+            panic!("error_no_battle_self");
+        }
 
         let battle_rand = self.get_random_u32();
         let winner = (battle_rand % 2) as u8;
@@ -316,6 +309,17 @@ impl Contract {
         };
 
         return result;
+    }
+
+    fn verify_sig(message: String, sig: String, pub_key: String) -> bool {
+        let sig_bytes = hex::decode(sig).unwrap();
+        let s = Signature::from_bytes(&sig_bytes).unwrap();
+        let pub_key_bytes = hex::decode(pub_key).unwrap();
+        let pub_key_obj = PublicKey::from_bytes(&pub_key_bytes).unwrap(); 
+      
+        let ok = pub_key_obj.verify(message.as_bytes(), &s).is_ok();
+
+        return ok;
     }
 
     fn get_random_u32(&mut self) -> u32 {
@@ -345,49 +349,6 @@ impl Contract {
         return random_u32;
     }
 
-    /*
-    export function randomBuffer( len: u32, buffer: Uint8Array | null = null): Uint8Array {
-        let block_index_seeded_at: u64;
-        let random_buffer: Uint8Array;
-        let random_buffer_index_key: i32;
-        let len_i32 = buffer != null ? buffer.length : (len as i32);
-    
-        // Reseed if it was not seeded at all, or was seeded more than one block ago.
-        if (
-          !storage.contains(_BLOCK_INDEX_SEED_AT_KEY) ||
-          storage.getSome<i32>(_BLOCK_INDEX_SEED_AT_KEY) != env.block_index()
-        ) {
-          block_index_seeded_at = env.block_index() as i32;
-          storage.set<u64>(_BLOCK_INDEX_SEED_AT_KEY, block_index_seeded_at);
-          random_buffer = randomSeed();
-          storage.setBytes(_RANDOM_BUFFER_KEY, random_buffer);
-          random_buffer_index_key = 0;
-          storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
-        } else {
-          random_buffer = storage.getBytes(_RANDOM_BUFFER_KEY)!;
-          random_buffer_index_key = storage.getPrimitive<i32>(
-            _RANDOM_BUFFER_INDEX_KEY,
-            0
-          );
-        }
-    
-        let result: Uint8Array =
-          buffer == null || buffer.length < <i32>len ? new Uint8Array(len) : buffer;
-        for (let i = 0; i < len_i32; i++) {
-          result[i] = random_buffer[random_buffer_index_key];
-          if (random_buffer_index_key == random_buffer.length - 1) {
-            random_buffer = sha256(random_buffer);
-            storage.setBytes(_RANDOM_BUFFER_KEY, random_buffer);
-            random_buffer_index_key = 0;
-            storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
-          } else {
-            random_buffer_index_key += 1;
-          }
-        }
-        storage.set<i32>(_RANDOM_BUFFER_INDEX_KEY, random_buffer_index_key);
-        return result;
-    }
-    */
     fn get_pub_key(&self) -> String {
         let pub_key = near_sdk::env::signer_account_pk();
         return hex::encode(pub_key);

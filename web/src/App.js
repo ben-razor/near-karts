@@ -17,7 +17,7 @@ const nearkartsAddress = 'nearkarts.benrazor.testnet';
 const nearContractConfig = {
   'nearkarts.benrazor.testnet': {
     viewMethods: ['nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata'],
-    changeMethods: ['nft_mint', 'nft_configure', 'nft_update_media']
+    changeMethods: ['nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle']
   }
 }
 
@@ -35,6 +35,7 @@ function App() {
   const [activeKart, setActiveKart] = useState('');
   const [processingActions, setProcessingActions] = useState({});
   const [audioInitialized, setAudioInitialized] = useState();
+  const [battleResult, setBattleResult] = useState({});
 
   const { addToast } = useToasts();
 
@@ -190,6 +191,33 @@ function App() {
           console.log(e);
         }
       }
+      else if(action === 'gameSimpleBattle') {
+        try {
+          let tokenId = activeTokenId;
+          if(!tokenId) {
+            toast(getText('error_no_active_kart'), 'error');
+          }
+          else if(!data.opponentTokenId) {
+            toast(getText('error_no_opponent_selected'), 'error');
+          }
+          else if(tokenId === data.opponentTokenId) {
+            toast(getText('error_no_battle_self'), 'error');
+          }
+          else {
+            let result = await nftContract.game_simple_battle({ 
+              token_id: tokenId, 
+              opponent_token_id: data.opponentTokenId,
+            }, BOATLOAD_OF_GAS, '0');
+
+            setBattleResult(result);
+            toast(getText('text_battle_started'));
+          }
+        }
+        catch(e) {
+          toast(getText('error_starting_battle'), 'error');
+          console.log(e);
+        }
+      }
       else if(action === 'selectNFT') {
         setActiveTokenId(data);
       }
@@ -309,7 +337,8 @@ function App() {
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <div className="br-threejs-container">
               <BlokBots nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
-                        processingActions={processingActions} execute={execute} toast={toast} />
+                        processingActions={processingActions} execute={execute} toast={toast} 
+                        battleResult={battleResult} />
             </div>
             :
             ''

@@ -69,6 +69,7 @@ function BlokBots(props) {
   const execute = props.execute;
   const processingActions = props.processingActions;
   const toast = props.toast;
+  const battleResult = props.battleResult;
 
   window.nftData = nftData;
 
@@ -680,13 +681,26 @@ function BlokBots(props) {
     }
   }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
 
+  function battle() {
+    execute('gameSimpleBattle', {
+      opponentTokenId: "Fatkart Slim1643556930075"
+    })
+  }
+
   return <div className="br-strange-juice">
     { nftList.length ? 
       <div className="br-nft-gallery">
         <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
         { displayNFTs(nftList, activeTokenId) }
+        <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={battle} />
       </div>
       :
+      ''
+    }
+    { battleResult.battle ?
+      <div className="br-battle">
+        { JSON.stringify(battleResult, null, 2)}
+      </div> :
       ''
     }
     <div className="br-garage">

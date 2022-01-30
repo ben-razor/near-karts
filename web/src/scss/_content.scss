@@ -249,6 +249,8 @@
     border-radius: 1em;
     padding: $spacing-sm;
     box-sizing: content-box;
+    display: flex;
+    justify-content: space-between;
 }
 
 .br-nft-gallery-heading {
