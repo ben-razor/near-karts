@@ -73,7 +73,7 @@ const SCREENS = {
 let currentGroup = 0;
 let currentLine = 0;
 
-function BlokBots(props) {
+function NearKarts(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
   const nftMetadata = props.nftMetadata;
@@ -889,4 +889,4 @@ function BlokBots(props) {
   </div>
 }
 
-export default BlokBots;
+export default NearKarts;

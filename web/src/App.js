@@ -6,7 +6,7 @@ import { useToasts } from 'react-toast-notifications';
 import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
-import BlokBots from './js/components/BlokBots';
+import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
 
 const TOAST_TIMEOUT = 4000;
@@ -350,9 +350,9 @@ function App() {
       </div>
       <div className="br-content">
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
-            <BlokBots nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
-                      processingActions={processingActions} execute={execute} toast={toast} 
-                      battleResult={battleResult} />
+            <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
+                       processingActions={processingActions} execute={execute} toast={toast} 
+                       battleResult={battleResult} />
             :
             ''
         }
