@@ -375,3 +375,44 @@
 .br-battle-setup-away {
     flex: 1;
 }
+
+.br-battle-viewer {
+    display: flex;
+}
+
+.br-battle-viewer-home-panel {
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-sm;
+    margin: $spacing-sm;
+    border: 1px solid hsl(0%, 0%, 90%);
+    border-radius: $spacing-sm;
+}
+
+.br-battle-viewer-away-panel {
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-sm;
+    margin: $spacing-sm;
+    border: 1px solid hsl(0%, 0%, 90%);
+    border-radius: $spacing-sm;
+}
+
+.br-battle-viewer-main-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: $spacing-sm;
+    margin: $spacing-sm;
+    border: 1px solid hsl(0%, 0%, 90%);
+    border-radius: $spacing-sm;
+}
+
+.br-battle-viewer-image-panel {
+
+}
+
+.br-battle-viewer-image {
+    width: 160px;
+    height: 160px;
+}

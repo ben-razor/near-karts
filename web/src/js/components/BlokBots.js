@@ -798,12 +798,30 @@ function BlokBots(props) {
     </div>
   }
 
+  function cidToImageURL(cid) {
+    return `https://gateway.pinata.cloud/ipfs/${cid}`;
+  }
+
   function getScreenBattle() {
     let ui;
+    let homeMetadata = battleResult.metadata[0];
+    let awayMetadata = battleResult.metadata[1];
 
     if(battleResult.battle) {
       // ui = JSON.stringify(battleResult, null, 2)
-      ui = displayBattleText(battleText);
+      ui = <div className="br-battle-viewer">
+        <div className="br-battle-viewer-home-panel">
+          <div className="br-battle-viewer-image-panel">
+            <img className="br-battle-viewer-image" alt="Home Kart" src={cidToImageURL(homeMetadata.media)} />
+          </div>
+        </div>
+        <div className="br-battle-viewer-main-panel">
+          {displayBattleText(battleText)}
+        </div>
+        <div className="br-battle-viewer-away-panel">
+          <img className="br-battle-viewer-image" alt="Away Kart" src={cidToImageURL(awayMetadata.media)} />
+        </div>
+      </div>
     }
     else {
       ui = <div className="br-screen-battle-no-battle">
