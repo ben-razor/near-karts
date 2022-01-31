@@ -69,7 +69,7 @@ const SCREENS = {
 class Battle {
   constructor(battleResult) {
     this.battleResult = cloneObj(battleResult);
-    this.karts = [this.battleResult.home_token_id, this.battleResult.away_tokenid];
+    this.karts = [this.battleResult.home_token_id, this.battleResult.away_token_id];
     this.winnerId = this.karts[this.battleResult.winner];
     this.finished = false;
     this.text = [];
