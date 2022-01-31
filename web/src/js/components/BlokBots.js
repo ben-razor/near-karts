@@ -218,6 +218,7 @@ function BlokBots(props) {
       console.log('KC', kartConfig, nftData);
       setControlEntry(kartConfig);
       setPrevNFTData({...nftData});
+      startBattle();
     }
 
   }, [nftData, prevNFTData]);

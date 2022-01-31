@@ -209,7 +209,17 @@ function App() {
               opponent_token_id: data.opponentTokenId,
             }, BOATLOAD_OF_GAS, '0');
 
+
+            let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
+            let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
+
+            let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
+            let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
+
+            result.karts = [homeKart, awayKart];
+            result.metadata = [homeMetadata, awayMetadata];
             setBattleResult(result);
+
             toast(getText('text_battle_started'));
           }
         }
