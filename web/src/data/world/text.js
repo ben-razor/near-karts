@@ -14,6 +14,8 @@ const text = {
     "text_opponent_kart": `Opponent ${text_consts.nft_short_name}`,
     "text_vs": `Vs`,
 
+    "text_battle_won": `{winner} wins the battle!!`,
+
     "success_save_kart": `${text_consts.nft_name} saved!!`,
 
     "error_save_kart": `Error saving ${text_consts.nft_name}`,

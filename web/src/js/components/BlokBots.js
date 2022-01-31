@@ -10,7 +10,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
-import { StateCheck } from '../helpers/helpers';
+import { cloneObj, StateCheck } from '../helpers/helpers';
 import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
@@ -64,7 +64,38 @@ const SCREENS = {
   garage: 1,
   battleSetup: 2,
   battle: 3
-};;
+};
+
+class Battle {
+  constructor(battleResult) {
+    this.battleResult = cloneObj(battleResult);
+    this.karts = [this.battleResult.home_token_id, this.battleResult.away_tokenid];
+    this.winnerId = this.karts[this.battleResult.winner];
+    this.finished = false;
+    this.text = [];
+    this.textIndex = 0;
+    this.generate();
+  }
+
+  generate() {
+    let line = getText('text_battle_won').replace('{winner}', this.winnerId);
+    this.text.push(line);
+  }
+
+  next() {
+    let text = this.text[this.textIndex];
+
+    if(++this.textIndex >= this.text.length) {
+      this.finished = true;
+    }
+
+    return text;
+  }
+
+  ended() {
+    this.finished = true;
+  }
+}
 
 function BlokBots(props) {
   const nftList = props.nftList;
@@ -111,6 +142,8 @@ function BlokBots(props) {
   const [renderRequested, setRenderRequested] = useState();
   const [screen, setScreen] = useState(SCREENS.garage);
   const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
+  const [battle, setBattle] = useState();
+  const [battleText, setBattleText] = useState([]);
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -689,12 +722,44 @@ function BlokBots(props) {
     }
   }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
 
+  useEffect(() => {
+    console.log('battle result changed');
+    if(battleResult.battle) {
+      console.log('battle battle');
+      let b = new Battle(battleResult);
+      console.log('b', b);
+      if(!b.finished) {
+        console.log('b1', b);
+        let text = b.next();
+        console.log('text', text);
+        setBattleText([text]);
+        console.log('b2', b);
+      }
+    }
+  }, [battleResult]);
+
+  function displayBattleText(battleText) {
+    let key = 0;
+    let lines = [];
+    console.log('displaying battle test', battleText);
+    for(let line of battleText) {
+      lines.push(<div className="br-battle-text-line" key={key++}>
+        {line}
+      </div>);
+    }
+
+    console.log('lines', lines);
+    return <div className="br-battle-text">
+      {lines}
+    </div>
+  }
+
   function changeScreen(screenID) {
     setPrevScreen(screen);
     setScreen(screenID);
   }
 
-  function battle() {
+  function startBattle() {
     execute('gameSimpleBattle', {
       opponentTokenId: "Fatkart Slim1643556930075"
     });
@@ -756,7 +821,7 @@ function BlokBots(props) {
         </div>
         <div className="br-battle-setup-vs">
           <h1>{getText('text_vs')}</h1>
-          <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={battle} />
+          <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={startBattle} />
         </div>
         <div className="br-battle-setup-away">
           <h3>{getText('text_opponent_kart')}</h3>
@@ -769,7 +834,8 @@ function BlokBots(props) {
     let ui;
 
     if(battleResult.battle) {
-      ui = JSON.stringify(battleResult, null, 2)
+      // ui = JSON.stringify(battleResult, null, 2)
+      ui = displayBattleText(battleText);
     }
     else {
       ui = <div className="br-screen-battle-no-battle">
