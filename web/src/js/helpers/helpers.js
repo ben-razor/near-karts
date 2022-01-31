@@ -52,12 +52,11 @@ export class StateCheck {
       this.state[id] = initial;
     }
 
-    console.log('state check ' + id, JSON.stringify(state), JSON.stringify(this.state[id]));
     if(JSON.stringify(state) !== JSON.stringify(this.state[id])) { 
       changed = true;
       this.state[id] = state;
     }
-    console.log('state check result', changed);
+    
     return changed;
   }
 }

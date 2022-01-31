@@ -17,6 +17,9 @@ import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
 import { ToastConsumer } from 'react-toast-notifications';
 import Canvg, {presets} from 'canvg';
+import Battle from '../helpers/battle';
+
+const DEBUG_FORCE_BATTLE = true;
 
 const baseNFTData = {
   "version": 0,
@@ -65,37 +68,6 @@ const SCREENS = {
   battleSetup: 2,
   battle: 3
 };
-
-class Battle {
-  constructor(battleResult) {
-    this.battleResult = cloneObj(battleResult);
-    this.karts = [this.battleResult.home_token_id, this.battleResult.away_token_id];
-    this.winnerId = this.karts[this.battleResult.winner];
-    this.finished = false;
-    this.text = [];
-    this.textIndex = 0;
-    this.generate();
-  }
-
-  generate() {
-    let line = getText('text_battle_won').replace('{winner}', this.winnerId);
-    this.text.push(line);
-  }
-
-  next() {
-    let text = this.text[this.textIndex];
-
-    if(++this.textIndex >= this.text.length) {
-      this.finished = true;
-    }
-
-    return text;
-  }
-
-  ended() {
-    this.finished = true;
-  }
-}
 
 function BlokBots(props) {
   const nftList = props.nftList;
@@ -215,10 +187,11 @@ function BlokBots(props) {
 
     if(changedKeys.length) {
       let kartConfig = nftDataToKartConfig(nftData);
-      console.log('KC', kartConfig, nftData);
       setControlEntry(kartConfig);
       setPrevNFTData({...nftData});
-      startBattle();
+      if(DEBUG_FORCE_BATTLE) {
+        startBattle();
+      }
     }
 
   }, [nftData, prevNFTData]);
@@ -576,7 +549,6 @@ function BlokBots(props) {
   }
 
   function getContractControls() {
-    console.log('AK', activeKart);
     return <div className="br-contract-controls">
       { nftData && 
         <div className="br-text-entry-row">
@@ -715,7 +687,6 @@ function BlokBots(props) {
   }, [saveImageData, svgRef]);
 
   useEffect(() => {
-    console.log('svgo');
     if(stateCheck.changed('kartImageRendered', kartImageRendered, '') && renderRequested) { 
       applySVGOverlay(imageDataURL);
       setRenderRequested(false);
@@ -724,17 +695,13 @@ function BlokBots(props) {
   }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
 
   useEffect(() => {
-    console.log('battle result changed');
     if(battleResult.battle) {
-      console.log('battle battle');
       let b = new Battle(battleResult);
-      console.log('b', b);
+      console.log('battle', b);
+
       if(!b.finished) {
-        console.log('b1', b);
         let text = b.next();
-        console.log('text', text);
         setBattleText([text]);
-        console.log('b2', b);
       }
     }
   }, [battleResult]);
@@ -742,7 +709,7 @@ function BlokBots(props) {
   function displayBattleText(battleText) {
     let key = 0;
     let lines = [];
-    console.log('displaying battle test', battleText);
+
     for(let line of battleText) {
       lines.push(<div className="br-battle-text-line" key={key++}>
         {line}

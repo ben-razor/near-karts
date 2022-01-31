@@ -329,7 +329,6 @@ function App() {
   console.log('nftList', nftList);
   console.log('nftData', nftData);
   console.log('nftMetadata', nftMetadata);
-  console.log('wallet', wallet, wallet?.isSignedIn())
 
   return (
     <div className="br-page">
