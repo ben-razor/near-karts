@@ -56,7 +56,7 @@ export class StateCheck {
       changed = true;
       this.state[id] = state;
     }
-    
+
     return changed;
   }
 }

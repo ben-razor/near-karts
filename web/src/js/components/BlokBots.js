@@ -620,7 +620,7 @@ function BlokBots(props) {
 
 
   function getImageURL(cid) {
-    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`;
+    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`; 
     return imageURL;
   }
 
@@ -696,13 +696,21 @@ function BlokBots(props) {
 
   useEffect(() => {
     if(battleResult.battle) {
-      let b = new Battle(battleResult);
-      console.log('battle', b);
+      battleResult.kartConfigs = [
+        nftDataToKartConfig(battleResult.karts[0]),
+        nftDataToKartConfig(battleResult.karts[1])
+      ];
 
-      if(!b.finished) {
-        let text = b.next();
-        setBattleText([text]);
+      let b = new Battle(battleResult);
+      b.generate();
+      console.log('battle', b, b.rounds.length);
+
+      let _battleText = [];
+      while(!b.finished) {
+        let round = b.next();
+        _battleText.push(round.text);
       }
+      setBattleText(_battleText);
     }
   }, [battleResult]);
 
@@ -798,28 +806,23 @@ function BlokBots(props) {
     </div>
   }
 
-  function cidToImageURL(cid) {
-    return `https://gateway.pinata.cloud/ipfs/${cid}`;
-  }
-
   function getScreenBattle() {
     let ui;
-    let homeMetadata = battleResult.metadata[0];
-    let awayMetadata = battleResult.metadata[1];
-
     if(battleResult.battle) {
-      // ui = JSON.stringify(battleResult, null, 2)
+      let homeMetadata = battleResult.metadata[0];
+      let awayMetadata = battleResult.metadata[1];
+
       ui = <div className="br-battle-viewer">
         <div className="br-battle-viewer-home-panel">
           <div className="br-battle-viewer-image-panel">
-            <img className="br-battle-viewer-image" alt="Home Kart" src={cidToImageURL(homeMetadata.media)} />
+            <img className="br-battle-viewer-image" alt="Home Kart" src={getImageURL(homeMetadata.media)} />
           </div>
         </div>
         <div className="br-battle-viewer-main-panel">
           {displayBattleText(battleText)}
         </div>
         <div className="br-battle-viewer-away-panel">
-          <img className="br-battle-viewer-image" alt="Away Kart" src={cidToImageURL(awayMetadata.media)} />
+          <img className="br-battle-viewer-image" alt="Away Kart" src={getImageURL(awayMetadata.media)} />
         </div>
       </div>
     }
