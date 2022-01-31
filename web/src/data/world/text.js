@@ -62,6 +62,7 @@ const text = {
     "text_kart_name_label": `Enter ${text_consts.nft_name} name...`,
     "text_battle_started": `Battle has commenced!!`,
     "text_no_battle": `No battle to watch`,
+    "text_battle_loading": `Arena is being prepared for battle...`,
     "text_battle_arena": `Battle Arena`,
     "text_your_kart": `Your ${text_consts.nft_short_name}`,
     "text_opponent_kart": `Opponent ${text_consts.nft_short_name}`,

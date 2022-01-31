@@ -44,13 +44,13 @@ const baseNFTData = {
 };
 
 const loader = new GLTFLoader();
-const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
+const baseImageURL = 'https://storage5555.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
 const w = 500;
 const h = 400;
 const wPhoto = 400;
 const hPhoto = 400;
-const storyDelay = 2500;
+const storyDelay = 500;
 
 const keysPressed = {};
 const speed = 1.5;
@@ -98,10 +98,12 @@ function NearKarts(props) {
   const [photoSubScene, setPhotoSubScene] = useState();
   const [sceneIndex, setSceneIndex] = useState(0);
   const [storyLines, setStoryLines] = useState([]);
-  const [storyIndex, setStoryIndex] = useState(-1);
+  const [groupIndex, setGroupIndex] = useState(0);
+  const [lineIndex, setLineIndex] = useState(0);
   const [storyInfo, setStoryInfo] = useState({});
   const [prevNFTData, setPrevNFTData] = useState({});
   const [kartNameEntry, setKartNameEntry] = useState('');
+  const [replayReq, setReplayReq] = useState(false);
   const [controlEntry, setControlEntry] = useState({
     front: '',
     left: '',
@@ -495,7 +497,7 @@ function NearKarts(props) {
   function getControlUI(gameConfig, strangeJuice) {
     let controlUI = [];
 
-    controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)))
+    controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)));
     controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
     controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
     controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
@@ -506,33 +508,53 @@ function NearKarts(props) {
   }
 
   useEffect(() => {
-    if(stateCheck.changed('storyIndex', storyIndex, -1)) {
-      if(storyIndex > -1 && storyIndex < battleText.length) {
+    let groupIndexChanged = stateCheck.changed('groupIndex', groupIndex, -1);
+    let lineIndexChanged = stateCheck.changed('lineIndex', lineIndex, -1);
+    let replayReqChanged = stateCheck.changed('replayReq', replayReq, false);
+
+    if(lineIndexChanged || replayReqChanged) {
+      if(groupIndex > -1 && groupIndex < battleText.length) {
         let timer = setTimeout(() => {
-          console.log('si', storyIndex);
-          setStoryIndex(storyIndex + 1);
+          console.log('time', lineIndex, groupIndex, battleText[groupIndex].length);
+
+          let isLastLineInGroup = lineIndex === battleText[groupIndex].length - 1;
+
+          if(isLastLineInGroup) {
+            let isLastGroup = groupIndex === battleText.length - 1;
+
+            setGroupIndex(groupIndex + 1);
+            if(!isLastGroup) {
+              setLineIndex(0);
+            }
+          }
+          else {
+            setLineIndex(lineIndex + 1);
+          }
         }, storyDelay);
 
         return () => { clearInterval(timer) }
       }
+      setReplayReq(false);
     }
-  }, [storyIndex, battleText]);
+  }, [groupIndex, lineIndex, battleText, replayReq]);
 
   useEffect(() => {
-    setStoryIndex(0);
+    setGroupIndex(0);
+    setLineIndex(0);
+    setReplayReq(true);
   }, [battleText]);
 
   /*
   useEffect(() => {
     let lines = story[storySection]['text'];
-    console.log('STORY', storySection, storyIndex, lines[storyIndex], story);
-    if(storyIndex < lines.length) {
+    console.log('STORY', storySection, groupIndex, lines[groupIndex], story);
+    if(groupIndex < lines.length) {
       let _storyLines = [...storyLines];
-      _storyLines.push(lines[storyIndex]);
+      _storyLines.push(lines[groupIndex]);
       setStoryLines(_storyLines);
-      setStoryInfo({storySection, storyIndex});
+      setStoryInfo({storySection, groupIndex});
     }
-  }, [storyIndex]);
+  }, [groupIndex]);
   */
 
   function mint() {
@@ -720,33 +742,40 @@ function NearKarts(props) {
     let lines = [];
     let groupLines = [];
 
-    let groupIndex = 0;
+    let textGroupIndex = 0;
     for(let group of battleText) {
-      console.log('gi si', groupIndex, storyIndex);
-      if(groupIndex >= storyIndex) {
+      if(textGroupIndex > groupIndex) {
         break;
       }
-      let lineIndex = 0;
+      let textLineIndex = 0;
       groupLines = [];
 
       for(let line of group) {
-        let id = `br-battle-text-line-${groupIndex}-${lineIndex}`;
+        let isCurrentGroup = textGroupIndex === groupIndex; // Only limit displayed lines for currentGroup
+
+        if(isCurrentGroup && textLineIndex >= lineIndex) {
+          break;
+        }
+        let id = `br-battle-text-line-${textGroupIndex}-${textLineIndex}`;
         groupLines.push(<div className="br-battle-text-line" id={id} key={id}>
           {line}
         </div>);
-        lineIndex++;
+        textLineIndex++;
       }
-      groupIndex++;
+      textGroupIndex++;
 
-      let id = `br-battle-text-group-${groupIndex}`;
+      let id = `br-battle-text-group-${textGroupIndex}`;
       lines.push(
-        <div className="br-battle-text-group" id={id}>
-          {groupLines}
+        <div className="br-battle-text-group" id={id} key={id}>
+          {groupLines.reverse()}
         </div>
       )
     }
 
-    console.log('lines', lines);
+    if(lines.length) {
+      lines.reverse();
+    }
+
     return <div className="br-battle-text" ref={battleTextRef}>
       {lines}
     </div>
@@ -828,6 +857,11 @@ function NearKarts(props) {
     </div>
   }
 
+  function replay() {
+    setGroupIndex(0);
+    setReplayReq(true);
+  }
+
   function getScreenBattle() {
     let ui;
     if(battleResult.battle) {
@@ -850,7 +884,7 @@ function NearKarts(props) {
     }
     else {
       ui = <div className="br-screen-battle-no-battle">
-        <h3>{ getText('text_no_battle') }</h3>
+        <h3>{ getText('text_battle_loading') }</h3>
       </div>
     }
 
@@ -861,6 +895,11 @@ function NearKarts(props) {
                   onClick={e => changeScreen(SCREENS.garage)} />
       </div>
       <h1>NEAR Kart Battle</h1>
+      <div className="br-battle-controls-holder">
+        <BrButton label="Replay" id="go-battle-to-garage" 
+                  className="br-button br-icon-button" 
+                  onClick={e => replay() } />
+      </div>
       { ui }
     </div>
   }
