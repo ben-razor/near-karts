@@ -50,7 +50,7 @@ const w = 500;
 const h = 400;
 const wPhoto = 400;
 const hPhoto = 400;
-const storyDelay = 4000;
+const storyDelay = 2500;
 
 const keysPressed = {};
 const speed = 1.5;
@@ -70,6 +70,9 @@ const SCREENS = {
   battle: 3
 };
 
+let currentGroup = 0;
+let currentLine = 0;
+
 function BlokBots(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
@@ -86,7 +89,7 @@ function BlokBots(props) {
   const threeRef = React.createRef();
   const threePhotoRef = React.createRef();
   const svgRef = React.createRef();
-  const canvasRef = React.createRef();
+  const battleTextRef = React.createRef();
 
   const [scene, setScene] = useState();
   const [camera, setCamera] = useState();
@@ -95,7 +98,7 @@ function BlokBots(props) {
   const [photoSubScene, setPhotoSubScene] = useState();
   const [sceneIndex, setSceneIndex] = useState(0);
   const [storyLines, setStoryLines] = useState([]);
-  const [storyIndex, setStoryIndex] = useState(0);
+  const [storyIndex, setStoryIndex] = useState(-1);
   const [storyInfo, setStoryInfo] = useState({});
   const [prevNFTData, setPrevNFTData] = useState({});
   const [kartNameEntry, setKartNameEntry] = useState('');
@@ -503,27 +506,24 @@ function BlokBots(props) {
   }
 
   useEffect(() => {
-    /*
-    let timer = setTimeout(() => {
-      setStoryIndex(storyIndex + 1);
-    }, storyDelay);
+    if(stateCheck.changed('storyIndex', storyIndex, -1)) {
+      if(storyIndex > -1 && storyIndex < battleText.length) {
+        let timer = setTimeout(() => {
+          console.log('si', storyIndex);
+          setStoryIndex(storyIndex + 1);
+        }, storyDelay);
 
-    return () => { clearInterval(timer) }
-    */
-
-  }, [storyIndex]);
-
-  useEffect(() => {
-    /*
-    if(storySection) {
-      setStoryIndex(0);
-      setStoryLines([]);
+        return () => { clearInterval(timer) }
+      }
     }
-    */
-  }, [storySection]);
+  }, [storyIndex, battleText]);
 
   useEffect(() => {
-    /*
+    setStoryIndex(0);
+  }, [battleText]);
+
+  /*
+  useEffect(() => {
     let lines = story[storySection]['text'];
     console.log('STORY', storySection, storyIndex, lines[storyIndex], story);
     if(storyIndex < lines.length) {
@@ -532,8 +532,8 @@ function BlokBots(props) {
       setStoryLines(_storyLines);
       setStoryInfo({storySection, storyIndex});
     }
-    */
-  }, [storySection, storyIndex]);
+  }, [storyIndex]);
+  */
 
   function mint() {
     let data = {
@@ -717,20 +717,37 @@ function BlokBots(props) {
   }, [battleResult]);
 
   function displayBattleText(battleText) {
-    let key = 0;
     let lines = [];
+    let groupLines = [];
 
+    let groupIndex = 0;
     for(let group of battleText) {
+      console.log('gi si', groupIndex, storyIndex);
+      if(groupIndex >= storyIndex) {
+        break;
+      }
+      let lineIndex = 0;
+      groupLines = [];
+
       for(let line of group) {
-        lines.push(<div className="br-battle-text-line" key={key++}>
+        let id = `br-battle-text-line-${groupIndex}-${lineIndex}`;
+        groupLines.push(<div className="br-battle-text-line" id={id} key={id}>
           {line}
         </div>);
+        lineIndex++;
       }
-      lines.push(<br key={'a' + key} />)
+      groupIndex++;
+
+      let id = `br-battle-text-group-${groupIndex}`;
+      lines.push(
+        <div className="br-battle-text-group" id={id}>
+          {groupLines}
+        </div>
+      )
     }
 
     console.log('lines', lines);
-    return <div className="br-battle-text">
+    return <div className="br-battle-text" ref={battleTextRef}>
       {lines}
     </div>
   }
@@ -824,7 +841,7 @@ function BlokBots(props) {
           </div>
         </div>
         <div className="br-battle-viewer-main-panel">
-          {displayBattleText(battleText)}
+          { displayBattleText(battleText) }
         </div>
         <div className="br-battle-viewer-away-panel">
           <img className="br-battle-viewer-image" alt="Away Kart" src={getImageURL(awayMetadata.media)} />
