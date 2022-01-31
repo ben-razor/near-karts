@@ -21,6 +21,11 @@ export function getRandomInt(min, max, rng) {
     return Math.floor(getRandom(rng) * (max - min + 1)) + min;
 }
 
+export function getRandomListEntry(list, rng) {
+  let index = getRandomInt(0, list.length - 1, rng);
+  return list[index];
+}
+
 export function shuffleArray(array, rng) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(getRandom(rng) * (i + 1));

@@ -11,14 +11,14 @@ const text_battle = {
     "text_battle_attack_rocket_1": `{aggressor} launches a rocket`,
     "text_battle_attack_fist_1": `{aggressor} throws some nuts`,
     "text_battle_attack_flamethrower_1": `{aggressor} lights up the arena with their flamethrower`,
-    "text_battle_attack_aceed_1": `{victim} pumps out some hardcore aceed`,
+    "text_battle_attack_aceed_1": `{aggressor} pumps out some hardcore aceed`,
     "text_battle_attack_flipper_1": "{aggressor} gets in close and trys the flipper",
     "text_battle_attack_sword_1": "{aggressor} strikes with the sword",
     "text_battle_attack_axe_1": "{aggressor} brings the axe crashing down on {victim}",
-    "text_battle_attack_hammer_1": "{aggressor} tries to crush {victim} with the hammer",
+    "text_battle_attack_hammer_1": "{aggressor} tries to pound {victim} with the hammer",
 
-    "text_battle_flamethrower_hittyped_1": "sizzled",
-    "text_battle_flamethrower_hittyped_2": "toasted",
+    "text_battle_hittype_flamethrower_1": "sizzled",
+    "text_battle_hittype_flamethrower_2": "toasted",
 
     "text_battle_hit_general_1": `{victim} suffers damage`,
     "text_battle_hit_laser_1": `The laser cuts through {victim}`,
@@ -27,21 +27,29 @@ const text_battle = {
     "text_battle_hit_flamethrower_1": `{victim}'s kart is {hittyped} by flamethrower`,
     "text_battle_hit_aceed_1": `{victim} got a face full`,
     "text_battle_hit_aceed_2": `{victim} got squelched by 303ml of aceed`,
-    "text_battle_hit_flipper_1": `{aggressor} flips {victims}'s cart through the air`,
-    "text_battle_hit_sword_1": `It rips through {victim}'s kart like a knife through butter`,
+    "text_battle_hit_flipper_1": `{victim} spins and crashes to the ground`,
+    "text_battle_hit_sword_1": `It cuts through {victim}'s kart like a knife through butter`,
     "text_battle_hit_axe_1": `It takes a piece out of {victim}`,
     "text_battle_hit_hammer_1": `{victim} gets squashed`,
 
-    "text_battle_color_aceed_naughty": 'That was naughty, very naughty',
-    "text_battle_color_aceed_aceed": 'Acieed... Acieed!!',
-
+    "text_battle_color_aceed_1": 'That was naughty, very naughty',
+    "text_battle_color_aceed_2": 'Acieed... Acieed',
+    "text_battle_color_aceed_3": '{victim} is not looking smiley',
+    "text_battle_color_flamethrower_1": '{victim} is on fire today... But not in a good way',
+    "text_battle_color_flamethrower_2": "It's getting hot in here",
+    "text_battle_color_fist_1": "Thunderfist!",
+    "text_battle_color_fist_2": "{victim} looks screwed up",
     "text_battle_color_general_1": 'That was cold blooded',
+    "text_battle_color_general_2": 'That was brutal',
+    "text_battle_color_general_3": 'Holy cow',
+    "text_battle_color_general_4": 'How did {victim} survive that',
+    "text_battle_color_general_5": 'Epic',
 
-    "text_battle_evade_off": "{aggressor}'s aim is off",
-    "text_battle_evade_dodge": "{victim} dodges",
-    "text_battle_evade_evasive": "{victim} executes an evasive manouvre",
+    "text_battle_shield_evade_1": "{aggressor}'s aim is off",
+    "text_battle_shield_evade_2": "{victim} dodges",
+    "text_battle_shield_evade_3": "{victim} executes an evasive manouvre",
+    "text_battle_shield_evade_4": "{victim}'s body work holds steady",
 
-    "text_battle_shield_general_1": "{victim}'s body handles it",
     "text_battle_shield_fluffykitten_1": "{victim}'s fluffy kitten paws it away",
     "text_battle_shield_kevlar_1": "{victim}'s kevlar shield blocks the attack",
 
@@ -73,15 +81,20 @@ const text = {
 };
 
 const langs = ["en"];
+let lang = langs[0];
 
 for(let lang of langs) {
   Object.assign(text[lang], text_battle[lang]);
 }
 
-export default function getText(id, lang="en") {
+export default function getText(id) {
   return text[lang][id] || id;
 }
 
 export function getBattleText() {
-  return text_battle;
+  return text_battle[lang];
+}
+
+export function exclamation(text) {
+  return text + '!!';
 }

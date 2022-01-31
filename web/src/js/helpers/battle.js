@@ -1,10 +1,34 @@
 import { cloneObj } from "./helpers";
-import getText from "../../data/world/text";
+import getText, { getBattleText, exclamation } from "../../data/world/text";
 import seedrandom from 'seedrandom';
-import { getRandomInt, shuffleArray } from "./math";
+import { getRandomInt, getRandomListEntry, shuffleArray } from "./math";
+
+const battleText = getBattleText();
 
 export default class Battle {
-  constructor(battleResult) {
+  constructor() { 
+    let battleTexts = {};
+
+    for(let id of Object.keys(battleText)) {
+      let idParts = id.split('_');
+      let type = idParts[2];
+      let subType = idParts[3];
+
+      if(!(type in battleTexts)) {
+        battleTexts[type] = {};
+      }
+
+      if(!(subType in battleTexts[type])) {
+        battleTexts[type][subType] = [];
+      }
+
+      battleTexts[type][subType].push(battleText[id]);
+    }
+
+    this.battleTexts = battleTexts;
+  }
+  
+  load(battleResult) {
     console.log('in battle constructor');
     this.battleResult = cloneObj(battleResult);
     this.kartIDs = [this.battleResult.home_token_id, this.battleResult.away_token_id];
@@ -20,6 +44,8 @@ export default class Battle {
     console.log('in battle constructor 3');
     this.generate();
     console.log('in battle constructor 4');
+
+    console.log('battle texts', this.battleTexts);
   }
 
   _initWeapons() {
@@ -52,7 +78,8 @@ export default class Battle {
 
   generate() {
     console.log('in generate');
-    this.rng = seedrandom(this.battleResult.battle.toString());
+    let battleSeed = this.battleResult.battle.toString();
+    this.rng = seedrandom(battleSeed); 
 
     this.rounds = [];
     let winner = this.battleResult.winner;
@@ -65,30 +92,57 @@ export default class Battle {
 
     let roundIndex = 0;
 
+    let SHIELD_CHANCE = 4;
+    let BOTTOM_SCORE = 10;
+    let TOP_SCORE = 25;
+    let POWER_SCORE = 22;
+
     do {
       let roundScore = 0;
-      let miss1 = getRandomInt(0, 6, this.rng) === 0;
+      let miss1 = getRandomInt(0, SHIELD_CHANCE, this.rng) === 0;
 
       if(!miss1) {
-        roundScore = getRandomInt(10, 25, this.rng);
+        roundScore = getRandomInt(BOTTOM_SCORE, TOP_SCORE, this.rng);
         score1 += roundScore;
       }
 
-      roundScores1[roundIndex++] = { aggressor: winner, score: roundScore };
+      let weapon = getRandomListEntry(this.kartWeapons[winner], this.rng);
+      let shield;
+
+      if(roundScore === 0) {
+        shield = getRandomListEntry(this.kartShields[loser], this.rng);
+
+        if(!shield) {
+          shield = 'evade';
+        }
+      }
+
+      roundScores1[roundIndex++] = { aggressor: winner, score: roundScore, weapon, shield };
 
     } while(score1 < 100);
 
     roundIndex = 0;
     do {
       let roundScore = 0;
-      let miss1 = getRandomInt(0, 6, this.rng) === 0;
+      let miss1 = getRandomInt(0, SHIELD_CHANCE, this.rng) === 0;
 
       if(!miss1) {
-        roundScore = getRandomInt(10, 25, this.rng);
+        roundScore = getRandomInt(BOTTOM_SCORE, TOP_SCORE, this.rng);
         score2 += roundScore;
       }
 
-      roundScores2[roundIndex++] = { aggressor: loser, score: roundScore }; 
+      let weapon = getRandomListEntry(this.kartWeapons[loser], this.rng);
+      let shield;
+
+      if(roundScore === 0) {
+        shield = getRandomListEntry(this.kartShields[winner], this.rng);
+
+        if(!shield) {
+          shield = 'evade';
+        }
+      }
+
+      roundScores2[roundIndex++] = { aggressor: loser, score: roundScore, weapon, shield }; 
 
     } while(score2 < 100);
 
@@ -111,19 +165,64 @@ export default class Battle {
       totals[round.aggressor] += round.score;
       round.totals = [...totals];
 
-      if(++playIndex === rounds.length) {
-        text = getText('text_battle_battle_won').replace('{winner}', this.winnerName);
+      let roundDetails = {
+        text: [],
+        data: round
+      }
+
+      let weapon = round.weapon;
+      let shield = round.shield;
+      let aggressor = round.aggressor;
+      let victim = 1 - aggressor; 
+      let score = round.score;
+
+      text = getRandomListEntry(this.battleTexts['attack'][weapon]);
+      text = text.replace('{aggressor}', this.kartNames[aggressor]);
+      text = text.replace('{victim}', this.kartNames[victim]);
+      roundDetails.text.push(text);
+
+      if(shield) {
+        text = getRandomListEntry(this.battleTexts['shield'][shield]);
+        text = text.replace('{aggressor}', this.kartNames[aggressor]);
+        text = text.replace('{victim}', this.kartNames[victim]);
+        roundDetails.text.push(text);
       }
       else {
-        text = '';
+        text = getRandomListEntry(this.battleTexts['hit'][weapon]);
+        text = text.replace('{aggressor}', this.kartNames[aggressor]);
+        text = text.replace('{victim}', this.kartNames[victim]);
+
+        if(this.battleTexts['hittype'][weapon]) {
+          let hitType = getRandomListEntry(this.battleTexts['hittype'][weapon]);
+          text = text.replace('{hittyped}', hitType);
+        }
+
+        roundDetails.text.push(text);
+
+        if(score >= POWER_SCORE) {
+          let colorTexts = this.battleTexts['color'][weapon];
+          if(!colorTexts) colorTexts = this.battleTexts['color']['general']; 
+
+          text = getRandomListEntry(colorTexts);
+          text = text.replace('{aggressor}', this.kartNames[aggressor]);
+          text = text.replace('{victim}', this.kartNames[victim]);
+
+          roundDetails.text.push(exclamation(text));
+        }
       }
 
-      text += ' ' + JSON.stringify(round);
-      this.rounds.push({ text, data: round });
-    }
+      if(++playIndex === rounds.length) {
+        text = getText('text_battle_battle_won').replace('{winner}', this.winnerName);
+        roundDetails.text.push(text);
+      }
 
-    let line = getText('text_battle_battle_won').replace('{winner}', this.winnerName);
-    this.rounds.push(line);
+      /*
+      text = JSON.stringify(round);
+      roundDetails.text.push(text);
+      */
+
+      this.rounds.push(roundDetails);
+    }
   }
 
   next() {

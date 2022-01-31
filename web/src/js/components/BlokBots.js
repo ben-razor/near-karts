@@ -18,6 +18,7 @@ import { CompactPicker } from 'react-color';
 import { ToastConsumer } from 'react-toast-notifications';
 import Canvg, {presets} from 'canvg';
 import Battle from '../helpers/battle';
+let b = new Battle();
 
 const DEBUG_FORCE_BATTLE = true;
 
@@ -701,13 +702,14 @@ function BlokBots(props) {
         nftDataToKartConfig(battleResult.karts[1])
       ];
 
-      let b = new Battle(battleResult);
+      b.load(battleResult);
       b.generate();
+
       console.log('battle', b, b.rounds.length);
 
       let _battleText = [];
       while(!b.finished) {
-        let round = b.next();
+        let round = b.next(); 
         _battleText.push(round.text);
       }
       setBattleText(_battleText);
@@ -718,10 +720,13 @@ function BlokBots(props) {
     let key = 0;
     let lines = [];
 
-    for(let line of battleText) {
-      lines.push(<div className="br-battle-text-line" key={key++}>
-        {line}
-      </div>);
+    for(let group of battleText) {
+      for(let line of group) {
+        lines.push(<div className="br-battle-text-line" key={key++}>
+          {line}
+        </div>);
+      }
+      lines.push(<br key={'a' + key} />)
     }
 
     console.log('lines', lines);
