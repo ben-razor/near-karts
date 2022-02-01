@@ -8,6 +8,7 @@ import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
+import { getRandomInt } from "./js/helpers/math";
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -16,8 +17,13 @@ const BOATLOAD_OF_GAS = '30000000000000';
 const nearkartsAddress = 'nearkarts.benrazor.testnet';
 const nearContractConfig = {
   'nearkarts.benrazor.testnet': {
-    viewMethods: ['nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata'],
-    changeMethods: ['nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle']
+    viewMethods: [
+      'nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata', 
+      'get_num_karts', 'get_token_id_by_index'
+    ],
+    changeMethods: [
+      'nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle'
+    ]
   }
 }
 
@@ -36,6 +42,7 @@ function App() {
   const [processingActions, setProcessingActions] = useState({});
   const [audioInitialized, setAudioInitialized] = useState();
   const [battleResult, setBattleResult] = useState({});
+  const [battleKarts, setBattleKarts] = useState([]);
 
   const { addToast } = useToasts();
 
@@ -140,7 +147,8 @@ function App() {
                 title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
                 media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
                 copies: 1
-              }
+              },
+              near_kart_new: data.nftData
             }, BOATLOAD_OF_GAS, pointOneNear.toString());
 
             reloadTokens = true;
@@ -191,6 +199,27 @@ function App() {
           console.log(e);
         }
       }
+      else if(action === 'getOpponent') {
+        let tokenId = activeTokenId;
+        if(!tokenId) {
+          toast(getText('error_no_active_kart'), 'error');
+        }
+        else {
+          let numKarts = await nftContract.get_num_karts();
+          let randIndex = getRandomInt(0, numKarts - 1);
+          let opponentId = await nftContract.get_token_id_by_index({ index: randIndex });
+          if(opponentId === tokenId) {
+            randIndex = randIndex === numKarts - 1 ? 0 : randIndex + 1;
+            opponentId = await nftContract.get_token_id_by_index({ index: randIndex });
+          }
+
+          let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId });
+          homeMetadata.token_id = tokenId;
+          let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: opponentId });
+          awayMetadata.token_id = opponentId;
+          setBattleKarts([homeMetadata, awayMetadata]);
+        }
+      }
       else if(action === 'gameSimpleBattle') {
         try {
           let tokenId = activeTokenId;
@@ -208,7 +237,6 @@ function App() {
               token_id: tokenId, 
               opponent_token_id: data.opponentTokenId,
             }, BOATLOAD_OF_GAS, '0');
-
 
             let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
             let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
@@ -352,7 +380,7 @@ function App() {
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
-                       battleResult={battleResult} />
+                       battleResult={battleResult} battleKarts={battleKarts} />
             :
             ''
         }

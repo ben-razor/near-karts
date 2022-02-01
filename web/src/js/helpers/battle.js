@@ -98,10 +98,10 @@ export default class Battle {
 
     let roundIndex = 0;
 
-    let SHIELD_CHANCE = 6;
-    let BUMP_CHANCE = 10;
+    let SHIELD_CHANCE = 5;
+    let BUMP_CHANCE_BY_WEAPON_COUNT = [2, 4, 8];
     let BOTTOM_SCORE = 10;
-    let TOP_SCORE = 25;
+    let TOP_SCORE = 30;
     let POWER_SCORE = 22;
 
     do {
@@ -115,7 +115,8 @@ export default class Battle {
 
       let weapon = getRandomListEntry(this.kartWeapons[winner], this.rng);
 
-      if(!weapon || getRandomInt(0, BUMP_CHANCE, this.rng) === 0) {
+      let bumpChance = BUMP_CHANCE_BY_WEAPON_COUNT[this.kartWeapons[winner].length];
+      if(!weapon || getRandomInt(0, bumpChance, this.rng) === 0) {
         weapon = 'general';
       }
       
@@ -145,7 +146,8 @@ export default class Battle {
 
       let weapon = getRandomListEntry(this.kartWeapons[loser], this.rng);
 
-      if(!weapon || getRandomInt(0, BUMP_CHANCE, this.rng) === 0) {
+      let bumpChance = BUMP_CHANCE_BY_WEAPON_COUNT[this.kartWeapons[loser].length];
+      if(!weapon || getRandomInt(0, bumpChance, this.rng) === 0) {
         weapon = 'general';
       }
 
@@ -161,7 +163,7 @@ export default class Battle {
 
       roundScores2[roundIndex++] = { aggressor: loser, score: roundScore, weapon, shield }; 
 
-    } while(score2 < 100);
+    } while(score2 < 90);
 
     roundScores2.pop();
 

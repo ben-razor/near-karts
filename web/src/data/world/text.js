@@ -14,12 +14,16 @@ const text_battle = {
     "text_battle_attack_laser_1": `{aggressor} fires their "L A S E R"`,
     "text_battle_attack_rocket_1": `{aggressor} launches a rocket`,
     "text_battle_attack_fist_1": `{aggressor} throws some nuts`,
-    "text_battle_attack_flamethrower_1": `{aggressor} lights up the arena with their flamethrower`,
+    "text_battle_attack_flamethrower_1": `{aggressor} lights up the arena with the flamethrower`,
     "text_battle_attack_aceed_1": `{aggressor} pumps out some hardcore acid`,
+    "text_battle_attack_aceed_2": `{aggressor} ejects a jet of acid`,
+    "text_battle_attack_aceed_3": `{aggressor} fires a stream of acid towards {victim}`,
     "text_battle_attack_flipper_1": "{aggressor} gets in close and trys the flipper",
     "text_battle_attack_sword_1": "{aggressor} strikes with the sword",
     "text_battle_attack_axe_1": "{aggressor} brings the axe crashing down on {victim}",
+    "text_battle_attack_axe_2": "{aggressor} tries to chop {victim} with the axe",
     "text_battle_attack_hammer_1": "{aggressor} tries to pound {victim} with the hammer",
+    "text_battle_attack_hammer_2": "{aggressor} brings the hammer down on {victim}",
 
     "text_battle_hittype_flamethrower_1": "sizzled",
     "text_battle_hittype_flamethrower_2": "toasted",
@@ -42,6 +46,7 @@ const text_battle = {
     "text_battle_hit_axe_1": `It takes a piece out of {victim}`,
     "text_battle_hit_axe_2": `{victim} got chopped`,
     "text_battle_hit_hammer_1": `{victim} gets squashed`,
+    "text_battle_waiting_1": `Waiting for battle karts to be selected...`,
 
     "text_battle_color_aceed_1": 'That was naughty, very naughty',
     "text_battle_color_aceed_2": 'Acieed... Acieed',
@@ -61,7 +66,7 @@ const text_battle = {
     "text_battle_shield_evade_3": "{victim} executes an evasive manouvre",
     "text_battle_shield_evade_4": "{victim}'s body work holds steady",
 
-    "text_battle_shield_fluffykitten_1": "{victim}'s fluffy kitten paws it away",
+    "text_battle_shield_kitten_1": "{victim}'s fluffy kitten paws it away",
     "text_battle_shield_kevlar_1": "{victim}'s kevlar shield blocks the attack",
 
     "text_battle_battle_won": `{winner} wins the battle!!`,

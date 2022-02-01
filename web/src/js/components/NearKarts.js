@@ -79,6 +79,7 @@ function NearKarts(props) {
   const execute = props.execute;
   const processingActions = props.processingActions;
   const toast = props.toast;
+  const battleKarts = props.battleKarts;
   const battleResult = props.battleResult;
 
   window.nftData = nftData;
@@ -575,8 +576,10 @@ function NearKarts(props) {
   }, [groupIndex, lineIndex, battleText]);
 
   function mint() {
+    let nftData = kartConfigToNFTData(controlEntry);
     let data = {
-      name: kartNameEntry
+      name: kartNameEntry,
+      nftData
     };
 
     execute('mint', data);
@@ -660,7 +663,10 @@ function NearKarts(props) {
 
 
   function getImageURL(cid) {
-    let imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`; 
+    let imageURL = cid;
+    if(!cid.startsWith('http')) {
+      imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`; 
+    }
     return imageURL;
   }
 
@@ -823,7 +829,7 @@ function NearKarts(props) {
 
   function startBattle() {
     execute('gameSimpleBattle', {
-      opponentTokenId: "Fatkart Slim1643556930075"
+      opponentTokenId: battleKarts[1].token_id
     });
 
     setScreen(SCREENS.battle);
@@ -842,6 +848,16 @@ function NearKarts(props) {
     return screenClass;
   }
 
+  function arrangeBattle() {
+    execute('getOpponent');
+  }
+
+  useEffect(() => {
+    if(battleKarts.length) {
+      changeScreen(SCREENS.battleSetup)
+    }
+  }, [battleKarts]);
+
   function getScreenGarage() {
     let nftListUI;
 
@@ -849,8 +865,9 @@ function NearKarts(props) {
       nftListUI = <div className="br-nft-gallery">
         <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
         { displayNFTs(nftList, activeTokenId) }
-        <BrButton label="Battle" id="battle" className="br-button br-icon-button" 
-                  onClick={e => changeScreen(SCREENS.battleSetup)} />
+        <BrButton label="Battle" id="arrangeBattle" className="br-button br-icon-button" 
+                  onClick={ e => arrangeBattle() }
+                  isSubmitting={processingActions['arrangeBattle']} />
       </div>
     }
 
@@ -877,18 +894,36 @@ function NearKarts(props) {
                   onClick={e => changeScreen(SCREENS.garage)} />
       </div>
       <h1>{getText('text_battle_arena')}</h1>
-      <div className="br-battle-setup">
-        <div className="br-battle-setup-home">
-          <h3>{getText('text_your_kart')}</h3>
+      { battleKarts.length ?
+        <div className="br-battle-setup">
+          <div className="br-battle-setup-home">
+            <h3>{getText('text_your_kart')}</h3>
+            <div className="br-battle-setup-home-kart">
+              <img className={"br-battle-viewer-image"} alt="Home Kart" src={getImageURL(battleKarts[0].media)} />
+              <div className="br-battle-setup-home-kart-name">
+                {kartName(battleKarts[0].title)}
+              </div>
+            </div>
+          </div>
+          <div className="br-battle-setup-vs">
+            <h1>{getText('text_vs')}</h1>
+            <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={startBattle} />
+          </div>
+          <div className="br-battle-setup-away">
+            <h3>{getText('text_opponent_kart')}</h3>
+            <div className="br-battle-setup-home-kart">
+              <img className={"br-battle-viewer-image"} alt="Home Kart" src={getImageURL(battleKarts[1].media)} />
+              <div className="br-battle-setup-away-kart-name">
+                {kartName(battleKarts[1].title)}
+              </div>
+            </div>
+          </div>
+        </div> :
+        <div className="br-battle-setup-loading-panel">
+          <h3>{getText("text_battle_waiting_1")}</h3>
         </div>
-        <div className="br-battle-setup-vs">
-          <h1>{getText('text_vs')}</h1>
-          <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={startBattle} />
-        </div>
-        <div className="br-battle-setup-away">
-          <h3>{getText('text_opponent_kart')}</h3>
-        </div>
-      </div>
+      }
+     
     </div>
   }
 

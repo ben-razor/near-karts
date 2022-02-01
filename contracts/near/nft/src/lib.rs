@@ -191,6 +191,13 @@ impl Contract {
         return token;
     }
 
+    pub fn nft_delete(&self, token_id: TokenId) {
+        Contract::assert_contract_owner();
+        self.assert_nft_owner(token_id);
+
+
+    }
+
     pub fn nft_count(&self, account_id: ValidAccountId) -> u64 {
         let count;
 
@@ -291,6 +298,42 @@ impl Contract {
 
         metadata.media = Some(cid.clone());
         lookup_map.insert(&token_id, &metadata);
+    }
+
+    pub fn get_num_karts(&self) -> u32 {
+        let tokens_owner = self.tokens.owner_by_id.to_vec();
+        return tokens_owner.len() as u32;
+    }
+
+    pub fn get_token_id_by_index(&self, index: u32) -> TokenId {
+        let tokens_owner = self.tokens.owner_by_id.to_vec();
+        let token_info = tokens_owner[index as usize].clone();
+        return token_info.0;
+    }
+
+    pub fn get_random_opponent(&mut self, token_id: TokenId) -> TokenId {
+        let mut opponent_id = token_id.clone(); // In case there is only one token return it
+        let tokens_owner = self.tokens.owner_by_id.to_vec();
+        let num_tokens = tokens_owner.len() as u32;
+
+        if num_tokens > 1 {
+            let mut rand_index = self.get_random_u32() % num_tokens;
+            let mut token_info = tokens_owner[rand_index as usize].clone();
+            opponent_id = token_info.0; 
+
+            if opponent_id == token_id {
+                rand_index = rand_index + 1;
+
+                if rand_index > num_tokens - 1 {
+                    rand_index = 0;
+                }
+
+                token_info = tokens_owner[rand_index as usize].clone();
+                opponent_id = token_info.0;
+            } 
+        }
+
+        return opponent_id;
     }
 
     pub fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
@@ -537,7 +580,7 @@ mod tests {
         
         let token_id = "0".to_string();
 
-        let mut starting_near_kart = NearKart::new();
+        let starting_near_kart = NearKart::new();
         let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
 
@@ -554,6 +597,36 @@ mod tests {
     }
 
     #[test]
+    fn test_get_random_opponent() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+
+        let token_id = "megakart".to_string();
+        let starting_near_kart = NearKart::new();
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        assert_eq!(token.token_id, token_id);
+
+        let token_id_away = "fluffykart".to_string();
+        let starting_near_kart = NearKart::new();
+        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        assert_eq!(token_away.token_id, token_id_away);
+
+        let num_karts = contract.get_num_karts();
+        assert_eq!(num_karts, 2);
+
+        let sel_id = contract.get_token_id_by_index(0);
+        assert_eq!(sel_id, token_id_away.clone());
+
+        let opponent_id = contract.get_random_opponent("megakart".to_string());
+        assert_eq!(opponent_id, "fluffykart".to_string());
+
+        let opponent_id = contract.get_random_opponent("megakart".to_string());
+        assert_eq!(opponent_id, "fluffykart".to_string());
+    }
+
+    #[test]
     fn test_simple_battle() {
         let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
@@ -561,12 +634,12 @@ mod tests {
         let mut contract = Contract::new_default_meta(br_acc.clone());
 
         let token_id = "megakart".to_string();
-        let mut starting_near_kart = NearKart::new();
+        let starting_near_kart = NearKart::new();
         let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
 
         let token_id_away = "fluffykart".to_string();
-        let mut starting_near_kart = NearKart::new();
+        let starting_near_kart = NearKart::new();
         let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token_away.token_id, token_id_away);
 
