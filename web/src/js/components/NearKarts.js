@@ -50,7 +50,7 @@ const w = 500;
 const h = 400;
 const wPhoto = 400;
 const hPhoto = 400;
-const storyDelay = 500;
+const textDelay = 2000;
 
 const keysPressed = {};
 const speed = 1.5;
@@ -69,9 +69,6 @@ const SCREENS = {
   battleSetup: 2,
   battle: 3
 };
-
-let currentGroup = 0;
-let currentLine = 0;
 
 function NearKarts(props) {
   const nftList = props.nftList;
@@ -103,7 +100,7 @@ function NearKarts(props) {
   const [storyInfo, setStoryInfo] = useState({});
   const [prevNFTData, setPrevNFTData] = useState({});
   const [kartNameEntry, setKartNameEntry] = useState('');
-  const [replayReq, setReplayReq] = useState(false);
+  const [replayReq, setReplayReq] = useState(0);
   const [controlEntry, setControlEntry] = useState({
     front: '',
     left: '',
@@ -122,6 +119,7 @@ function NearKarts(props) {
   const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
   const [battle, setBattle] = useState();
   const [battleText, setBattleText] = useState([]);
+  const [battlePower, setBattlePower] = useState([100, 100])
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -508,54 +506,57 @@ function NearKarts(props) {
   }
 
   useEffect(() => {
-    let groupIndexChanged = stateCheck.changed('groupIndex', groupIndex, -1);
     let lineIndexChanged = stateCheck.changed('lineIndex', lineIndex, -1);
-    let replayReqChanged = stateCheck.changed('replayReq', replayReq, false);
+    let replayReqChanged = stateCheck.changed('replayReq', replayReq, 0);
 
     if(lineIndexChanged || replayReqChanged) {
       if(groupIndex > -1 && groupIndex < battleText.length) {
         let timer = setTimeout(() => {
-          console.log('time', lineIndex, groupIndex, battleText[groupIndex].length);
+          console.log('time', lineIndex, groupIndex, battleText[groupIndex].length, battleText.length);
 
           let isLastLineInGroup = lineIndex === battleText[groupIndex].length - 1;
 
           if(isLastLineInGroup) {
             let isLastGroup = groupIndex === battleText.length - 1;
 
-            setGroupIndex(groupIndex + 1);
             if(!isLastGroup) {
+              setGroupIndex(groupIndex + 1);
               setLineIndex(0);
             }
           }
           else {
             setLineIndex(lineIndex + 1);
           }
-        }, storyDelay);
+        }, textDelay);
 
         return () => { clearInterval(timer) }
       }
-      setReplayReq(false);
     }
   }, [groupIndex, lineIndex, battleText, replayReq]);
 
   useEffect(() => {
     setGroupIndex(0);
     setLineIndex(0);
-    setReplayReq(true);
+    setReplayReq(replayReq + 1);
   }, [battleText]);
 
-  /*
   useEffect(() => {
-    let lines = story[storySection]['text'];
-    console.log('STORY', storySection, groupIndex, lines[groupIndex], story);
-    if(groupIndex < lines.length) {
-      let _storyLines = [...storyLines];
-      _storyLines.push(lines[groupIndex]);
-      setStoryLines(_storyLines);
-      setStoryInfo({storySection, groupIndex});
+    let lineIndexChanged = stateCheck.changed('lineIndexBP', lineIndex, -1);
+    console.log('lic', lineIndexChanged);
+    if(lineIndexChanged) {
+      if(b?.rounds?.length) {
+        let roundData = b.rounds[groupIndex].data;
+        let lines = battleText[groupIndex];
+
+        console.log('sbp', lineIndex, lines.length - 1);
+        if(lineIndex === lines.length - 1) {
+          let powerHome = Math.max(100 - roundData.totals[1], 0);
+          let powerAway = Math.max(100 - roundData.totals[0], 0);
+          setBattlePower([powerHome, powerAway])
+        }
+      }
     }
-  }, [groupIndex]);
-  */
+  }, [groupIndex, lineIndex]);
 
   function mint() {
     let data = {
@@ -753,7 +754,7 @@ function NearKarts(props) {
       for(let line of group) {
         let isCurrentGroup = textGroupIndex === groupIndex; // Only limit displayed lines for currentGroup
 
-        if(isCurrentGroup && textLineIndex >= lineIndex) {
+        if(isCurrentGroup && textLineIndex > lineIndex) {
           break;
         }
         let id = `br-battle-text-line-${textGroupIndex}-${textLineIndex}`;
@@ -859,7 +860,8 @@ function NearKarts(props) {
 
   function replay() {
     setGroupIndex(0);
-    setReplayReq(true);
+    setBattlePower([0, 0]);
+    setReplayReq(replayReq + 1);
   }
 
   function getScreenBattle() {
@@ -870,6 +872,14 @@ function NearKarts(props) {
 
       ui = <div className="br-battle-viewer">
         <div className="br-battle-viewer-home-panel">
+        <div className="br-power-bar-panel">
+            <div className="br-power-bar-outer">
+              <div className="br-power-bar-inner" style={ { width: `${battlePower[0]}%`}}></div>
+            </div>
+            <div className="br-power">
+              {battlePower[0]}
+            </div>
+          </div>
           <div className="br-battle-viewer-image-panel">
             <img className="br-battle-viewer-image" alt="Home Kart" src={getImageURL(homeMetadata.media)} />
           </div>
@@ -878,6 +888,14 @@ function NearKarts(props) {
           { displayBattleText(battleText) }
         </div>
         <div className="br-battle-viewer-away-panel">
+          <div className="br-power-bar-panel">
+            <div className="br-power-bar-outer">
+              <div className="br-power-bar-inner" style={ { width: `${battlePower[1]}%`} }></div>
+            </div>
+            <div className="br-power">
+              {battlePower[1]}
+            </div>
+          </div>          
           <img className="br-battle-viewer-image" alt="Away Kart" src={getImageURL(awayMetadata.media)} />
         </div>
       </div>

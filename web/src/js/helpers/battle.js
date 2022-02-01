@@ -92,7 +92,7 @@ export default class Battle {
 
     let roundIndex = 0;
 
-    let SHIELD_CHANCE = 4;
+    let SHIELD_CHANCE = 6;
     let BOTTOM_SCORE = 10;
     let TOP_SCORE = 25;
     let POWER_SCORE = 22;
