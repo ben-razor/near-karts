@@ -407,6 +407,10 @@
     border-radius: $spacing-sm;
 }
 
+.br-battle-viewer-attacking {
+    box-shadow: 0 0 10px hsl(300deg, 50%, 60%);
+}
+
 .br-battle-viewer-main-panel {
     font-family: monospace;
     display: flex;
@@ -429,6 +433,15 @@
     width: 160px;
     height: 160px;
     border-radius: $spacing-md;
+    border: 2px solid hsla(0deg, 100%, 30%, 0);
+}
+
+.br-battle-viewer-image-hit {
+    border: 2px solid hsl(0deg, 90%, 60%);
+}
+
+.br-battle-viewer-image-active {
+    border: 2px solid hsl(300deg, 50%, 60%);
 }
 
 .br-battle-text-group {

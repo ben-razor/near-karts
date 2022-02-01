@@ -53,7 +53,7 @@ const hPhoto = 400;
 const textDelay = 2000;
 
 const keysPressed = {};
-const speed = 1.5;
+const speed = 2;
 
 document.addEventListener('keydown', e => {
   keysPressed[e.key.toLowerCase()] = true;
@@ -120,6 +120,8 @@ function NearKarts(props) {
   const [battle, setBattle] = useState();
   const [battleText, setBattleText] = useState([]);
   const [battlePower, setBattlePower] = useState([100, 100])
+  const [battleHit, setBattleHit] = useState([0, 0])
+  const [battleAttacking, setBattleAttacking] = useState([0, 0])
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -401,7 +403,7 @@ function NearKarts(props) {
 
     return <div className={"br-strange-juice-control " + (processing ? 'br-border-hide' : '')} onClick={e => execute(action)} key={action}>
       <div className="br-strange-juice-overlay-image-container">
-        <img className={"br-strange-juice-overlay-image " + (processing ? 'br-anim-shake' : '')} alt="Plug socket" src={src} />
+        <img className={"br-strange-juice-overlay-image " + (processing ? 'br-anim-shake-short' : '')} alt="Plug socket" src={src} />
       </div>
       <div className={"br-strange-juice-overlay-text " + (processing ? 'br-anim-text-pulse' : '')}>
         { getText('icon_' + action )}
@@ -506,8 +508,8 @@ function NearKarts(props) {
   }
 
   useEffect(() => {
-    let lineIndexChanged = stateCheck.changed('lineIndex', lineIndex, -1);
-    let replayReqChanged = stateCheck.changed('replayReq', replayReq, 0);
+    let lineIndexChanged = stateCheck.changed('lineIndex1', lineIndex, -1);
+    let replayReqChanged = stateCheck.changed('replayReq1', replayReq, 0);
 
     if(lineIndexChanged || replayReqChanged) {
       if(groupIndex > -1 && groupIndex < battleText.length) {
@@ -542,21 +544,38 @@ function NearKarts(props) {
 
   useEffect(() => {
     let lineIndexChanged = stateCheck.changed('lineIndexBP', lineIndex, -1);
-    console.log('lic', lineIndexChanged);
+    // console.log('lic', lineIndexChanged);
     if(lineIndexChanged) {
       if(b?.rounds?.length) {
         let roundData = b.rounds[groupIndex].data;
+        let aggressor = roundData.aggressor;
+        let victim = 1 - aggressor;
+        let score = roundData.score; 
         let lines = battleText[groupIndex];
 
-        console.log('sbp', lineIndex, lines.length - 1);
-        if(lineIndex === lines.length - 1) {
+        let isFirstLine = lineIndex === 0;
+        let isLastLine = lineIndex === lines.length - 1;
+
+        if(isFirstLine) {
+          setBattleHit([0, 0]);
+          let attacking = [1, 0];
+          if(aggressor === 1) attacking = [0, 1];
+          setBattleAttacking(attacking)
+        }
+        else if(isLastLine) {
           let powerHome = Math.max(100 - roundData.totals[1], 0);
           let powerAway = Math.max(100 - roundData.totals[0], 0);
           setBattlePower([powerHome, powerAway])
+
+          if(roundData.score > 0) {
+            let battleHit = [0, 1];
+            if(aggressor === 1) battleHit = [1, 0];
+            setBattleHit(battleHit);
+          }
         }
       }
     }
-  }, [groupIndex, lineIndex]);
+  }, [groupIndex, lineIndex, battleText]);
 
   function mint() {
     let data = {
@@ -794,6 +813,8 @@ function NearKarts(props) {
     if(screen === SCREENS.battle) {
       setBattleText([]);
       setBattlePower([100, 100]);
+      setBattleHit([0, 0]);
+      setBattleAttacking([0, 0]);
       b.reset();
     }
   }, [screen]);
@@ -875,6 +896,7 @@ function NearKarts(props) {
   }
 
   function replay() {
+    setLineIndex(0);
     setGroupIndex(0);
     setBattlePower([0, 0]);
     setReplayReq(replayReq + 1);
@@ -887,9 +909,9 @@ function NearKarts(props) {
       let awayMetadata = battleResult.metadata[1];
 
       ui = <div className="br-battle-viewer">
-        <div className="br-battle-viewer-home-panel">
+        <div className={"br-battle-viewer-home-panel" + (battleAttacking[0] ? ' br-battle-viewer-attacking ' : '')}>
         <div className="br-power-bar-panel">
-            <div className="br-power-bar-outer">
+            <div className={"br-power-bar-outer" + (battleHit[0] ? " br-anim-shake-short " : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[0]}%`}}></div>
             </div>
             <div className="br-power">
@@ -897,22 +919,26 @@ function NearKarts(props) {
             </div>
           </div>
           <div className="br-battle-viewer-image-panel">
-            <img className="br-battle-viewer-image" alt="Home Kart" src={getImageURL(homeMetadata.media)} />
+            <img className={"br-battle-viewer-image " + (battleHit[0] ? "box-hit" : '')} 
+                 alt="Home Kart" src={getImageURL(homeMetadata.media)} />
           </div>
         </div>
         <div className="br-battle-viewer-main-panel">
           { displayBattleText(battleText) }
         </div>
-        <div className="br-battle-viewer-away-panel">
+        <div className={"br-battle-viewer-away-panel" + (battleAttacking[1] ? ' br-battle-viewer-attacking ' : '')}>
           <div className="br-power-bar-panel">
-            <div className="br-power-bar-outer">
+            <div className={"br-power-bar-outer" + (battleHit[1] ? " br-anim-shake-short " : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[1]}%`} }></div>
             </div>
             <div className="br-power">
               {battlePower[1]}
             </div>
           </div>          
-          <img className="br-battle-viewer-image" alt="Away Kart" src={getImageURL(awayMetadata.media)} />
+          <div className="br-battle-viewer-image-panel">
+            <img className={"br-battle-viewer-image " + (battleHit[1] ? "box-hit" : '')} 
+                 alt="Away Kart" src={getImageURL(awayMetadata.media)} />
+          </div>
         </div>
       </div>
     }
