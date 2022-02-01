@@ -1,7 +1,7 @@
 $color-1-hue: 100deg;
 
-$color-1-base: hsl($color-1-hue, 0%, 50%);
-$color-1-l2: $color-1-base;
+$color-1-base: hsl($color-1-hue, 0%, 40%);
+$color-1-l2: lighten($color-1-base, 10%);
 $color-1-l3: lighten($color-1-base, 20%);
 $color-1-l4: lighten($color-1-base, 30%);
 

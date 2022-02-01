@@ -1,15 +1,20 @@
 @font-face {
-    font-family: "AquaPlaygroundRegular";
-    src: url('../fonts/Lato-Regular.ttf'); 
+    font-family: "NearKartsRegular";
+    src: url('../fonts/Exo-Medium.ttf'); 
 }
 
 @font-face {
-    font-family: "NearKartsRegular";
+    font-family: "NearKartsThin";
+    src: url('../fonts/Exo-Regular.ttf'); 
+}
+
+@font-face {
+    font-family: "NearKartsFancy";
     src: url('../fonts/ShurikenStd-Boy.otf'); 
 }
 
 body {
-    font-family: AquaPlaygroundRegular, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    font-family: NearKartsRegular, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif; 
 }
@@ -19,7 +24,7 @@ div, input, select, button {
 }
 
 h1,h2,h3,h4,h5,h6 {
-    color: $color-1-l2;
+    color: $color-1-base;
     margin: 0 0 0.25em 0;
 }
 
@@ -28,7 +33,7 @@ p {
 }
 
 button, select, input {
-    font-family: AquaPlaygroundRegular, sans-serif; 
+    font-family: NearKartsRegular, sans-serif; 
 }
 
 input[type=text], textarea {
@@ -44,7 +49,7 @@ input[type=checkbox] {
 }
 
 textarea:focus, input:focus, input[type]:focus, .uneditable-input:focus {  
-    font-family: AquaPlaygroundRegular, sans-serif; 
+    font-family: NearKartsRegular, sans-serif; 
     outline: 1px solid $color-1-alt1;
 }
 

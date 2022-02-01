@@ -68,7 +68,7 @@
 
 .br-intro-section {
     padding: $spacing-sm;
-    font-family: NearKartsRegular, monospace;
+    font-family: NearKartsFancy, monospace;
 }
 
 .br-balances {
@@ -412,7 +412,8 @@
 }
 
 .br-battle-viewer-main-panel {
-    font-family: monospace;
+    font-family: NearKartsThin;
+    font-size: 0.9em;
     display: flex;
     flex-direction: column;
     flex: 1;
