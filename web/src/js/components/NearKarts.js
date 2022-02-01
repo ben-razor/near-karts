@@ -122,6 +122,7 @@ function NearKarts(props) {
   const [battlePower, setBattlePower] = useState([100, 100])
   const [battleHit, setBattleHit] = useState([0, 0])
   const [battleAttacking, setBattleAttacking] = useState([0, 0])
+  const [battleStarted, setBattleStarted] = useState();
 
   const storySection = sceneConfig[sceneIndex].storySection;
 
@@ -894,13 +895,13 @@ function NearKarts(props) {
   function replay() {
     setLineIndex(0);
     setGroupIndex(0);
-    setBattlePower([0, 0]);
+    setBattlePower([100, 100]);
     setReplayReq(replayReq + 1);
   }
 
   function getScreenBattle() {
     let ui;
-    if(battleResult.battle) {
+    if(battleResult.battle && battleText.length) {
       let homeMetadata = battleResult.metadata[0];
       let awayMetadata = battleResult.metadata[1];
 
