@@ -384,10 +384,12 @@
 
 .br-battle-viewer {
     display: flex;
+    margin-top: 1em;
 }
 
 .br-battle-viewer-home-panel {
     display: flex;
+    align-items: center;
     flex-direction: column;
     padding: $spacing-sm;
     margin: $spacing-sm;
@@ -397,6 +399,7 @@
 
 .br-battle-viewer-away-panel {
     display: flex;
+    align-items: center;
     flex-direction: column;
     padding: $spacing-sm;
     margin: $spacing-sm;
@@ -405,6 +408,7 @@
 }
 
 .br-battle-viewer-main-panel {
+    font-family: monospace;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -412,6 +416,8 @@
     margin: $spacing-sm;
     border: 1px solid hsl(0%, 0%, 90%);
     border-radius: $spacing-sm;
+    background-color: hsl(0%, 0%, 10%);
+    color: hsl(300deg, 50%, 60%);
 }
 
 .br-battle-viewer-image-panel {
@@ -426,6 +432,16 @@
 
 .br-battle-text-group {
     margin-bottom: $spacing-md;
+}
+
+.br-battle-text-line-active {
+    border: 2px solid hsl(300deg, 100%, 70%);
+    border-radius: 0.5em;
+    padding: 0.5em;
+    font-weight: bold;
+    font-size: 100%;
+    margin-bottom: 0.5em; 
+    color: hsl(300deg, 100%, 70%);
 }
 
 .br-power-bar-panel {

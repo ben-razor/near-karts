@@ -754,14 +754,22 @@ function NearKarts(props) {
       for(let line of group) {
         let isCurrentGroup = textGroupIndex === groupIndex; // Only limit displayed lines for currentGroup
 
-        if(isCurrentGroup && textLineIndex > lineIndex) {
-          break;
+        let activeLineClass = '';
+
+        if(isCurrentGroup && textLineIndex === lineIndex) {
+          activeLineClass = 'br-battle-text-line-active';
         }
+
         let id = `br-battle-text-line-${textGroupIndex}-${textLineIndex}`;
-        groupLines.push(<div className="br-battle-text-line" id={id} key={id}>
+        groupLines.push(<div className={"br-battle-text-line " + activeLineClass} id={id} key={id}>
           {line}
         </div>);
+
         textLineIndex++;
+
+        if(isCurrentGroup && textLineIndex > lineIndex ) {
+          break;
+        }
       }
       textGroupIndex++;
 
@@ -912,7 +920,7 @@ function NearKarts(props) {
                   className="br-button br-icon-button" 
                   onClick={e => changeScreen(SCREENS.garage)} />
       </div>
-      <h1>NEAR Kart Battle</h1>
+      <h2>{ getText('text_battle') }</h2>
       <div className="br-battle-controls-holder">
         <BrButton label="Replay" id="go-battle-to-garage" 
                   className="br-button br-icon-button" 
