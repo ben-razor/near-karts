@@ -449,10 +449,6 @@ function NearKarts(props) {
         elems = gameConfig.transport;
       }
 
-      if(setId !== 'transport' && setId !== 'skin') {
-        controlSetUI.push(<option key={setId + "none"} value="empty">Empty</option>)
-      }
-
       for(let elem of elems) {
         controlSetUI.push(
           <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
