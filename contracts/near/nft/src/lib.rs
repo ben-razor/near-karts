@@ -181,11 +181,14 @@ impl Contract {
         token_id: TokenId,
         receiver_id: ValidAccountId,
         token_metadata: TokenMetadata,
+        near_kart_new: NearKart
     ) -> Token {
         if env::attached_deposit() < 1e23 as u128 {
             panic!("Minting requires an attached deposit of at least 0.1 NEAR");
         }
-        self.tokens.mint(token_id, receiver_id, Some(token_metadata))
+        let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
+        self.nft_configure(token_id.clone(), near_kart_new);
+        return token;
     }
 
     pub fn nft_count(&self, account_id: ValidAccountId) -> u64 {
@@ -460,7 +463,7 @@ mod tests {
             expires_at: None,
             starts_at: None,
             updated_at: None,
-            extra: None,
+            extra: Some("dc0012000000000000000000000000a0a0a0a0a0a0".to_string()),
             reference: None,
             reference_hash: None,
         }
@@ -489,8 +492,12 @@ mod tests {
         let mut contract = Contract::new_default_meta(accounts(0).into());
         
         let token_id = "0".to_string();
-        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        starting_near_kart.front = 1;
+        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk1.front, 1);
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
@@ -513,7 +520,8 @@ mod tests {
             .build());
 
         let token_id = "0".to_string();
-        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
         assert_eq!(token.owner_id, accounts(0).to_string());
         assert_eq!(token.metadata.unwrap(), sample_token_metadata());
@@ -528,7 +536,9 @@ mod tests {
         let mut contract = Contract::new_default_meta(br_acc.clone());
         
         let token_id = "0".to_string();
-        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
+
+        let mut starting_near_kart = NearKart::new();
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
 
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -551,11 +561,13 @@ mod tests {
         let mut contract = Contract::new_default_meta(br_acc.clone());
 
         let token_id = "megakart".to_string();
-        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token.token_id, token_id);
 
         let token_id_away = "fluffykart".to_string();
-        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token_away.token_id, token_id_away);
 
         let battle_result = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
@@ -597,7 +609,8 @@ mod tests {
             .predecessor_account_id(accounts(0))
             .build());
         let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let starting_near_kart = NearKart::new();
+        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
 
         testing_env!(context
             .storage_usage(env::storage_usage())
@@ -634,7 +647,8 @@ mod tests {
             .predecessor_account_id(accounts(0))
             .build());
         let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
 
         // alice approves bob
         testing_env!(context
@@ -665,7 +679,8 @@ mod tests {
             .predecessor_account_id(accounts(0))
             .build());
         let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let mut starting_near_kart = NearKart::new();
+        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
 
         // alice approves bob
         testing_env!(context
@@ -703,7 +718,8 @@ mod tests {
             .predecessor_account_id(accounts(0))
             .build());
         let token_id = "0".to_string();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata());
+        let starting_near_kart = NearKart::new();
+        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
 
         // alice approves bob
         testing_env!(context
