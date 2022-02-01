@@ -28,6 +28,12 @@ export default class Battle {
     this.battleTexts = battleTexts;
   }
   
+  reset() {
+    this.finished = false;
+    this.rounds = [];
+    this.roundIndex = 0;
+  }
+
   load(battleResult) {
     console.log('in battle constructor');
     this.battleResult = cloneObj(battleResult);

@@ -20,7 +20,7 @@ import Canvg, {presets} from 'canvg';
 import Battle from '../helpers/battle';
 let b = new Battle();
 
-const DEBUG_FORCE_BATTLE = true;
+const DEBUG_FORCE_BATTLE = false;
 
 const baseNFTData = {
   "version": 0,
@@ -789,6 +789,14 @@ function NearKarts(props) {
       {lines}
     </div>
   }
+
+  useEffect(() => {
+    if(screen === SCREENS.battle) {
+      setBattleText([]);
+      setBattlePower([100, 100]);
+      b.reset();
+    }
+  }, [screen]);
 
   function changeScreen(screenID) {
     setPrevScreen(screen);
