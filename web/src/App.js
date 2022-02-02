@@ -31,6 +31,7 @@ function App() {
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
+  const [nearProvider, setNearProvider] = useState();
   const [wallet, setWallet] = useState();
   const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
   const [nftContract, setNFTContract] = useState();
@@ -61,7 +62,7 @@ function App() {
   const connect = useCallback(async() => {
     (async () => {
       console.log('connecting');
-      let { currentUser, nearConfig, walletConnection } = 
+      let { currentUser, nearConfig, walletConnection, provider } = 
         await initNear(NEAR_ENV, '.benrazor.testnet');
 
       setContract(contract);
@@ -69,6 +70,7 @@ function App() {
       setNearConfig(nearConfig);
       console.log('wallet', walletConnection);
       setWallet(walletConnection);
+      setNearProvider(provider);
     })();
   }, [contract]);
 
@@ -357,6 +359,15 @@ function App() {
   console.log('nftList', nftList);
   console.log('nftData', nftData);
   console.log('nftMetadata', nftMetadata);
+
+  useEffect(() => {
+    if(nearProvider) {
+      (async () => {
+        let r = await nearProvider.txStatus('EDnphqX53ad8Rnb8g5vvaBHYtTCLoQsoNXNneemBm8mC', 'benrazor.testnet'); 
+        console.log('tx status', r);
+      })();
+    }
+  }, [nearProvider]);
 
   return (
     <div className="br-page">

@@ -17,6 +17,10 @@ export async function initNear(env, contractName) {
   // Initialize wallet connection
   const walletConnection = new nearAPI.WalletConnection(near);
 
+  const provider = new nearAPI.providers.JsonRpcProvider(
+    nearConfig.archivalUrl
+  );
+
   // Load in user's account data
   let currentUser;
   if (walletConnection.getAccountId()) {
@@ -28,5 +32,5 @@ export async function initNear(env, contractName) {
     };
   }
 
-  return { currentUser, nearConfig, walletConnection };
+  return { currentUser, nearConfig, walletConnection, provider };
 }

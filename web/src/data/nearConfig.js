@@ -4,6 +4,7 @@ function getConfig(env, contractName) {
       return {
         networkId: 'mainnet',
         nodeUrl: 'https://rpc.mainnet.near.org',
+        archivalUrl: 'https://archival-rpc.mainnet.near.org',
         contractName: contractName,
         walletUrl: 'https://wallet.near.org',
         helperUrl: 'https://helper.mainnet.near.org'
@@ -16,6 +17,7 @@ function getConfig(env, contractName) {
       return {
         networkId: 'testnet',
         nodeUrl: 'https://rpc.testnet.near.org',
+        archivalUrl: 'https://archival-rpc.testnet.near.org',
         contractName: contractName,
         walletUrl: 'https://wallet.testnet.near.org',
         helperUrl: 'https://helper.testnet.near.org'
