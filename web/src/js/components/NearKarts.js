@@ -10,7 +10,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
-import { cloneObj, StateCheck } from '../helpers/helpers';
+import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
 import gameConfig from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
@@ -19,6 +19,18 @@ import { ToastConsumer } from 'react-toast-notifications';
 import Canvg, {presets} from 'canvg';
 import Battle from '../helpers/battle';
 let b = new Battle();
+
+function getNearKartsServerURL() {
+  let url = 'https://localhost:8926';
+
+  if(!isLocal()) {
+    url =  'https://benrazor.net:8926';
+  }
+
+  return url;
+}
+
+const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
 
@@ -696,7 +708,7 @@ function NearKarts(props) {
     let fd = new FormData();
     console.log('file', f);
     fd.append('file', f);
-    let r = await fetch('https://localhost:8926/upload', {method: 'POST', headers: {
+    let r = await fetch(`${nearKartsURL}/upload`, {method: 'POST', headers: {
     }, body: fd})
 
     let j = await r.json();
