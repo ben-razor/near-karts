@@ -22,7 +22,7 @@
     display: flex;
     flex: 1;
     align-items: center;
-    justify-content: start;
+    justify-content: flex-start;
 }
 
 .br-header-title-panel {
@@ -36,7 +36,7 @@
     display: flex;
     flex: 1;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
 }
 
 .br-page {
@@ -46,7 +46,6 @@
 .br-content {
     display: flex;
     flex-direction: column;
-    width: 900px;
     margin: auto;
     padding: $spacing-sm;
     text-align: center;
@@ -96,7 +95,7 @@
     flex-direction: column;
     width: 15em;
     height: 15em;
-    background-color: hsl(0%, 0%, 90%);
+    background-color: hsl(0deg, 0%, 90%);
     border: 1px solid grey;
     border-radius: 2em;
     justify-content: flex-start;
@@ -170,19 +169,21 @@
     left: 10px;
     width: 400px;
     font-family: NearKartsRegular, sans-serif;
-    border: 1px solid hsl(0%, 0%, 70%);
+    border: 1px solid hsl(0deg, 0%, 70%);
     border-radius: 1em;
     padding: 0.4em;
 }
 
 .br-strange-juice-overlay {
     display: flex;
+    flex: 1;
+    margin-left: 2em;
     flex-direction: column;
     color: white;
     font-family: NearKartsRegular, sans-serif;
-    border: 1px solid hsl(0%, 0%, 70%);
+    border: 1px solid hsl(0deg, 0%, 70%);
     border-radius: 1em;
-    background-color:hsla(0%, 0%, 10%, 0.1);
+    background-color:hsla(0deg, 0%, 10%, 0.1);
     width: 40%;
     background-color: hsla(230deg, 10%, 30%, 0.8);
 }
@@ -193,13 +194,13 @@
     align-items: center;
     padding: $spacing-sm;
     margin: 0.2em;
-    border: 4px solid hsl(0%, 0%, 70%);
+    border: 4px solid hsl(0deg, 0%, 70%);
     border-radius: 1em;
-    background-color:hsla(0%, 0%, 10%, 0.1);
+    background-color:hsla(0deg, 0%, 10%, 0.1);
 }
 
 .br-strange-juice-control:hover {
-    background-color:hsla(0%, 0%, 10%, 0.2);
+    background-color:hsla(0deg, 0%, 10%, 0.2);
 }
 
 .br-strange-juice-overlay-image-container {
@@ -282,7 +283,7 @@
 }
 
 .br-nft-gallery {
-    border: 1px solid hsl(0%, 0%, 70%);
+    border: 1px solid hsl(0deg, 0%, 70%);
     margin: $spacing-sm;
     border-radius: 1em;
     padding: $spacing-sm;
@@ -306,7 +307,7 @@
 }
 
 .br-nft-list-item {
-    border: 1px solid hsl(0%, 0%, 70%);
+    border: 1px solid hsl(0deg, 0%, 70%);
     border-radius: 1em;
     padding: $spacing-sm;
     margin-right: $spacing-sm;
@@ -394,7 +395,7 @@
     flex-direction: column;
     padding: $spacing-sm;
     margin: $spacing-sm;
-    border: 1px solid hsl(0%, 0%, 90%);
+    border: 1px solid hsl(0deg, 0%, 90%);
     border-radius: $spacing-sm;
 }
 
@@ -404,7 +405,7 @@
     flex-direction: column;
     padding: $spacing-sm;
     margin: $spacing-sm;
-    border: 1px solid hsl(0%, 0%, 90%);
+    border: 1px solid hsl(0deg, 0%, 90%);
     border-radius: $spacing-sm;
 }
 
@@ -421,9 +422,9 @@
     min-height: 400px;
     padding: $spacing-sm;
     margin: $spacing-sm;
-    border: 1px solid hsl(0%, 0%, 90%);
+    border: 1px solid hsl(0deg, 0%, 90%);
     border-radius: $spacing-sm;
-    background-color: hsl(0%, 0%, 10%);
+    background-color: hsl(0deg, 0%, 10%);
     color: hsl(300deg, 50%, 60%);
 }
 
