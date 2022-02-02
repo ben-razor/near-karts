@@ -21,7 +21,7 @@ use near_contract_standards::non_fungible_token::metadata::{
 use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_contract_standards::non_fungible_token::NonFungibleToken;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{ LazyOption, UnorderedSet, Vector };
+use near_sdk::collections::{ LazyOption, UnorderedSet, Vector, LookupMap };
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
     env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
@@ -41,7 +41,8 @@ pub struct Contract {
     metadata: LazyOption<NFTContractMetadata>,
     signer_pub_keys: UnorderedSet<String>,
     prev_block_index: near_sdk::BlockHeight,
-    random_buffer: Vector<u8>
+    random_buffer: Vector<u8>,
+    last_battle: LookupMap<AccountId, SimpleBattle>
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -66,7 +67,7 @@ pub struct NearKart {
     extra3: String
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct SimpleBattle {
     home_token_id: String,
     away_token_id: String,
@@ -111,7 +112,8 @@ enum StorageKey {
     Enumeration,
     Approval,
     SignerKey,
-    RandomBufferKey
+    RandomBufferKey,
+    LastBattleKey
 }
 
 #[near_bindgen]
@@ -149,7 +151,8 @@ impl Contract {
             metadata: LazyOption::new(StorageKey::Metadata, Some(&metadata)),
             signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey),
             prev_block_index: 0,
-            random_buffer: Vector::new(StorageKey::RandomBufferKey)
+            random_buffer: Vector::new(StorageKey::RandomBufferKey),
+            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey)
         }
     }
 
@@ -374,6 +377,12 @@ impl Contract {
             battle: battle_rand
         };
 
+        self.last_battle.insert(&env::predecessor_account_id(), &result.clone());
+        return result;
+    }
+
+    fn get_last_battle(&self) -> SimpleBattle {
+        let result = self.last_battle.get(&env::predecessor_account_id()).expect("error_no_last_battle");
         return result;
     }
 
@@ -700,6 +709,10 @@ mod tests {
         let battle_result_2 = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
         let battle_2 = battle_result_2.battle;
         assert_ne!(battle_1, battle_2);
+
+        let last_battle = contract.get_last_battle();
+        assert_eq!(last_battle.home_token_id, token_id.clone());
+        assert_eq!(last_battle.battle, battle_result_2.battle);
     }
 
     #[test]
