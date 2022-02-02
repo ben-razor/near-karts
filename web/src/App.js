@@ -9,6 +9,7 @@ import { initNear } from './js/helpers/near';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
 import { getRandomInt } from "./js/helpers/math";
+import { base58_to_binary } from 'base58-js'
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -19,10 +20,11 @@ const nearContractConfig = {
   'nearkarts.benrazor.testnet': {
     viewMethods: [
       'nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata', 
-      'get_num_karts', 'get_token_id_by_index'
+      'get_num_karts', 'get_token_id_by_index', 'get_last_battle'
     ],
     changeMethods: [
-      'nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle'
+      'nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle',
+      'nft_mint_with_verified_image'
     ]
   }
 }
@@ -363,8 +365,14 @@ function App() {
   useEffect(() => {
     if(nearProvider) {
       (async () => {
-        let r = await nearProvider.txStatus('EDnphqX53ad8Rnb8g5vvaBHYtTCLoQsoNXNneemBm8mC', 'benrazor.testnet'); 
-        console.log('tx status', r);
+        let txId = 'EDnphqX53ad8Rnb8g5vvaBHYtTCLoQsoNXNneemBm8mC';
+        let txIdBytes = base58_to_binary(txId);
+        let rt = await nearProvider.txStatus(txIdBytes, 'benrazor.testnet'); 
+        let r = await nearProvider.txStatusReceipts(txIdBytes, 'benrazor.testnet'); 
+        let rs = await nearProvider.txStatusString(txIdBytes, 'benrazor.testnet'); 
+        console.log('tx status', rt);
+        console.log('tx status receipts', r);
+        console.log('tx status string', rs);
       })();
     }
   }, [nearProvider]);

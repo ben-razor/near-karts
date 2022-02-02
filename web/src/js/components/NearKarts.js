@@ -723,6 +723,9 @@ function NearKarts(props) {
       console.log('Image upload failed', j);
       toast('Image upload failed', 'error');
     }
+
+    setRenderRequested(false);
+    setKartImageRendered(false);
   }, [toast]);
 
   useEffect(() => {
