@@ -20,10 +20,10 @@ import Canvg, {presets} from 'canvg';
 import Battle from '../helpers/battle';
 let b = new Battle();
 
-function getNearKartsServerURL() {
+function getNearKartsServerURL(forceRemote=false) {
   let url = 'https://localhost:8926';
 
-  if(!isLocal()) {
+  if(!isLocal() || forceRemote) {
     url =  'https://benrazor.net:8926';
   }
 
@@ -66,6 +66,8 @@ const textDelay = 2000;
 
 const keysPressed = {};
 const speed = 2;
+
+const kartDetailsOnImage = false;
 
 document.addEventListener('keydown', e => {
   keysPressed[e.key.toLowerCase()] = true;
@@ -1026,7 +1028,11 @@ function NearKarts(props) {
       </defs>
 
       <image href={imageDataURL} width={wPhoto} height={hPhoto} clipPath="url(#clip)"/>
-      <text x="50%" y="10%" textAnchor="middle" style={ {fill: 'white', fontSize: '20px'} }>{kartName(activeKart?.metadata?.title)}</text>
+      { kartDetailsOnImage ?
+        <text x="50%" y="10%" textAnchor="middle" style={ {fill: 'white', fontSize: '20px'} }>{kartName(activeKart?.metadata?.title)}</text>
+        :
+        ''
+      }
     </svg>
 
   </div>
