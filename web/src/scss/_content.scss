@@ -494,3 +494,9 @@
     border-radius: 50%;
     margin-left: 4px;
 }
+
+.br-offscreen {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}

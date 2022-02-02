@@ -16,7 +16,7 @@ import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
 import { ToastConsumer } from 'react-toast-notifications';
-import Canvg, {presets} from 'canvg';
+import domtoimage from 'dom-to-image';
 import Battle from '../helpers/battle';
 let b = new Battle();
 
@@ -100,7 +100,7 @@ function NearKarts(props) {
 
   const threeRef = React.createRef();
   const threePhotoRef = React.createRef();
-  const svgRef = React.createRef();
+  const photoComposerRef = React.createRef();
   const battleTextRef = React.createRef();
 
   const [scene, setScene] = useState();
@@ -109,10 +109,8 @@ function NearKarts(props) {
   const [photoScene, setPhotoScene] = useState();
   const [photoSubScene, setPhotoSubScene] = useState();
   const [sceneIndex, setSceneIndex] = useState(0);
-  const [storyLines, setStoryLines] = useState([]);
   const [groupIndex, setGroupIndex] = useState(0);
   const [lineIndex, setLineIndex] = useState(0);
-  const [storyInfo, setStoryInfo] = useState({});
   const [prevNFTData, setPrevNFTData] = useState({});
   const [kartNameEntry, setKartNameEntry] = useState('');
   const [replayReq, setReplayReq] = useState(0);
@@ -127,7 +125,6 @@ function NearKarts(props) {
   });
 
   const [imageDataURL, setImageDataURL] = useState('');
-  const [svgOverlay, setSVGOverlay] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState();
   const [renderRequested, setRenderRequested] = useState();
   const [screen, setScreen] = useState(SCREENS.garage);
@@ -679,7 +676,7 @@ function NearKarts(props) {
   function getImageURL(cid) {
     let imageURL = cid;
     if(!cid.startsWith('http')) {
-      imageURL = `https://storage.googleapis.com/near-karts/${cid}.jpg`; 
+      imageURL = `https://storage.googleapis.com/near-karts/${cid}.png`; 
     }
     return imageURL;
   }
@@ -719,7 +716,6 @@ function NearKarts(props) {
       if(true) {
         toast('Image uploaded');
         console.log(getImageURL(j.data.cid));
-
         execute('addImageToNFT', j.data);
       }
     }
@@ -727,32 +723,20 @@ function NearKarts(props) {
       console.log('Image upload failed', j);
       toast('Image upload failed', 'error');
     }
- }, [toast]);
-
-  const applySVGOverlay = useCallback((photoImageData) => {
-    (async () => {
-      const canvas = new OffscreenCanvas(wPhoto, hPhoto);
-      const ctx = canvas.getContext('2d');
-      const v = await Canvg.fromString(ctx, svgRef.current.outerHTML, presets.offscreen());
-      await v.render();
-  
-      const blob = await canvas.convertToBlob();
-      var a = new FileReader();
-      a.onload = function(e) {
-        console.log('url', e.target.result);
-        saveImageData(e.target.result);
-      }
-      a.readAsDataURL(blob);
-    })();
-  }, [saveImageData, svgRef]);
+  }, [toast]);
 
   useEffect(() => {
     if(stateCheck.changed('kartImageRendered', kartImageRendered, '') && renderRequested) { 
-      applySVGOverlay(imageDataURL);
-      setRenderRequested(false);
-      setKartImageRendered(false);
+      domtoimage.toPng(photoComposerRef.current, { style: { display: 'block'}})
+      .then(function (dataUrl) {
+         console.log('Dom to image ', dataUrl);
+         saveImageData(dataUrl);
+      })
+      .catch(function (error) {
+          console.error('Unable to render composed Kart image', error);
+      });
     }
-  }, [kartImageRendered, svgRef, saveImageData, applySVGOverlay, renderRequested, imageDataURL]);
+  }, [kartImageRendered, saveImageData, renderRequested, imageDataURL, photoComposerRef]);
 
   useEffect(() => {
     if(battleResult.battle) {
@@ -896,6 +880,13 @@ function NearKarts(props) {
             { getContractControls() }
           </div>
         </div>
+
+        <div className="br-offscreen">
+          <div className="br-photo-composer" ref={photoComposerRef} style={{ width: wPhoto, height: hPhoto, borderRadius: '20px'}}>
+            <img alt="Kart NFT" src={imageDataURL} style={ { width: '400px', height: '400px', borderRadius: '20px' } } />
+          </div>
+        </div>
+
       </div>
     </Fragment> 
   }
@@ -1015,25 +1006,7 @@ function NearKarts(props) {
     { getScreenBattleSetup() }
     { getScreenBattle() }
 
-    <div className="br-photo-booth" ref={threePhotoRef}>
-
-    </div>
-
-    <svg ref={svgRef} className="br-photo-overlay" width={wPhoto} height={hPhoto}>
-      <defs>
-        <rect id="rect" x={0} y={0} width={wPhoto} height={hPhoto} rx="15"/>
-        <clipPath id="clip">
-          <use href="#rect"/>
-        </clipPath>
-      </defs>
-
-      <image href={imageDataURL} width={wPhoto} height={hPhoto} clipPath="url(#clip)"/>
-      { kartDetailsOnImage ?
-        <text x="50%" y="10%" textAnchor="middle" style={ {fill: 'white', fontSize: '20px'} }>{kartName(activeKart?.metadata?.title)}</text>
-        :
-        ''
-      }
-    </svg>
+    <div className="br-photo-booth" ref={threePhotoRef}></div>
 
   </div>
 }

@@ -9,6 +9,7 @@
     "buffer": "^6.0.3",
     "cannon-es": "^0.18.0",
     "canvg": "^3.0.10",
+    "dom-to-image": "^2.6.0",
     "dotenv": "^10.0.0",
     "fs": "^0.0.1-security",
     "near-api-js": "^0.44.2",
