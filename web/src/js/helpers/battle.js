@@ -102,7 +102,7 @@ export default class Battle {
     let BUMP_CHANCE_BY_WEAPON_COUNT = [2, 4, 8];
     let BOTTOM_SCORE = 10;
     let TOP_SCORE = 30;
-    let POWER_SCORE = 22;
+    let POWER_SCORE = 26;
 
     do {
       let roundScore = 0;
