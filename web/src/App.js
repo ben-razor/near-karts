@@ -46,6 +46,7 @@ function App() {
   const [audioInitialized, setAudioInitialized] = useState();
   const [battleResult, setBattleResult] = useState({});
   const [battleKarts, setBattleKarts] = useState([]);
+  const [lastBattle, setLastBattle] = useState({});
 
   const { addToast } = useToasts();
 
@@ -296,8 +297,24 @@ function App() {
           setActiveKart(token);
         }
       }
+
+      try {
+        let _lastBattle = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
+
+        let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: _lastBattle.home_token_id });
+        homeMetadata.token_id = _lastBattle.home_token_id;
+        let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: _lastBattle.away_token_id });
+        awayMetadata.token_id = _lastBattle.away_token_id;
+        _lastBattle.homeMetadata = homeMetadata;
+        _lastBattle.awayMetadata = awayMetadata;
+
+        setLastBattle(_lastBattle);
+      }
+      catch(e) {
+        console.log('Error loading last battle', e);
+      }
     })();
-  }, [nftList, nftContract]);
+  }, [nftList, nftContract, wallet]);
 
   useEffect(() => {
     if(nftList.length) {
@@ -377,6 +394,8 @@ function App() {
     }
   }, [nearProvider]);
 
+  console.log('Last battle: ', lastBattle);
+
   return (
     <div className="br-page">
       <div className="br-header">
@@ -399,7 +418,7 @@ function App() {
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
-                       battleResult={battleResult} battleKarts={battleKarts} />
+                       battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} />
             :
             ''
         }
