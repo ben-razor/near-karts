@@ -299,16 +299,18 @@ function App() {
       }
 
       try {
-        let _lastBattle = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
+        let result = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
 
-        let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: _lastBattle.home_token_id });
-        homeMetadata.token_id = _lastBattle.home_token_id;
-        let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: _lastBattle.away_token_id });
-        awayMetadata.token_id = _lastBattle.away_token_id;
-        _lastBattle.homeMetadata = homeMetadata;
-        _lastBattle.awayMetadata = awayMetadata;
+        let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
+        let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
 
-        setLastBattle(_lastBattle);
+        let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
+        let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
+
+        result.karts = [homeKart, awayKart];
+        result.metadata = [homeMetadata, awayMetadata];
+
+        setLastBattle(result);
       }
       catch(e) {
         console.log('Error loading last battle', e);
@@ -378,22 +380,6 @@ function App() {
   console.log('nftList', nftList);
   console.log('nftData', nftData);
   console.log('nftMetadata', nftMetadata);
-
-  useEffect(() => {
-    if(nearProvider) {
-      (async () => {
-        let txId = 'EDnphqX53ad8Rnb8g5vvaBHYtTCLoQsoNXNneemBm8mC';
-        let txIdBytes = base58_to_binary(txId);
-        let rt = await nearProvider.txStatus(txIdBytes, 'benrazor.testnet'); 
-        let r = await nearProvider.txStatusReceipts(txIdBytes, 'benrazor.testnet'); 
-        let rs = await nearProvider.txStatusString(txIdBytes, 'benrazor.testnet'); 
-        console.log('tx status', rt);
-        console.log('tx status receipts', r);
-        console.log('tx status string', rs);
-      })();
-    }
-  }, [nearProvider]);
-
   console.log('Last battle: ', lastBattle);
 
   return (
@@ -418,7 +404,8 @@ function App() {
         { (wallet?.isSignedIn() && mightBeSignedIn) ?
             <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
-                       battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} />
+                       battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
+                       setBattleResult={setBattleResult} />
             :
             ''
         }

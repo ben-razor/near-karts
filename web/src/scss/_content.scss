@@ -500,3 +500,24 @@
     left: -9999px;
     top: -9999px;
 }
+
+.br-last-battle-details {
+    margin-right: 1em;
+}
+
+.br-last-battle-label {
+    margin-right: 1em;
+}
+
+.br-last-battle-panel {
+    display: flex;
+    align-items: center;
+    border-radius: 1em;
+    box-sizing: content-box;
+    display: flex;
+    justify-content: end;
+    /*
+    margin: $spacing-sm;
+    padding-right: $spacing-sm;
+    */
+}

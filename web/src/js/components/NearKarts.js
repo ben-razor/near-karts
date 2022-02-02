@@ -95,6 +95,8 @@ function NearKarts(props) {
   const toast = props.toast;
   const battleKarts = props.battleKarts;
   const battleResult = props.battleResult;
+  const setBattleResult = props.setBattleResult;
+  const lastBattle = props.lastBattle;
 
   window.nftData = nftData;
 
@@ -523,20 +525,21 @@ function NearKarts(props) {
     if(lineIndexChanged || replayReqChanged) {
       if(groupIndex > -1 && groupIndex < battleText.length) {
         let timer = setTimeout(() => {
-          console.log('time', lineIndex, groupIndex, battleText[groupIndex].length, battleText.length);
 
-          let isLastLineInGroup = lineIndex === battleText[groupIndex].length - 1;
+          if(battleText.length) {
+            let isLastLineInGroup = lineIndex === battleText[groupIndex].length - 1;
 
-          if(isLastLineInGroup) {
-            let isLastGroup = groupIndex === battleText.length - 1;
+            if(isLastLineInGroup) {
+              let isLastGroup = groupIndex === battleText.length - 1;
 
-            if(!isLastGroup) {
-              setGroupIndex(groupIndex + 1);
-              setLineIndex(0);
+              if(!isLastGroup) {
+                setGroupIndex(groupIndex + 1);
+                setLineIndex(0);
+              }
             }
-          }
-          else {
-            setLineIndex(lineIndex + 1);
+            else {
+              setLineIndex(lineIndex + 1);
+            }
           }
         }, textDelay);
 
@@ -554,7 +557,7 @@ function NearKarts(props) {
   useEffect(() => {
     let lineIndexChanged = stateCheck.changed('lineIndexBP', lineIndex, -1);
     // console.log('lic', lineIndexChanged);
-    if(lineIndexChanged) {
+    if(lineIndexChanged && battleText.length) {
       if(b?.rounds?.length) {
         let roundData = b.rounds[groupIndex].data;
         let aggressor = roundData.aggressor;
@@ -814,12 +817,19 @@ function NearKarts(props) {
   }
 
   useEffect(() => {
+    setBattleText([]);
+
     if(screen === SCREENS.battle) {
-      setBattleText([]);
       setBattlePower([100, 100]);
       setBattleHit([0, 0]);
       setBattleAttacking([0, 0]);
       b.reset();
+      if(lastBattle) {
+        setBattleResult(lastBattle);
+      }
+    }
+    else if(screen === SCREENS.garage) {
+      setBattleResult({});
     }
   }, [screen]);
 
@@ -859,13 +869,33 @@ function NearKarts(props) {
     }
   }, [battleKarts]);
 
+  function viewBattle() {
+    setScreen(SCREENS.battle);
+    /*
+    setBattleResult(lastBattle);
+    */
+  }
+
   function getScreenGarage() {
     let nftListUI;
+    let lastBattleUI;
+
+    if(lastBattle && lastBattle.metadata) {
+      lastBattleUI = <div className="br-last-battle-panel">
+        <div className="br-last-battle-details">
+          { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
+        </div>
+        <BrButton label="View" id="viewBattle" className="br-button br-icon-button" 
+                  onClick={ e => viewBattle() }
+                  isSubmitting={processingActions['viewBattle']} />
+      </div>
+    }
 
     if(nftList.length) {
       nftListUI = <div className="br-nft-gallery">
         <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
         { displayNFTs(nftList, activeTokenId) }
+        {lastBattleUI}
         <BrButton label="Battle" id="arrangeBattle" className="br-button br-icon-button" 
                   onClick={ e => arrangeBattle() }
                   isSubmitting={processingActions['arrangeBattle']} />
