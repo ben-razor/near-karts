@@ -381,8 +381,8 @@ impl Contract {
         return result;
     }
 
-    fn get_last_battle(&self) -> SimpleBattle {
-        let result = self.last_battle.get(&env::predecessor_account_id()).expect("error_no_last_battle");
+    pub fn get_last_battle(&self, account_id: ValidAccountId) -> SimpleBattle {
+        let result = self.last_battle.get(&account_id.to_string()).expect("error_no_last_battle");
         return result;
     }
 
@@ -710,7 +710,7 @@ mod tests {
         let battle_2 = battle_result_2.battle;
         assert_ne!(battle_1, battle_2);
 
-        let last_battle = contract.get_last_battle();
+        let last_battle = contract.get_last_battle(br_acc.clone());
         assert_eq!(last_battle.home_token_id, token_id.clone());
         assert_eq!(last_battle.battle, battle_result_2.battle);
     }
