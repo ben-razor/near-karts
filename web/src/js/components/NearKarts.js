@@ -34,7 +34,7 @@ const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
 const DEBUG_IMAGES = false;
-const DEBUG_NO_MINT = true;
+const DEBUG_NO_MINT = false;
 
 const baseNFTData = {
   "version": 0,
@@ -614,7 +614,7 @@ function NearKarts(props) {
           </div>
           <div className="br-text-entry-row-control">
             <BrButton label="Mint" id="render" className="br-button br-icon-button" onClick={render}
-                      isSubmitting={renderRequested} />
+                      isSubmitting={renderRequested || processingActions['mintWithImage']} />
             { DEBUG_IMAGES && imageDataURL &&
               <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
             }
@@ -666,7 +666,7 @@ function NearKarts(props) {
     }
 
     return <Fragment>
-      <div className="br-nft-list">
+      <div className="br-nft-list flexcroll">
         { nftUI }
       </div>
     </Fragment>
@@ -688,6 +688,7 @@ function NearKarts(props) {
   }
 
   function render() {
+    toast(getText('text_creating_image'));
     setRenderRequested(true);
     /* 
      * Convers a hidden threejs canvas to a dataURL
@@ -706,6 +707,7 @@ function NearKarts(props) {
     verifiedImageData.name = kartNameEntry;
     verifiedImageData.nftData = nftData;
 
+    toast(getText('text_mint_request'));
     execute('mintWithImage', verifiedImageData);
   }, [controlEntry, execute, kartNameEntry]);
 

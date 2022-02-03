@@ -1,7 +1,8 @@
 const text_consts = {
   "app_name": "NEAR Karts",
   "nft_name": "NEAR Kart",
-  "nft_short_name": "Kart"
+  "nft_short_name": "Kart",
+  "blockchain_name": "NEAR"
 }
 
 const text_battle = {
@@ -88,6 +89,9 @@ const text = {
     "text_your_kart": `Your ${text_consts.nft_short_name}`,
     "text_opponent_kart": `Opponent ${text_consts.nft_short_name}`,
     "text_vs": `Vs`,
+
+    "text_creating_image": `Photographing ${text_consts.nft_name} for NFT`,
+    "text_mint_request": `Minting on ${text_consts.blockchain_name} blockchain`,
 
     "success_save_kart": `${text_consts.nft_name} saved!!`,
     "success_image_upload": `${text_consts.nft_short_name} image uploaded`,

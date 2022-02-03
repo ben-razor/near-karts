@@ -59,3 +59,34 @@ textarea:focus, input:focus, input[type]:focus, .uneditable-input:focus {
 canvas {
     border-radius: 1em;
 }
+
+.flexcroll{
+    scrollbar-face-color: #000000;
+    scrollbar-shadow-color: #FFFFFF;
+    scrollbar-highlight-color: #FFFFFF;
+    scrollbar-3dlight-color: #FFFFFF;
+    scrollbar-darkshadow-color: #FFFFFF;
+    scrollbar-track-color: #FFFFFF;
+    scrollbar-arrow-color: #FFFFFF;
+}
+
+/* Let's get this party started */
+.flexcroll::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Track */
+.flexcroll::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background-color: hsl(342deg, 0%, 10%);
+}
+
+/* Handle */
+.flexcroll::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.8); 
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}

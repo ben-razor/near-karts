@@ -306,7 +306,8 @@
 .br-nft-list {
     display: flex;
     overflow: auto;
-    padding: 2px;
+    padding-bottom: 5px;
+    margin-right: 0.5em;
 }
 
 .br-nft-list-item {
