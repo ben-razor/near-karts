@@ -887,6 +887,7 @@ function NearKarts(props) {
     if(lastBattle && lastBattle.metadata) {
       lastBattleUI = <div className="br-last-battle-panel">
         <div className="br-last-battle-details">
+          Last Battle:&nbsp; 
           { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
         </div>
         <BrButton label="View" id="viewBattle" className="br-button br-icon-button" 
@@ -990,7 +991,12 @@ function NearKarts(props) {
       let awayMetadata = battle.metadata[1];
 
       ui = <div className="br-battle-viewer">
-        <div className={"br-battle-viewer-home-panel" + (battleAttacking[0] ? ' br-battle-viewer-attacking ' : '')}>
+        <div className={"br-battle-viewer-home-panel" + 
+                        (battleAttacking[0] ? ' br-battle-viewer-attacking ' : '') +
+                        (battleHit[0] ? ' box-hit ' : '' )}>
+        <div className="br-battle-viewer-kart-details">
+          {kartName(homeMetadata.title)}
+        </div>
         <div className="br-power-bar-panel">
             <div className={"br-power-bar-outer" + (battleHit[0] ? " br-anim-shake-short " : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[0]}%`}}></div>
@@ -1007,7 +1013,12 @@ function NearKarts(props) {
         <div className="br-battle-viewer-main-panel">
           { displayBattleText(battleText) }
         </div>
-        <div className={"br-battle-viewer-away-panel" + (battleAttacking[1] ? ' br-battle-viewer-attacking ' : '')}>
+        <div className={"br-battle-viewer-away-panel" + 
+                        (battleAttacking[1] ? ' br-battle-viewer-attacking ' : '') +
+                        (battleHit[1] ? ' box-hit ' : '')}>
+          <div className="br-battle-viewer-kart-details">
+            {kartName(awayMetadata.title)}
+          </div>
           <div className="br-power-bar-panel">
             <div className={"br-power-bar-outer" + (battleHit[1] ? " br-anim-shake-short " : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[1]}%`} }></div>
