@@ -1,0 +1,5 @@
+type NearKart @entity {
+  id: ID!
+  block: Bytes!
+  count: BigInt!
+}
