@@ -13,7 +13,7 @@ import { base58_to_binary } from 'base58-js'
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
-const BOATLOAD_OF_GAS = '30000000000000';
+const BOATLOAD_OF_GAS = '100000000000000';
 
 const nearkartsAddress = 'nearkarts.benrazor.testnet';
 const nearContractConfig = {
@@ -136,13 +136,13 @@ function App() {
       let pointOneNear = nearPenny * 10n;
 
       if(action === 'mint') {
-        let name = data.name.slice(0, 32);
+        let name = data.name.slice(0, 32).trim();
 
         if(!name) {
           doubleToast(getText('error_mint_kart'), getText('error_no_kart_name'), 'warning');
         }
         else {
-          let tokenId = name + Date.now().toString();
+          let tokenId = name.replace(/\s+/g, '') + Date.now().toString();
 
           try {
             await nftContract.nft_mint({
@@ -154,6 +154,37 @@ function App() {
                 copies: 1
               },
               near_kart_new: data.nftData
+            }, BOATLOAD_OF_GAS, pointOneNear.toString());
+
+            reloadTokens = true;
+          } catch(e) {
+            toast(getText('error_mint_kart'), 'error');
+          }
+        }
+      }
+      else if(action === 'mintWithImage') {
+        console.log('mwi', data);
+        let name = data.name.slice(0, 32);
+
+        if(!name) {
+          doubleToast(getText('error_mint_kart'), getText('error_no_kart_name'), 'warning');
+        }
+        else {
+          let tokenId = name.replace(/\s+/g, '') + Date.now().toString();
+
+          try {
+            await nftContract.nft_mint_with_verified_image({
+              token_id: tokenId,
+              receiver_id: wallet.getAccountId(),
+              token_metadata: {
+                title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
+                media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
+                copies: 1
+              },
+              near_kart_new: data.nftData,
+              cid: data.cid,
+              sig: data.sigHex,
+              pub_key: data.pubKeyHex
             }, BOATLOAD_OF_GAS, pointOneNear.toString());
 
             reloadTokens = true;

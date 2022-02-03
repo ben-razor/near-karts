@@ -692,7 +692,8 @@ function NearKarts(props) {
     /* 
      * Convers a hidden threejs canvas to a dataURL
      * setImageDataURL sets the imageDataURL of an offscreen composer element which applys rounded corners etc.
-     * This needs a time to update so set renderRequested to let that happen
+     * This needs a time to update so set kartImageRendered to let that happen
+     * In the useEffect for kartImageRendered, dom-to-image does its job and calls saveImageData to upload
      */
     let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
     setImageDataURL(dataURL);
@@ -703,7 +704,6 @@ function NearKarts(props) {
     let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
 
     let fd = new FormData();
-    console.log('file', f);
     fd.append('file', f);
     let r = await fetch(`${nearKartsURL}/upload`, {method: 'POST', headers: {
     }, body: fd})
@@ -714,7 +714,8 @@ function NearKarts(props) {
       if(true) {
         toast('Image uploaded');
         console.log(getImageURL(j.data.cid));
-        execute('addImageToNFT', j.data);
+        // execute('addImageToNFT', j.data);
+        mintWithImage(j.data);
       }
     }
     else {
@@ -723,20 +724,28 @@ function NearKarts(props) {
     }
 
     setKartImageRendered(false);
-  }, [toast]);
+  }, [toast, execute]);
+
+  function mintWithImage(verifiedImageData) {
+    let nftData = kartConfigToNFTData(controlEntry);
+
+    verifiedImageData.name = kartNameEntry;
+    verifiedImageData.nftData = nftData;
+
+    execute('mintWithImage', verifiedImageData);
+  }
 
   useEffect(() => {
     if(stateCheck.changed('kartImageRendered', kartImageRendered, false) && kartImageRendered) { 
       domtoimage.toPng(photoComposerRef.current, { style: { display: 'block'}})
       .then(function (dataUrl) {
-         console.log('Dom to image ', dataUrl);
          saveImageData(dataUrl);
       })
       .catch(function (error) {
           console.error('Unable to render composed Kart image', error);
       });
     }
-  }, [kartImageRendered, saveImageData, imageDataURL, photoComposerRef]);
+  }, [kartImageRendered, saveImageData, photoComposerRef]);
 
   useEffect(() => {
     if(battle.battle) {
