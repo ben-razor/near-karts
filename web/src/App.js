@@ -204,43 +204,15 @@ function App() {
           console.log(e);
         }
       }
-      else if(action === 'getOpponent') {
-        let tokenId = activeTokenId;
-        if(!tokenId) {
-          toast(getText('error_no_active_kart'), 'error');
-        }
-        else {
-          let numKarts = await nftContract.get_num_karts();
-          let randIndex = getRandomInt(0, numKarts - 1);
-          let opponentId = await nftContract.get_token_id_by_index({ index: randIndex });
-          if(opponentId === tokenId) {
-            randIndex = randIndex === numKarts - 1 ? 0 : randIndex + 1;
-            opponentId = await nftContract.get_token_id_by_index({ index: randIndex });
-          }
-
-          let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId });
-          homeMetadata.token_id = tokenId;
-          let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: opponentId });
-          awayMetadata.token_id = opponentId;
-          setBattleKarts([homeMetadata, awayMetadata]);
-        }
-      }
       else if(action === 'gameSimpleBattle') {
         try {
           let tokenId = activeTokenId;
           if(!tokenId) {
             toast(getText('error_no_active_kart'), 'error');
           }
-          else if(!data.opponentTokenId) {
-            toast(getText('error_no_opponent_selected'), 'error');
-          }
-          else if(tokenId === data.opponentTokenId) {
-            toast(getText('error_no_battle_self'), 'error');
-          }
           else {
             let result = await nftContract.game_simple_battle({ 
               token_id: tokenId, 
-              opponent_token_id: data.opponentTokenId,
             }, BOATLOAD_OF_GAS, '0');
 
             let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
@@ -251,6 +223,7 @@ function App() {
 
             result.karts = [homeKart, awayKart];
             result.metadata = [homeMetadata, awayMetadata];
+            setLastBattle(result);
             setBattleResult(result);
 
             toast(getText('text_battle_started'));

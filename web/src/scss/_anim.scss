@@ -16,7 +16,7 @@
 }
 
 @keyframes loading-fade-out-instant {
-    0% { opacity: 1; }
+    0% { opacity: 0.5; }
     100% { opacity: 0; }
 }
 
@@ -47,12 +47,17 @@
 }
 
 .loading-fade-in-fast {
-    animation: loading-fade-in-instant 1s;
+    animation: loading-fade-in-instant 3s;
 }
 
 .loading-fade-out-fast {
     animation: loading-fade-out-instant 3s;
 }
+
+.loading-fade-out-instant {
+    animation: loading-fade-out-instant 0.5s;
+}
+
 
 .loading-fade-in-delay-50-fast {
     animation: loading-fade-in-delay-50 3s;

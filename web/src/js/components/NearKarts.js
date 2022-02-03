@@ -131,7 +131,8 @@ function NearKarts(props) {
   const [renderRequested, setRenderRequested] = useState();
   const [screen, setScreen] = useState(SCREENS.garage);
   const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
-  const [battle, setBattle] = useState();
+  const [battle, setBattle] = useState({});
+  const [battleConfig, setBattleConfig] = useState({});
   const [battleText, setBattleText] = useState([]);
   const [battlePower, setBattlePower] = useState([100, 100])
   const [battleHit, setBattleHit] = useState([0, 0])
@@ -173,7 +174,6 @@ function NearKarts(props) {
 
     return kartConfig;
   }
-
 
   function kartConfigToNFTData(kartConfig) {
     let nftData = {...baseNFTData};
@@ -745,13 +745,13 @@ function NearKarts(props) {
   }, [kartImageRendered, saveImageData, renderRequested, imageDataURL, photoComposerRef]);
 
   useEffect(() => {
-    if(battleResult.battle) {
-      battleResult.kartConfigs = [
-        nftDataToKartConfig(battleResult.karts[0]),
-        nftDataToKartConfig(battleResult.karts[1])
+    if(battle.battle) {
+      battle.kartConfigs = [
+        nftDataToKartConfig(battle.karts[0]),
+        nftDataToKartConfig(battle.karts[1])
       ];
 
-      b.load(battleResult);
+      b.load(battle);
       b.generate();
 
       console.log('battle', b, b.rounds.length);
@@ -763,7 +763,7 @@ function NearKarts(props) {
       }
       setBattleText(_battleText);
     }
-  }, [battleResult]);
+  }, [battle]);
 
   function displayBattleText(battleText) {
     let lines = [];
@@ -824,12 +824,10 @@ function NearKarts(props) {
       setBattleHit([0, 0]);
       setBattleAttacking([0, 0]);
       b.reset();
-      if(lastBattle) {
-        setBattleResult(lastBattle);
-      }
+      setBattle(battleConfig);
     }
     else if(screen === SCREENS.garage) {
-      setBattleResult({});
+      setBattle({});
     }
   }, [screen]);
 
@@ -839,11 +837,7 @@ function NearKarts(props) {
   }
 
   function startBattle() {
-    execute('gameSimpleBattle', {
-      opponentTokenId: battleKarts[1].token_id
-    });
-
-    setScreen(SCREENS.battle);
+    execute('gameSimpleBattle');
   }
 
   function getScreenClass(screenId) {
@@ -853,16 +847,12 @@ function NearKarts(props) {
       screenClass = 'br-screen-current loading-fade-in-fast';
     }
     else if(screenId === prevScreen) {
-      screenClass = 'br-screen-prev loading-fade-out-fast';
+      screenClass = 'br-screen-prev loading-fade-out-instant';
     }
 
     return screenClass;
   }
-
-  function arrangeBattle() {
-    execute('getOpponent');
-  }
-
+  
   useEffect(() => {
     if(battleKarts.length) {
       changeScreen(SCREENS.battleSetup)
@@ -870,11 +860,16 @@ function NearKarts(props) {
   }, [battleKarts]);
 
   function viewBattle() {
+    setBattleConfig(lastBattle);
     setScreen(SCREENS.battle);
-    /*
-    setBattleResult(lastBattle);
-    */
   }
+
+  useEffect(() => {
+    if(battleResult && battleResult.metadata) {
+      setBattleConfig(battleResult);
+      setScreen(SCREENS.battle);
+    }
+  }, [battleResult]);
 
   function getScreenGarage() {
     let nftListUI;
@@ -897,7 +892,7 @@ function NearKarts(props) {
         { displayNFTs(nftList, activeTokenId) }
         {lastBattleUI}
         <BrButton label="Battle" id="arrangeBattle" className="br-button br-icon-button" 
-                  onClick={ e => arrangeBattle() }
+                  onClick={ e => startBattle() }
                   isSubmitting={processingActions['arrangeBattle']} />
       </div>
     }
@@ -974,9 +969,9 @@ function NearKarts(props) {
 
   function getScreenBattle() {
     let ui;
-    if(battleResult.battle && battleText.length) {
-      let homeMetadata = battleResult.metadata[0];
-      let awayMetadata = battleResult.metadata[1];
+    if(battle.battle && battleText.length) {
+      let homeMetadata = battle.metadata[0];
+      let awayMetadata = battle.metadata[1];
 
       ui = <div className="br-battle-viewer">
         <div className={"br-battle-viewer-home-panel" + (battleAttacking[0] ? ' br-battle-viewer-attacking ' : '')}>

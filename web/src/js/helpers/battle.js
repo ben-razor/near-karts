@@ -195,24 +195,24 @@ export default class Battle {
       let victim = 1 - aggressor; 
       let score = round.score;
 
-      text = getRandomListEntry(this.battleTexts['attack'][weapon]);
+      text = getRandomListEntry(this.battleTexts['attack'][weapon], this.rng);
       text = text.replace('{aggressor}', this.kartNames[aggressor]);
       text = text.replace('{victim}', this.kartNames[victim]);
       roundDetails.text.push(text);
 
       if(shield) {
-        text = getRandomListEntry(this.battleTexts['shield'][shield]);
+        text = getRandomListEntry(this.battleTexts['shield'][shield], this.rng);
         text = text.replace('{aggressor}', this.kartNames[aggressor]);
         text = text.replace('{victim}', this.kartNames[victim]);
         roundDetails.text.push(text);
       }
       else {
-        text = getRandomListEntry(this.battleTexts['hit'][weapon]);
+        text = getRandomListEntry(this.battleTexts['hit'][weapon], this.rng);
         text = text.replace('{aggressor}', this.kartNames[aggressor]);
         text = text.replace('{victim}', this.kartNames[victim]);
 
         if(this.battleTexts['hittype'][weapon]) {
-          let hitType = getRandomListEntry(this.battleTexts['hittype'][weapon]);
+          let hitType = getRandomListEntry(this.battleTexts['hittype'][weapon], this.rng);
           text = text.replace('{hittyped}', hitType);
         }
 
@@ -222,7 +222,7 @@ export default class Battle {
           let colorTexts = this.battleTexts['color'][weapon];
           if(!colorTexts) colorTexts = this.battleTexts['color']['general']; 
 
-          text = getRandomListEntry(colorTexts);
+          text = getRandomListEntry(colorTexts, this.rng);
           text = text.replace('{aggressor}', this.kartNames[aggressor]);
           text = text.replace('{victim}', this.kartNames[victim]);
 
@@ -234,12 +234,7 @@ export default class Battle {
         text = getText('text_battle_battle_won').replace('{winner}', this.winnerName);
         roundDetails.text.push(text);
       }
-
-      /*
-      text = JSON.stringify(round);
-      roundDetails.text.push(text);
-      */
-
+      
       this.rounds.push(roundDetails);
     }
   }
