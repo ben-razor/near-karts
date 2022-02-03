@@ -359,13 +359,10 @@ impl Contract {
         return opponent_id;
     }
 
-    pub fn game_simple_battle(&mut self, token_id: TokenId, opponent_token_id: TokenId) -> SimpleBattle {
+    pub fn game_simple_battle(&mut self, token_id: TokenId) -> SimpleBattle {
         self.assert_nft_owner(token_id.clone());
-        self.token_owner(opponent_token_id.clone()).unwrap_or_else(|| panic!("Opponent token does not exist"));
 
-        if token_id == opponent_token_id {
-            panic!("error_no_battle_self");
-        }
+        let opponent_token_id = self.get_random_opponent(token_id.clone());
 
         let battle_rand = self.get_random_u32();
         let winner = (battle_rand % 2) as u8;
@@ -700,13 +697,13 @@ mod tests {
         let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
         assert_eq!(token_away.token_id, token_id_away);
 
-        let battle_result = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
+        let battle_result = contract.game_simple_battle(token_id.clone());
         let battle_1 = battle_result.battle;
         assert_eq!(battle_result.home_token_id, "megakart");
         assert_eq!(battle_result.away_token_id, "fluffykart");
         assert_gt!(battle_result.battle, 0);
 
-        let battle_result_2 = contract.game_simple_battle(token_id.clone(), token_id_away.clone());
+        let battle_result_2 = contract.game_simple_battle(token_id.clone());
         let battle_2 = battle_result_2.battle;
         assert_ne!(battle_1, battle_2);
 
