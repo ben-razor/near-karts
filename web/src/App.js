@@ -29,6 +29,12 @@ const nearContractConfig = {
   }
 }
 
+const SCREENS = {
+  garage: 1,
+  battleSetup: 2,
+  battle: 3
+};
+
 function App() {
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
@@ -46,7 +52,9 @@ function App() {
   const [audioInitialized, setAudioInitialized] = useState();
   const [battleResult, setBattleResult] = useState({});
   const [battleKarts, setBattleKarts] = useState([]);
+  const [battleConfig, setBattleConfig] = useState({});
   const [lastBattle, setLastBattle] = useState({});
+  const [screen, setScreen] = useState(SCREENS.garage);
 
   const { addToast } = useToasts();
 
@@ -336,6 +344,34 @@ function App() {
     return ui;
   }
 
+  function kartName(kartTitle) {
+    kartTitle = kartTitle || '';
+    return kartTitle.replace('A NEAR Kart Called ', '');
+  }
+
+  function viewBattle() {
+    setBattleConfig(lastBattle);
+    setScreen(SCREENS.battle);
+  }
+
+  function getLastBattleUI() {
+    let lastBattleUI;
+
+    if(lastBattle && lastBattle.metadata) {
+      lastBattleUI = <div className="br-last-battle-panel">
+        <div className="br-last-battle-details">
+          Last Battle:&nbsp; 
+          { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
+        </div>
+        <BrButton label="View" id="viewBattle" className="br-button br-icon-button" 
+                  onClick={viewBattle}
+                  isSubmitting={processingActions['viewBattle']} />
+      </div>
+    }
+
+    return lastBattleUI;
+  }
+
   useEffect(() => {
     if(audioInitialized) {
       const synth = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -366,6 +402,7 @@ function App() {
       <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
       <div className="br-header">
         <div className="br-header-logo-panel">
+          { getLastBattleUI() }
         </div>
         <div className="br-header-title-panel">
         </div>
@@ -383,7 +420,8 @@ function App() {
             <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
-                       setBattleResult={setBattleResult} />
+                       setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
+                       SCREENS={SCREENS} screen={screen} setScreen={setScreen} />
             :
             ''
         }

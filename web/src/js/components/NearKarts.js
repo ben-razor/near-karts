@@ -80,12 +80,6 @@ document.addEventListener('keyup', e => {
 
 const stateCheck = new StateCheck();
 
-const SCREENS = {
-  garage: 1,
-  battleSetup: 2,
-  battle: 3
-};
-
 function NearKarts(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
@@ -98,7 +92,12 @@ function NearKarts(props) {
   const battleKarts = props.battleKarts;
   const battleResult = props.battleResult;
   const setBattleResult = props.setBattleResult;
+  const battleConfig = props.battleConfig;
+  const setBattleConfig = props.setBattleConfig;
   const lastBattle = props.lastBattle;
+  const SCREENS = props.SCREENS;
+  const screen = props.screen;
+  const setScreen = props.setScreen;
 
   window.nftData = nftData;
 
@@ -131,10 +130,8 @@ function NearKarts(props) {
   const [imageDataURL, setImageDataURL] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState(false);
   const [renderRequested, setRenderRequested] = useState();
-  const [screen, setScreen] = useState(SCREENS.garage);
   const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
   const [battle, setBattle] = useState({});
-  const [battleConfig, setBattleConfig] = useState({});
   const [battleText, setBattleText] = useState([]);
   const [battlePower, setBattlePower] = useState([100, 100])
   const [battleHit, setBattleHit] = useState([0, 0])
@@ -884,6 +881,7 @@ function NearKarts(props) {
   function getLastBattleUI() {
     let lastBattleUI;
 
+    /*
     if(lastBattle && lastBattle.metadata) {
       lastBattleUI = <div className="br-last-battle-panel">
         <div className="br-last-battle-details">
@@ -895,6 +893,7 @@ function NearKarts(props) {
                   isSubmitting={processingActions['viewBattle']} />
       </div>
     }
+    */
 
     return lastBattleUI;
   }
