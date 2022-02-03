@@ -77,7 +77,9 @@ pub struct SimpleBattle {
 
 impl NearKart {
     pub fn new() -> Self {
-        Self::default()
+        let mut kart = Self::default();
+        kart.level = 1;
+        return kart;
     }
   
     pub fn from_data(data: &String) -> Self {
@@ -176,7 +178,7 @@ impl Contract {
         token_id: TokenId,
         receiver_id: ValidAccountId,
         token_metadata: TokenMetadata,
-        near_kart_new: NearKart,
+        mut near_kart_new: NearKart,
         cid: String,
         sig: String,
         pub_key: String
@@ -185,6 +187,18 @@ impl Contract {
             panic!("Minting requires an attached deposit of at least 0.1 NEAR");
         }
         let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
+
+        near_kart_new.version = 0;
+        near_kart_new.level = 1;
+        near_kart_new.ex1 = 0;
+        near_kart_new.ex2 = 0;
+        near_kart_new.decal1 = String::new();
+        near_kart_new.decal2 = String::new();
+        near_kart_new.decal3 = String::new();
+        near_kart_new.extra1 = String::new();
+        near_kart_new.extra2 = String::new();
+        near_kart_new.extra3 = String::new();
+
         self.nft_configure(token_id.clone(), near_kart_new);
         self.nft_update_media(token_id.clone(), cid, sig, pub_key);
         return token;
@@ -277,6 +291,24 @@ impl Contract {
         let mut nk = NearKart::from_data(&extra);
 
         nk.clone_from(&near_kart_new); 
+
+        let max_index = Contract::get_max_weapon_index_for_level(nk.level);
+
+        if nk.front > max_index {
+            panic!("error_level_not_high_enough_to_equip_front_weapon");
+        }
+        else if nk.left > max_index {
+            panic!("error_level_not_high_enough_to_equip_left_weapon");
+        }
+        else if nk.right > max_index {
+            panic!("error_level_not_high_enough_to_equip_right_weapon");
+        }
+        else if nk.transport > max_index {
+            panic!("error_level_not_high_enough_to_use_transport");
+        }
+        else if nk.skin > max_index {
+            panic!("error_level_not_high_enough_to_use_skin");
+        }
 
         let extra = nk.serialize();
         metadata.extra = Some(extra);
@@ -400,6 +432,11 @@ impl Contract {
         return hex::encode(pub_key);
     }
 
+    fn get_max_weapon_index_for_level(level: u32) -> u8 {
+        let weapon_index = ((level as u8 / 5) + 1) * 5;
+        return weapon_index;
+    }
+
     fn get_random_u8() -> u8 {
         let rand = near_sdk::env::random_seed()[0];
         return rand;
@@ -506,7 +543,7 @@ mod tests {
             expires_at: None,
             starts_at: None,
             updated_at: None,
-            extra: Some("dc0012000000000000000000000000a0a0a0a0a0a0".to_string()),
+            extra: Some("dc0012000100000000000000000000a0a0a0a0a0a0".to_string()),
             reference: None,
             reference_hash: None,
         }
@@ -537,7 +574,8 @@ mod tests {
         let mut contract = Contract::new_default_meta(br_acc.clone());
         
         let token_id = "0".to_string();
-        let starting_near_kart = NearKart::new();
+        let mut starting_near_kart = NearKart::new();
+        starting_near_kart.level = 1;
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
@@ -550,6 +588,7 @@ mod tests {
         assert_eq!(token.token_id, token_id);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.front, 0);
+        assert_eq!(nk1.level, 1);
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
