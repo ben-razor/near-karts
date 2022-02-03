@@ -34,7 +34,7 @@ const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
 const DEBUG_IMAGES = false;
-const DEBUG_NO_MINT = false;
+const DEBUG_NO_MINT = true;
 
 const baseNFTData = {
   "version": 0,
@@ -613,7 +613,8 @@ function NearKarts(props) {
                   value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
           </div>
           <div className="br-text-entry-row-control">
-            <BrButton label="Mint" id="render" className="br-button br-icon-button" onClick={render} />
+            <BrButton label="Mint" id="render" className="br-button br-icon-button" onClick={render}
+                      isSubmitting={renderRequested} />
             { DEBUG_IMAGES && imageDataURL &&
               <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
             }
@@ -687,6 +688,7 @@ function NearKarts(props) {
   }
 
   function render() {
+    setRenderRequested(true);
     /* 
      * Convers a hidden threejs canvas to a dataURL
      * setImageDataURL sets the imageDataURL of an offscreen composer element which applys rounded corners etc.
@@ -737,6 +739,7 @@ function NearKarts(props) {
     }
 
     setKartImageRendered(false);
+    setRenderRequested(false);
   }, [toast, mintWithImage]);
 
   useEffect(() => {
@@ -906,9 +909,9 @@ function NearKarts(props) {
     if(nftList.length) {
       nftListUI = <div className="br-nft-gallery">
         { displayNFTs(nftList, activeTokenId) }
-        <BrButton label="Battle" id="arrangeBattle" className="br-button br-icon-button" 
+        <BrButton label="Battle" id="gameSimpleBattle" className="br-button br-icon-button" 
                   onClick={ e => startBattle() }
-                  isSubmitting={processingActions['arrangeBattle']} />
+                  isSubmitting={processingActions['gameSimpleBattle']} />
       </div>
     }
 
