@@ -170,30 +170,6 @@ impl Contract {
         return self.signer_pub_keys.contains(&pub_key);
     }
 
-    /// Mint a new token with ID=`token_id` belonging to `receiver_id`.
-    ///
-    /// Since this example implements metadata, it also requires per-token metadata to be provided
-    /// in this call. `self.tokens.mint` will also require it to be Some, since
-    /// `StorageKey::TokenMetadata` was provided at initialization.
-    ///
-    /// `self.tokens.mint` will enforce `predecessor_account_id` to equal the `owner_id` given in
-    /// initialization call to `new`.
-    #[payable]
-    pub fn nft_mint(
-        &mut self,
-        token_id: TokenId,
-        receiver_id: ValidAccountId,
-        token_metadata: TokenMetadata,
-        near_kart_new: NearKart
-    ) -> Token {
-        if env::attached_deposit() < 1e23 as u128 {
-            panic!("Minting requires an attached deposit of at least 0.1 NEAR");
-        }
-        let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
-        self.nft_configure(token_id.clone(), near_kart_new);
-        return token;
-    }
-
     #[payable]
     pub fn nft_mint_with_verified_image(
         &mut self,
@@ -217,8 +193,6 @@ impl Contract {
     pub fn nft_delete(&self, token_id: TokenId) {
         Contract::assert_contract_owner();
         self.assert_nft_owner(token_id);
-
-
     }
 
     pub fn nft_count(&self, account_id: ValidAccountId) -> u64 {
@@ -557,16 +531,25 @@ mod tests {
 
     #[test]
     fn test_near_kart() {
-        configure_env_for_storage(get_context(accounts(0)));
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
         
         let token_id = "0".to_string();
-        let mut starting_near_kart = NearKart::new();
-        starting_near_kart.front = 1;
-        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let starting_near_kart = NearKart::new();
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token.token_id, token_id);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
-        assert_eq!(nk1.front, 1);
+        assert_eq!(nk1.front, 0);
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
@@ -578,21 +561,24 @@ mod tests {
 
     #[test]
     fn test_mint() {
-        let mut context = get_context(accounts(0));
-        testing_env!(context.build());
-        let mut contract = Contract::new_default_meta(accounts(0).into());
-
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
-
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
-        let token = contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token.token_id, token_id);
-        assert_eq!(token.owner_id, accounts(0).to_string());
+        assert_eq!(token.owner_id, br_acc.to_string());
         assert_eq!(token.metadata.unwrap(), sample_token_metadata());
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
     }
@@ -604,13 +590,13 @@ mod tests {
         configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
         let mut contract = Contract::new_default_meta(br_acc.clone());
         
-        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
-        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
-        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
 
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
         let token = contract.nft_mint_with_verified_image(
             token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
@@ -633,9 +619,16 @@ mod tests {
         let mut contract = Contract::new_default_meta(br_acc.clone());
         
         let token_id = "0".to_string();
-
         let starting_near_kart = NearKart::new();
-        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token.token_id, token_id);
 
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
@@ -656,15 +649,27 @@ mod tests {
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
         configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
         let mut contract = Contract::new_default_meta(br_acc.clone());
-
+        
         let token_id = "megakart".to_string();
         let starting_near_kart = NearKart::new();
-        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token.token_id, token_id);
 
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
-        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        let token_away = contract.nft_mint_with_verified_image(
+            token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token_away.token_id, token_id_away);
 
         let num_karts = contract.get_num_karts();
@@ -686,15 +691,27 @@ mod tests {
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
         configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
         let mut contract = Contract::new_default_meta(br_acc.clone());
-
+        
         let token_id = "megakart".to_string();
         let starting_near_kart = NearKart::new();
-        let token = contract.nft_mint(token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token.token_id, token_id);
 
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
-        let token_away = contract.nft_mint(token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart);
+        let token_away = contract.nft_mint_with_verified_image(
+            token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
         assert_eq!(token_away.token_id, token_id_away);
 
         let battle_result = contract.game_simple_battle(token_id.clone());
@@ -734,19 +751,26 @@ mod tests {
         testing_env!(context.build());
         let mut contract = Contract::new_default_meta(accounts(0).into());
 
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
 
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(1)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_transfer(accounts(1), token_id.clone(), None, None);
 
@@ -759,7 +783,7 @@ mod tests {
         if let Some(token) = contract.nft_token(token_id.clone()) {
             assert_eq!(token.token_id, token_id);
             assert_eq!(token.owner_id, accounts(1).to_string());
-            assert_eq!(token.metadata.unwrap(), sample_token_metadata());
+            assert_eq!(token.metadata.unwrap().extra, sample_token_metadata().extra);
             assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         } else {
             panic!("token not correctly created, or not found by nft_token");
@@ -772,20 +796,27 @@ mod tests {
         testing_env!(context.build());
         let mut contract = Contract::new_default_meta(accounts(0).into());
 
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
         let token_id = "0".to_string();
-        let mut starting_near_kart = NearKart::new();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let starting_near_kart = NearKart::new();
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
 
         // alice approves bob
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(150000000000000000000)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_approve(token_id.clone(), accounts(1), None);
 
@@ -804,20 +835,27 @@ mod tests {
         testing_env!(context.build());
         let mut contract = Contract::new_default_meta(accounts(0).into());
 
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
         let token_id = "0".to_string();
-        let mut starting_near_kart = NearKart::new();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let starting_near_kart = NearKart::new();
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
 
         // alice approves bob
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(150000000000000000000)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_approve(token_id.clone(), accounts(1), None);
 
@@ -825,7 +863,7 @@ mod tests {
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(1)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_revoke(token_id.clone(), accounts(1));
         testing_env!(context
@@ -843,20 +881,27 @@ mod tests {
         testing_env!(context.build());
         let mut contract = Contract::new_default_meta(accounts(0).into());
 
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
         let token_id = "0".to_string();
         let starting_near_kart = NearKart::new();
-        contract.nft_mint(token_id.clone(), accounts(0), sample_token_metadata(), starting_near_kart);
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint_with_verified_image(
+            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
 
         // alice approves bob
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(150000000000000000000)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_approve(token_id.clone(), accounts(1), None);
 
@@ -864,7 +909,7 @@ mod tests {
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(1)
-            .predecessor_account_id(accounts(0))
+            .predecessor_account_id(br_acc.clone())
             .build());
         contract.nft_revoke_all(token_id.clone());
         testing_env!(context
