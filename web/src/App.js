@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
-import Logo from './images/logo-1.png';
+import Logo from './images/near-karts-1.png';
 import * as Tone from 'tone';
 import './scss/styles.scss';
 import { useToasts } from 'react-toast-notifications';
@@ -363,12 +363,11 @@ function App() {
 
   return (
     <div className="br-page">
+      <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
       <div className="br-header">
         <div className="br-header-logo-panel">
-          <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
         </div>
         <div className="br-header-title-panel">
-          <h1 className="br-header-title">NEAR Karts</h1>
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">

@@ -2,11 +2,14 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 0.1em;
+    min-height: 7.5em;
 }
 
 .br-header-logo {
-    width: 4em;
-    height: 4em;
+    height: 8em;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
 }
 
 .br-header-title-panel {
@@ -518,6 +521,7 @@
     box-sizing: content-box;
     display: flex;
     justify-content: end;
+    position: relative;
 }
 
 .br-invisible {
