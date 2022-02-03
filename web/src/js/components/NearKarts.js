@@ -127,7 +127,7 @@ function NearKarts(props) {
   });
 
   const [imageDataURL, setImageDataURL] = useState('');
-  const [kartImageRendered, setKartImageRendered] = useState();
+  const [kartImageRendered, setKartImageRendered] = useState(false);
   const [renderRequested, setRenderRequested] = useState();
   const [screen, setScreen] = useState(SCREENS.garage);
   const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
@@ -620,8 +620,6 @@ function NearKarts(props) {
       }
       <div className="br-text-entry-row">
         <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
-      </div>
-      <div className="br-text-entry-row">
         <BrButton label="Render" id="render" className="br-button br-icon-button" onClick={render} />
         { imageDataURL &&
           <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
@@ -675,7 +673,6 @@ function NearKarts(props) {
     </Fragment>
   }
 
-
   function getImageURL(cid) {
     let imageURL = cid;
     if(!cid.startsWith('http')) {
@@ -684,24 +681,22 @@ function NearKarts(props) {
     return imageURL;
   }
 
-  function render() {
-    let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
-    console.log(dataURL);
-    setImageDataURL(dataURL);
-    setRenderRequested(true);
-  }
-
-  useEffect(() => {
-    if(renderRequested) {
-      setKartImageRendered(true);
-    }
-  }, [imageDataURL, renderRequested]); 
-
   function dataURLToFile(src, fileName, mimeType){
     return (fetch(src)
         .then(function(res){return res.arrayBuffer();})
         .then(function(buf){return new File([buf], fileName, {type:mimeType});})
     );
+  }
+
+  function render() {
+    /* 
+     * Convers a hidden threejs canvas to a dataURL
+     * setImageDataURL sets the imageDataURL of an offscreen composer element which applys rounded corners etc.
+     * This needs a time to update so set renderRequested to let that happen
+     */
+    let dataURL = threePhotoRef.current.getElementsByTagName('canvas')[0].toDataURL();
+    setImageDataURL(dataURL);
+    setKartImageRendered(true);
   }
 
   const saveImageData = useCallback(async (dataURL) => {
@@ -727,12 +722,11 @@ function NearKarts(props) {
       toast('Image upload failed', 'error');
     }
 
-    setRenderRequested(false);
     setKartImageRendered(false);
   }, [toast]);
 
   useEffect(() => {
-    if(stateCheck.changed('kartImageRendered', kartImageRendered, '') && renderRequested) { 
+    if(stateCheck.changed('kartImageRendered', kartImageRendered, false) && kartImageRendered) { 
       domtoimage.toPng(photoComposerRef.current, { style: { display: 'block'}})
       .then(function (dataUrl) {
          console.log('Dom to image ', dataUrl);
@@ -742,7 +736,7 @@ function NearKarts(props) {
           console.error('Unable to render composed Kart image', error);
       });
     }
-  }, [kartImageRendered, saveImageData, renderRequested, imageDataURL, photoComposerRef]);
+  }, [kartImageRendered, saveImageData, imageDataURL, photoComposerRef]);
 
   useEffect(() => {
     if(battle.battle) {
@@ -852,7 +846,7 @@ function NearKarts(props) {
 
     return screenClass;
   }
-  
+
   useEffect(() => {
     if(battleKarts.length) {
       changeScreen(SCREENS.battleSetup)
