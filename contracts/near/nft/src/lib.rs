@@ -27,7 +27,6 @@ use near_sdk::{
     env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
 };
 use serde::{Serialize, Deserialize};
-use std::cmp;
 use rmp_serde;
 use hex; 
 use ed25519_dalek::{ Signature, Verifier, PublicKey};
