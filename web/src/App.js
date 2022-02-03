@@ -23,7 +23,7 @@ const nearContractConfig = {
       'get_num_karts', 'get_token_id_by_index', 'get_last_battle'
     ],
     changeMethods: [
-      'nft_mint', 'nft_configure', 'nft_update_media', 'game_simple_battle',
+      'nft_configure', 'nft_update_media', 'game_simple_battle',
       'nft_mint_with_verified_image'
     ]
   }
@@ -135,34 +135,7 @@ function App() {
       let nearPenny = (10n**22n);
       let pointOneNear = nearPenny * 10n;
 
-      if(action === 'mint') {
-        let name = data.name.slice(0, 32).trim();
-
-        if(!name) {
-          doubleToast(getText('error_mint_kart'), getText('error_no_kart_name'), 'warning');
-        }
-        else {
-          let tokenId = name.replace(/\s+/g, '') + Date.now().toString();
-
-          try {
-            await nftContract.nft_mint({
-              token_id: tokenId,
-              receiver_id: wallet.getAccountId(),
-              token_metadata: {
-                title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
-                media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
-                copies: 1
-              },
-              near_kart_new: data.nftData
-            }, BOATLOAD_OF_GAS, pointOneNear.toString());
-
-            reloadTokens = true;
-          } catch(e) {
-            toast(getText('error_mint_kart'), 'error');
-          }
-        }
-      }
-      else if(action === 'mintWithImage') {
+      if(action === 'mintWithImage') {
         console.log('mwi', data);
         let name = data.name.slice(0, 32);
 
@@ -178,7 +151,7 @@ function App() {
               receiver_id: wallet.getAccountId(),
               token_metadata: {
                 title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
-                media: "https://bafkreiczuqqsxcbkv2ins2m4wmcgdxmlzm5gcld4yc4bcln26s4kgfo3ha.ipfs.dweb.link/", 
+                media: `https://${data.cid}.ipfs.dweb.link/`, 
                 copies: 1
               },
               near_kart_new: data.nftData,
@@ -298,6 +271,8 @@ function App() {
         if(token.token_id === tokenId) {
           let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
           setNFTData(nftData);
+          let _tokenMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId});
+          setNFTMetadata(_tokenMetadata);
           setActiveKart(token);
         }
       }

@@ -90,6 +90,7 @@ const text = {
     "text_vs": `Vs`,
 
     "success_save_kart": `${text_consts.nft_name} saved!!`,
+    "success_image_upload": `${text_consts.nft_short_name} image uploaded`,
 
     "error_save_kart": `Error saving ${text_consts.nft_name}`,
     "error_no_active_kart": `No ${text_consts.nft_name} is active`,
@@ -98,7 +99,8 @@ const text = {
     "error_starting_battle": `Error starting battle`,
     "error_no_opponent_selected": `Error no opponent selected`,
     "error_no_battle_self": `Error ${text_consts.nft_name} cannot battle self`,
-    "error_no_kart_name": `No name supplied for ${text_consts.nft_name}`
+    "error_no_kart_name": `No name supplied for ${text_consts.nft_name}`,
+    "error_image_upload_failed": `Image upload failed`
   }
 };
 

@@ -33,6 +33,8 @@ function getNearKartsServerURL(forceRemote=false) {
 const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
+const DEBUG_IMAGES = false;
+const DEBUG_NO_MINT = false;
 
 const baseNFTData = {
   "version": 0,
@@ -614,16 +616,15 @@ function NearKarts(props) {
                   value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
           </div>
           <div className="br-text-entry-row-control">
-            <BrButton label="Mint" id="mint" className="br-button br-icon-button" onClick={mint} />
+            <BrButton label="Mint" id="render" className="br-button br-icon-button" onClick={render} />
+            { DEBUG_IMAGES && imageDataURL &&
+              <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
+            }
           </div>
         </div>
       }
       <div className="br-text-entry-row">
         <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
-        <BrButton label="Render" id="render" className="br-button br-icon-button" onClick={render} />
-        { imageDataURL &&
-          <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
-        }
       </div>
     </div>
   }
@@ -700,40 +701,46 @@ function NearKarts(props) {
     setKartImageRendered(true);
   }
 
-  const saveImageData = useCallback(async (dataURL) => {
-    let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
-
-    let fd = new FormData();
-    fd.append('file', f);
-    let r = await fetch(`${nearKartsURL}/upload`, {method: 'POST', headers: {
-    }, body: fd})
-
-    let j = await r.json();
-    if(j.success) {
-      console.log('save im data');
-      if(true) {
-        toast('Image uploaded');
-        console.log(getImageURL(j.data.cid));
-        // execute('addImageToNFT', j.data);
-        mintWithImage(j.data);
-      }
-    }
-    else {
-      console.log('Image upload failed', j);
-      toast('Image upload failed', 'error');
-    }
-
-    setKartImageRendered(false);
-  }, [toast, execute]);
-
-  function mintWithImage(verifiedImageData) {
+  const mintWithImage = useCallback((verifiedImageData) => {
     let nftData = kartConfigToNFTData(controlEntry);
 
     verifiedImageData.name = kartNameEntry;
     verifiedImageData.nftData = nftData;
 
     execute('mintWithImage', verifiedImageData);
-  }
+  }, [controlEntry, execute, kartNameEntry]);
+
+  const saveImageData = useCallback(async (dataURL) => {
+    let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
+
+    try {
+      let fd = new FormData();
+      fd.append('file', f);
+      let r = await fetch(`${nearKartsURL}/upload`, {method: 'POST', headers: {
+      }, body: fd})
+
+      let j = await r.json();
+      if(j.success) {
+        if(true) {
+          toast(getText('success_image_upload'));
+          console.log('image data ', getImageURL(j.data.cid));
+          if(!DEBUG_NO_MINT) {
+            mintWithImage(j.data);
+          }
+        }
+      }
+      else {
+        console.log('error_image_upload_failed', j);
+        toast(getText('error_image_upload_failed'), 'error');
+      }
+    }
+    catch(e) {
+      console.log('error_image_upload_failed', e);
+      toast(getText('error_image_upload_failed'), 'error');
+    }
+
+    setKartImageRendered(false);
+  }, [toast, mintWithImage]);
 
   useEffect(() => {
     if(stateCheck.changed('kartImageRendered', kartImageRendered, false) && kartImageRendered) { 
@@ -874,8 +881,7 @@ function NearKarts(props) {
     }
   }, [battleResult]);
 
-  function getScreenGarage() {
-    let nftListUI;
+  function getLastBattleUI() {
     let lastBattleUI;
 
     if(lastBattle && lastBattle.metadata) {
@@ -889,11 +895,17 @@ function NearKarts(props) {
       </div>
     }
 
+    return lastBattleUI;
+  }
+
+  function getScreenGarage() {
+    let nftListUI;
+
+    let lastBattleUI = getLastBattleUI();
+
     if(nftList.length) {
       nftListUI = <div className="br-nft-gallery">
-        <h4 className="br-nft-gallery-heading">Your NEAR Karts</h4>
         { displayNFTs(nftList, activeTokenId) }
-        {lastBattleUI}
         <BrButton label="Battle" id="arrangeBattle" className="br-button br-icon-button" 
                   onClick={ e => startBattle() }
                   isSubmitting={processingActions['arrangeBattle']} />
@@ -902,6 +914,7 @@ function NearKarts(props) {
 
     return <Fragment>
       <div className={ "br-screen br-screen-garage " + getScreenClass(SCREENS.garage)}>
+        {lastBattleUI}
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
@@ -1038,7 +1051,6 @@ function NearKarts(props) {
     { getScreenBattle() }
 
     <div className="br-photo-booth" ref={threePhotoRef}></div>
-
   </div>
 }
 
