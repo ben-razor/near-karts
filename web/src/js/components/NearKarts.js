@@ -35,6 +35,7 @@ const nearKartsURL = getNearKartsServerURL();
 const DEBUG_FORCE_BATTLE = false;
 const DEBUG_IMAGES = false;
 const DEBUG_NO_MINT = false;
+const DEBUG_KART = false;
 
 const baseNFTData = {
   "version": 0,
@@ -996,7 +997,7 @@ function NearKarts(props) {
       let awayMetadata = battle.metadata[1];
 
       ui = <div className="br-battle-viewer">
-        <div className={"br-battle-viewer-home-panel" + 
+        <div className={"br-battle-viewer-panel" + 
                         (battleAttacking[0] ? ' br-battle-viewer-attacking ' : '') +
                         (battleHit[0] ? ' box-hit ' : '' )}>
         <div className="br-battle-viewer-kart-details">
@@ -1018,7 +1019,7 @@ function NearKarts(props) {
         <div className="br-battle-viewer-main-panel">
           { displayBattleText(battleText) }
         </div>
-        <div className={"br-battle-viewer-away-panel" + 
+        <div className={"br-battle-viewer-panel" + 
                         (battleAttacking[1] ? ' br-battle-viewer-attacking ' : '') +
                         (battleHit[1] ? ' box-hit ' : '')}>
           <div className="br-battle-viewer-kart-details">

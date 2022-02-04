@@ -400,9 +400,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    word-break: break-word;
 }
 
-.br-battle-viewer-home-panel {
+.br-battle-viewer-panel {
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -410,16 +411,7 @@
     margin: $spacing-sm;
     border: 1px solid hsl(0deg, 0%, 90%);
     border-radius: $spacing-sm;
-}
-
-.br-battle-viewer-away-panel {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    padding: $spacing-sm;
-    margin: $spacing-sm;
-    border: 1px solid hsl(0deg, 0%, 90%);
-    border-radius: $spacing-sm;
+    width: 200px;
 }
 
 .br-battle-viewer-attacking {
@@ -516,8 +508,9 @@
 }
 
 .br-last-battle-details {
-    margin-right: 0.5em;
-    padding-top: 0.5em;
+    padding: 0.5em 4px;
+    margin-bottom: 4px;
+    background-color: white;
 }
 
 .br-last-battle-label {
