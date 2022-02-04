@@ -849,6 +849,7 @@ function NearKarts(props) {
   }
 
   function startBattle() {
+    toast(getText('text_finding_opponent'));
     execute('gameSimpleBattle');
   }
 

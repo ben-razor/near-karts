@@ -92,6 +92,7 @@ const text = {
 
     "text_creating_image": `Photographing ${text_consts.nft_name} for NFT`,
     "text_mint_request": `Minting on ${text_consts.blockchain_name} blockchain`,
+    "text_finding_opponent": `Finding opponent on ${text_consts.blockchain_name} blockchain`,
 
     "success_save_kart": `${text_consts.nft_name} saved!!`,
     "success_image_upload": `${text_consts.nft_short_name} image uploaded`,

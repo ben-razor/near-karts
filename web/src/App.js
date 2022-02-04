@@ -59,6 +59,7 @@ function App() {
   const { addToast } = useToasts();
 
   function toast(message, type='info') {
+    console.log('toasty ', message);
     addToast(message, { 
       appearance: type,
       autoDismiss: true,
@@ -350,6 +351,7 @@ function App() {
   }
 
   function viewBattle() {
+    toast('Viewing battle')
     setBattleConfig(lastBattle);
     setScreen(SCREENS.battle);
   }
