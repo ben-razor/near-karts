@@ -241,7 +241,6 @@ export default class Battle {
 
   next() {
     let round = this.rounds[this.roundIndex];
-    console.log('next round', round);
 
     if(++this.roundIndex >= this.rounds.length) {
       this.finished = true;

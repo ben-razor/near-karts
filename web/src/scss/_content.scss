@@ -420,11 +420,12 @@
 }
 
 .br-battle-viewer-main-panel {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
     font-family: NearKartsThin;
     font-size: 0.9em;
     display: flex;
-    flex-direction: column;
-    flex: 1;
     min-height: 400px;
     padding: $spacing-sm;
     margin: $spacing-sm;
@@ -531,4 +532,35 @@
 
 .br-invisible {
     opacity: 0;
+}
+
+.br-battle-visuals {
+    transform: scale(0.5);
+    height: 30px;
+    width: 480px;
+    margin: 5px 0;
+}
+
+.br-battle-arrows {
+    background-image: url(../images/arrows-1.png);
+    background-position: 0 -20px;
+    height: 60px;
+    width: 480px;
+    opacity: 0.3;
+    transform: translateY(-20px);
+}
+
+@keyframes battle-arrows-frames {
+    0% { background-position: 0 -100px; }
+    100% { background-position: 0 -420px; }
+}
+
+.br-battle-arrows-anim {
+    animation: battle-arrows-frames 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: steps(4, end); 
+}
+
+.br-reverse {
+    transform: scale(-1) translateY(20px);
 }

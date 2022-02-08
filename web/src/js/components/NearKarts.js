@@ -550,13 +550,14 @@ function NearKarts(props) {
 
   useEffect(() => {
     setGroupIndex(0);
-    setLineIndex(0);
+    setBattleStarted(false);
+    setLineIndex(-1);
     setReplayReq(replayReq + 1);
   }, [battleText]);
 
   useEffect(() => {
     let lineIndexChanged = stateCheck.changed('lineIndexBP', lineIndex, -1);
-    // console.log('lic', lineIndexChanged);
+    console.log('lic', lineIndexChanged);
     if(lineIndexChanged && battleText.length) {
       if(b?.rounds?.length) {
         let roundData = b.rounds[groupIndex].data;
@@ -568,7 +569,9 @@ function NearKarts(props) {
         let isFirstLine = lineIndex === 0;
         let isLastLine = lineIndex === lines.length - 1;
 
+        console.log('IFL', isFirstLine);
         if(isFirstLine) {
+          setBattleStarted(true);
           setBattleHit([0, 0]);
           let attacking = [1, 0];
           if(aggressor === 1) attacking = [0, 1];
@@ -784,7 +787,7 @@ function NearKarts(props) {
 
     let textGroupIndex = 0;
     for(let group of battleText) {
-      if(textGroupIndex > groupIndex) {
+      if(!battleStarted || textGroupIndex > groupIndex) {
         break;
       }
       let textLineIndex = 0;
@@ -1017,6 +1020,15 @@ function NearKarts(props) {
           </div>
         </div>
         <div className="br-battle-viewer-main-panel">
+          { (battleAttacking[0] || battleAttacking[1]) && !(battleHit[0] || battleHit[1]) ?
+            <div className="br-battle-visuals">
+                <div className={"br-battle-arrows br-battle-arrows-anim" +
+                                (battleAttacking[1] ? ' br-reverse ' : '')}>
+                </div>
+            </div>
+            :
+            ''
+          }
           { displayBattleText(battleText) }
         </div>
         <div className={"br-battle-viewer-panel" + 
