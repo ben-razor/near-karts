@@ -338,7 +338,7 @@ function App() {
         </div>
       </div>
       <Fragment>
-        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
+        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
       </Fragment>
     </div>
 
@@ -365,7 +365,7 @@ function App() {
           Last Battle:&nbsp; 
           { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
         </div>
-        <BrButton label="View" id="viewBattle" className="br-button br-icon-button" 
+        <BrButton label="View" id="viewBattle" className="br-button" 
                   onClick={viewBattle}
                   isSubmitting={processingActions['viewBattle']} />
       </div>
@@ -410,9 +410,9 @@ function App() {
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">
-            <BrButton label="Start Audio" id="startAudio" className="br-button br-icon-button" onClick={startAudio} />
+            <BrButton label="Start Audio" id="startAudio" className="br-button" onClick={startAudio} />
             <Fragment>
-              <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-icon-button" onClick={signIn} />
+              <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
             </Fragment>
           </div>
         </div>

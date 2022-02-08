@@ -139,6 +139,18 @@
     }
 }
 
+.br-icon-button {
+    width: 36px;
+    height: 36px;
+    min-width: initial;
+    min-height: initial;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .br-back-button-holder {
     position: absolute;
     top: 0.5em;
@@ -175,6 +187,10 @@
     border: 1px solid hsl(0deg, 0%, 70%);
     border-radius: 1em;
     padding: 0.4em;
+}
+
+.br-strange-juice-3d {
+    position: relative;
 }
 
 .br-strange-juice-overlay {
@@ -563,4 +579,11 @@
 
 .br-reverse {
     transform: scale(-1) translateY(20px);
+}
+
+.br-autorotate-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 1000;
 }

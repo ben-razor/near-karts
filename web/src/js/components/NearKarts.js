@@ -138,8 +138,7 @@ function NearKarts(props) {
   const [battleHit, setBattleHit] = useState([0, 0])
   const [battleAttacking, setBattleAttacking] = useState([0, 0])
   const [battleStarted, setBattleStarted] = useState();
-
-  const storySection = sceneConfig[sceneIndex].storySection;
+  const [orbitControls, setOrbitControls] = useState();
 
   function kartChanged(nftData, prevNFTData) {
     let keys = Object.keys(baseNFTData);
@@ -365,6 +364,7 @@ function NearKarts(props) {
       controls.minPolarAngle = 0;
       controls.maxPolarAngle = Math.PI / 2.1;
       controls.autoRotate = true;
+      setOrbitControls(controls);
     }
 
     var renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -409,6 +409,12 @@ function NearKarts(props) {
       const light = new THREE.PointLight( color, intensity, dist);
       light.position.copy(pos);
       scene.add( light );
+    }
+  }
+
+  function toggleAutoRotate() {
+    if(orbitControls) {
+      orbitControls.autoRotate = !orbitControls.autoRotate;
     }
   }
 
@@ -617,7 +623,7 @@ function NearKarts(props) {
                   value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
           </div>
           <div className="br-text-entry-row-control">
-            <BrButton label="Mint" id="render" className="br-button br-icon-button" onClick={render}
+            <BrButton label="Mint" id="render" className="br-button" onClick={render}
                       isSubmitting={renderRequested || processingActions['mintWithImage']} />
             { DEBUG_IMAGES && imageDataURL &&
               <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
@@ -626,7 +632,7 @@ function NearKarts(props) {
         </div>
       }
       <div className="br-text-entry-row">
-        <BrButton label="Save" id="save" className="br-button br-icon-button" onClick={saveKart} />
+        <BrButton label="Save" id="save" className="br-button" onClick={saveKart} />
       </div>
     </div>
   }
@@ -916,7 +922,7 @@ function NearKarts(props) {
     if(nftList.length) {
       nftListUI = <div className="br-nft-gallery">
         { displayNFTs(nftList, activeTokenId) }
-        <BrButton label="Battle" id="gameSimpleBattle" className="br-button br-icon-button" 
+        <BrButton label="Battle" id="gameSimpleBattle" className="br-button" 
                   onClick={ e => startBattle() }
                   isSubmitting={processingActions['gameSimpleBattle']} />
       </div>
@@ -928,6 +934,8 @@ function NearKarts(props) {
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
+            <button className="br-autorotate-button br-button br-icon-button"
+                    onMouseDown={toggleAutoRotate}><i className="fa fa-sync-alt"></i></button>
           </div>
           <div className="br-strange-juice-overlay">
             { getControlUI(gameConfig, nftData) } 
@@ -949,7 +957,7 @@ function NearKarts(props) {
     return <div className={"br-screen br-screen-battle-setup " + getScreenClass(SCREENS.battleSetup)}>
       <div className="br-back-button-holder">
         <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-setup-to-garage" 
-                  className="br-button br-icon-button" 
+                  className="br-button" 
                   onClick={e => changeScreen(SCREENS.garage)} />
       </div>
       <h1>{getText('text_battle_arena')}</h1>
@@ -966,7 +974,7 @@ function NearKarts(props) {
           </div>
           <div className="br-battle-setup-vs">
             <h1>{getText('text_vs')}</h1>
-            <BrButton label="Battle" id="battle" className="br-button br-icon-button" onClick={startBattle} />
+            <BrButton label="Battle" id="battle" className="br-button" onClick={startBattle} />
           </div>
           <div className="br-battle-setup-away">
             <h3>{getText('text_opponent_kart')}</h3>
@@ -1061,13 +1069,13 @@ function NearKarts(props) {
     return <div className={"br-screen br-screen-battle " + getScreenClass(SCREENS.battle)}>
       <div className="br-back-button-holder">
         <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-to-garage" 
-                  className="br-button br-icon-button" 
+                  className="br-button" 
                   onClick={e => changeScreen(SCREENS.garage)} />
       </div>
       <h2>{ getText('text_battle') }</h2>
       <div className="br-battle-controls-holder">
         <BrButton label="Replay" id="go-battle-to-garage" 
-                  className="br-button br-icon-button" 
+                  className="br-button" 
                   onClick={e => replay() } />
       </div>
       { ui }
