@@ -424,7 +424,7 @@ function NearKarts(props) {
 
     return <div className={"br-strange-juice-control " + (processing ? 'br-border-hide' : '')} onClick={e => execute(action)} key={action}>
       <div className="br-strange-juice-overlay-image-container">
-        <img className={"br-strange-juice-overlay-image " + (processing ? 'br-anim-shake-short' : '')} alt="Plug socket" src={src} />
+        <img className={"br-strange-juice-overlay-image " + (processing ? 'br-anim-shake-short br-hurt' : '')} alt="Plug socket" src={src} />
       </div>
       <div className={"br-strange-juice-overlay-text " + (processing ? 'br-anim-text-pulse' : '')}>
         { getText('icon_' + action )}
@@ -1015,7 +1015,7 @@ function NearKarts(props) {
           {kartName(homeMetadata.title)}
         </div>
         <div className="br-power-bar-panel">
-            <div className={"br-power-bar-outer" + (battleHit[0] ? " br-anim-shake-short " : '')}>
+            <div className={"br-power-bar-outer" + (battleHit[0] ? " br-anim-shake-short br-hurt" : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[0]}%`}}></div>
             </div>
             <div className="br-power">
@@ -1046,7 +1046,7 @@ function NearKarts(props) {
             {kartName(awayMetadata.title)}
           </div>
           <div className="br-power-bar-panel">
-            <div className={"br-power-bar-outer" + (battleHit[1] ? " br-anim-shake-short " : '')}>
+            <div className={"br-power-bar-outer" + (battleHit[1] ? " br-anim-shake-short br-hurt" : '')}>
               <div className="br-power-bar-inner" style={ { width: `${battlePower[1]}%`} }></div>
             </div>
             <div className="br-power">
