@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback, Fragment} from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import lifeform from '../../data/models/bot-1.gltf';
+import lifeform from '../../data/models/bot-2.gltf';
 import BrButton from './lib/BrButton';
 import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../3d/jsm/postprocessing/RenderPass.js';
@@ -59,7 +59,7 @@ const baseNFTData = {
 };
 
 const loader = new GLTFLoader();
-const baseImageURL = 'https://storage5555.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
+const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
 const w = 500;
 const h = 400;
@@ -286,8 +286,13 @@ function NearKarts(props) {
 
       if(o.name === 'BotBody1') {
         for(let child of o.children) {
-          if(child.material.name === 'MatBody') {
+          console.log('child material name', child.material.name);
+          if(child.material.name === 'MatBodyDecal1') {
+            loadImageToMaterial(child.material, getTextureURL('badge', 3));
+          }
+          if(child.material.name === 'MatBody' || child.material.name === 'MatBodyDecal1') {
             child.material.color = new THREE.Color(controlEntry.color);
+            child.material.emissiveIntensity = 5;
 
             if(controlEntry.skin === 'SkinPlastic') {
               child.material.flatShading = false;
@@ -311,9 +316,11 @@ function NearKarts(props) {
             }
 
             child.material.needsUpdate = true;
-            break;
           }
         }
+      }
+
+      if(o.name.startsWith('Decal')) {
       }
     });
   }, []);
@@ -350,7 +357,7 @@ function NearKarts(props) {
 
   const createScene = useCallback((threeElem, w, h, camPos, orbitControls=false, refreshEvery=1) => {
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 20 );
+    var camera = new THREE.PerspectiveCamera( 50, w/h, 1, 5 );
     camera.position.copy(camPos);
     camera.lookAt(0, 0.4, 0);
 

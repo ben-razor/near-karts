@@ -6,10 +6,12 @@ export function loadImageToMaterial(mat, imageURL) {
     const tex = new THREE.CanvasTexture( imageBitmap );
     tex.center.set(0.5, 0.5);
     mat.emissiveMap = tex;
+    /*
     mat.alphaMap = tex;
     mat.alphaTest = 0.1;
     mat.transparent = true;  
     mat.needsUpdate = true;
+    */
   });
 }
 
