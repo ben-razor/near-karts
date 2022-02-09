@@ -110,10 +110,12 @@
 @keyframes box-hit {
     from { 
         box-shadow: 0 0 20px hsl(0deg 100% 50%); 
+        background-color: hsla(0deg, 100%, 20%, 1);
         border: 2px solid hsla(0deg, 100%, 30%, 1);
     }
     to { 
         box-shadow: 0 0 0px hsl(0deg 0% 100%);
+        background-color: initial;
         border: 2px solid hsla(0deg, 100%, 30%, 0);
     }
 }
