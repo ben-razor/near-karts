@@ -39,6 +39,8 @@ const config = {
     { id: '3', name: 'Pentagram'},
     { id: '4', name: 'Aceed'},
     { id: '5', name: 'Jewel'},
+    { id: '6', name: 'Yin-Yang'},
+    { id: '7', name: 'NEAR'},
   ]
 }
 
