@@ -61,6 +61,7 @@ const baseNFTData = {
 const loader = new GLTFLoader();
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
+
 const w = 500;
 const h = 400;
 const wPhoto = 400;
@@ -125,7 +126,10 @@ function NearKarts(props) {
     top: '',
     transport: 'TransportWheels',
     skin: 'SkinPlastic',
-    color: '#ffee00'
+    color: '#ffee00',
+    decal1: '0',
+    decal2: '0',
+    decal3: '0',
   });
 
   const [imageDataURL, setImageDataURL] = useState('');
@@ -139,6 +143,7 @@ function NearKarts(props) {
   const [battleAttacking, setBattleAttacking] = useState([0, 0])
   const [battleStarted, setBattleStarted] = useState();
   const [orbitControls, setOrbitControls] = useState();
+  const [garagePanel, setGaragePanel] = useState('equip');
 
   function kartChanged(nftData, prevNFTData) {
     let keys = Object.keys(baseNFTData);
@@ -171,6 +176,10 @@ function NearKarts(props) {
 
     kartConfig.color = intToHexColor(nftData.color1);
 
+    kartConfig.decal1 = nftData.decal1;
+    kartConfig.decal2 = nftData.decal2;
+    kartConfig.decal3 = nftData.decal3;
+
     return kartConfig;
   }
 
@@ -199,6 +208,10 @@ function NearKarts(props) {
 
     nftData.color1 = hexColorToInt(kartConfig.color);
 
+    nftData.decal1 = kartConfig.decal1;
+    nftData.decal2 = kartConfig.decal2;
+    nftData.decal3 = kartConfig.decal3;
+
     return nftData;
   }
 
@@ -217,7 +230,8 @@ function NearKarts(props) {
   }, [nftData, prevNFTData]);
 
   function getTextureURL(element, style) {
-    let url = baseImageURL + `lifeform-1-${element}-${style}.png`;
+    if(!style) style = 0;
+    let url = baseImageURL + `set-1-${element}-${style}.png`;
     return url;
   }
 
@@ -288,7 +302,7 @@ function NearKarts(props) {
         for(let child of o.children) {
           console.log('child material name', child.material.name);
           if(child.material.name === 'MatBodyDecal1') {
-            loadImageToMaterial(child.material, getTextureURL('badge', 3));
+            loadImageToMaterial(child.material, getTextureURL('badge', controlEntry.decal1));
           }
           if(child.material.name === 'MatBody' || child.material.name === 'MatBodyDecal1') {
             child.material.color = new THREE.Color(controlEntry.color);
@@ -466,6 +480,14 @@ function NearKarts(props) {
       controlSetUI.push(<optgroup key={setId + "Weapons"} label="Weapons">{optionsWeapon}</optgroup>)
       controlSetUI.push(<optgroup key={setId + "Shields"} label="Shields">{optionsShield}</optgroup>)
     }
+    else if(setId.startsWith('decal')) {
+      elems = gameConfig.decals;
+      
+      for(let elem of elems)
+      controlSetUI.push(
+        <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
+      )
+    }
     else {
       if(setId === 'front') {
         elems = gameConfig.weapons_melee;
@@ -491,6 +513,7 @@ function NearKarts(props) {
 
   function changeControl(setId, value) {
     let _controlEntry = {...controlEntry};
+    console.log('cc', setId, value, _controlEntry);
     _controlEntry[setId] = value;
     setControlEntry(_controlEntry);
   }
@@ -521,12 +544,17 @@ function NearKarts(props) {
   function getControlUI(gameConfig, strangeJuice) {
     let controlUI = [];
 
-    controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)));
-    controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
-    controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
-    controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
-    controlUI.push(getControlRow('Skin', getControlSet('skin', gameConfig)))
-    controlUI.push(<div key="ColorChooser">{getColorChooser()}</div>);
+    if(garagePanel === 'equip') {
+      controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)));
+      controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
+      controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
+      controlUI.push(getControlRow('Wheels', getControlSet('transport', gameConfig)))
+      controlUI.push(getControlRow('Skin', getControlSet('skin', gameConfig)))
+    }
+    else {
+      controlUI.push(getControlRow('Color', <div key="ColorChooser">{getColorChooser()}</div>));
+      controlUI.push(getControlRow('Decal', getControlSet('decal1', gameConfig)));
+    }
 
     return controlUI;
   }
@@ -921,6 +949,20 @@ function NearKarts(props) {
     return lastBattleUI;
   }
 
+  function getGaragePanelTabs() {
+    let equipActiveClass = garagePanel === 'equip' ? ' br-pill-active ' : '';
+    let pimpActiveClass = garagePanel === 'pimp' ? ' br-pill-active ' : '';
+
+    return <div className="br-pills">
+      <div className={ "br-pill br-pill-left" + equipActiveClass } onClick={ e => setGaragePanel('equip') }>
+        Equipment
+      </div>
+      <div className={ "br-pill br-pill-right" + pimpActiveClass } onClick={ e => setGaragePanel('pimp') }>
+        Pimping
+      </div>
+    </div> 
+  }
+
   function getScreenGarage() {
     let nftListUI;
 
@@ -945,6 +987,7 @@ function NearKarts(props) {
                     onMouseDown={toggleAutoRotate}><i className="fa fa-sync-alt"></i></button>
           </div>
           <div className="br-strange-juice-overlay">
+            { getGaragePanelTabs() }
             { getControlUI(gameConfig, nftData) } 
             { getContractControls() }
           </div>

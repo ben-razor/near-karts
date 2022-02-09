@@ -248,7 +248,7 @@
     display: flex;
     padding: 0.6em $spacing-sm;
     justify-items: left;
-    align-items: baseline;
+    align-items: center;
 }
 
 .br-feature-title {
@@ -589,4 +589,32 @@
 
 .br-hurt {
     background-color: hsl(0deg, 100%, 24%);
+}
+
+.br-pills {
+    display: flex;
+    margin: $spacing-sm;
+}
+
+.br-pill {
+    color: black;
+    background-color: white;
+    border-radius: 1em;
+    padding: $spacing-sm $spacing-md;
+    user-select: none;
+    cursor: default;
+    flex: 1;
+}
+
+.br-pill-left {
+    border-radius: $spacing-md 0 0 $spacing-md;
+}
+
+.br-pill-right {
+    border-radius: 0 $spacing-md $spacing-md 0;
+}
+
+.br-pill-active {
+    background-color: black;
+    color: white;
 }
