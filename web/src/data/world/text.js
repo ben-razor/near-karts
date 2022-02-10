@@ -75,6 +75,9 @@ const text_battle = {
     "text_battle_shield_kevlar_1": "{victim}'s kevlar shield blocks the attack",
 
     "text_battle_battle_won": `{winner} wins the battle!!`,
+    "text_you_won": "You Wind",
+    "text_you_lost": "You Lode",
+    "text_won_prize": "You won a {prize_name}",
     "text_new_nft_name": `New ${text_consts.nft_name}`
   }
 };
@@ -117,8 +120,14 @@ for(let lang of langs) {
   Object.assign(text[lang], text_battle[lang]);
 }
 
-export default function getText(id) {
-  return text[lang][id] || id;
+export default function getText(id, replacements) {
+  let t = text[lang][id] || id;
+  if(replacements) {
+    for(let k of Object.keys(replacements)) {
+      t = t.replaceAll(`{${k}}`, `${replacements[k]}`);
+    }
+  }
+  return t;
 }
 
 export function getBattleText() {

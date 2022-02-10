@@ -12,7 +12,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
 import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
 import gameConfig, { partIdToName } from '../../data/world/config';
-import getText from '../../data/world/text';
+import getText, { exclamation } from '../../data/world/text';
 import { CompactPicker } from 'react-color';
 import domtoimage from 'dom-to-image';
 import Battle from '../helpers/battle';
@@ -608,15 +608,15 @@ function NearKarts(props) {
       toast('Battle Ended');
       console.log('battleConfig', battleConfig);
       if(battleConfig.winner === 0) {
-        toast('You Wind!');
+        toast(exclamation(getText('text_you_won')));
 
         if(battleConfig.prize > 0) {
           let decalName  = partIdToName('decals', battleConfig.prize.toString());
-          toast('You won a ' + decalName);
+          toast(getText('text_won_prize', {'prize_name': decalName}));
         }
       }
       else {
-        toast('You Load!');
+        toast(exclamation(getText('text_you_lost')));
       }
     }
   }, [battleEnded, toast, battleConfig]);
