@@ -206,7 +206,7 @@ impl Contract {
         near_kart_new.decal1 = String::new();
         near_kart_new.decal2 = String::new();
         near_kart_new.decal3 = String::new();
-        near_kart_new.extra1 = String::new();
+        near_kart_new.extra1 = String::from("7"); // Everyone gets the NEAR decal
         near_kart_new.extra2 = String::new();
         near_kart_new.extra3 = String::new();
 
@@ -321,7 +321,7 @@ impl Contract {
             panic!("error_level_not_high_enough_to_use_skin");
         }
 
-        if nk.decal1 != "0" && nk.decal1 != "7" {
+        if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
             let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
             if !unlocked_decals.contains(&nk.decal1) {
                 panic!("error_decal_front_is_not_unlocked");
@@ -649,7 +649,7 @@ mod tests {
             expires_at: None,
             starts_at: None,
             updated_at: None,
-            extra: Some("dc0012000100000000000000000000a0a0a0a0a0a0".to_string()),
+            extra: Some("dc0012000100000000000000000000a0a0a0a137a0a0".to_string()),
             reference: None,
             reference_hash: None,
         }
@@ -901,7 +901,7 @@ mod tests {
         assert_gt!(battle_result_5.prize, 0);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "3");
+        assert_eq!(nk1.extra1, "7,3");
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
@@ -910,7 +910,7 @@ mod tests {
         assert_eq!(battle_result_6.prize, 1);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "3,1");
+        assert_eq!(nk1.extra1, "7,3,1");
     }
 
     #[test]
