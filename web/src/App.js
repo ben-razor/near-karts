@@ -41,7 +41,7 @@ function App() {
   const [nearConfig, setNearConfig] = useState();
   const [nearProvider, setNearProvider] = useState();
   const [wallet, setWallet] = useState();
-  const [mightBeSignedIn, setMightBeSignedIn] = useState(true);
+  const [walletSignedIn, setWalletSignedIn] = useState(true);
   const [nftContract, setNFTContract] = useState();
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
@@ -118,7 +118,7 @@ function App() {
         setNFTData({});
         setNFTList([]);
         setActiveTokenId(0);
-        setMightBeSignedIn(false);
+        setWalletSignedIn(false);
       })();
     }
     else {
@@ -399,12 +399,14 @@ function App() {
   console.log('nftMetadata', nftMetadata);
   console.log('Last battle: ', lastBattle);
 
+  let isSignedIn = wallet?.isSignedIn() && walletSignedIn;  // NEAR sign out doesn't have await so need this trick with walletSignedIn 
+
   return (
     <div className="br-page">
       <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
       <div className="br-header">
         <div className="br-header-logo-panel">
-          { getLastBattleUI() }
+          { isSignedIn ? getLastBattleUI() : ''}
         </div>
         <div className="br-header-title-panel">
         </div>
@@ -418,7 +420,7 @@ function App() {
         </div>
       </div>
       <div className="br-content">
-        { (wallet?.isSignedIn() && mightBeSignedIn) ?
+        { isSignedIn ?
             <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
