@@ -24,7 +24,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{ LazyOption, UnorderedSet, Vector, LookupMap };
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::{
-    env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue,
+    env, near_bindgen, log, AccountId, BorshStorageKey, PanicOnDefault, Promise, PromiseOrValue
 };
 use serde::{Serialize, Deserialize};
 use rmp_serde;
@@ -66,12 +66,18 @@ pub struct NearKart {
     extra3: String
 }
 
-#[derive(Default, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[derive(Default, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Debug)]
 pub struct SimpleBattle {
     home_token_id: String,
     away_token_id: String,
     winner: u8,
     battle: u32
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BattleLog {
+    pub event: String,
+    pub data: SimpleBattle
 }
 
 impl NearKart {
@@ -380,6 +386,14 @@ impl Contract {
         };
 
         self.last_battle.insert(&env::predecessor_account_id(), &result.clone());
+
+        let b: BattleLog = BattleLog {
+            event: "game_simple_battle".to_string(),
+            data: result.clone()
+        };
+
+        log!("EVENT_JSON:{}", serde_json::to_string(&b).unwrap());
+
         return result;
     }
 
