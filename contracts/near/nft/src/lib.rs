@@ -321,6 +321,13 @@ impl Contract {
             panic!("error_level_not_high_enough_to_use_skin");
         }
 
+        if nk.decal1 != "0" && nk.decal1 != "7" {
+            let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
+            if !unlocked_decals.contains(&nk.decal1) {
+                panic!("error_decal_front_is_not_unlocked");
+            }
+        }
+
         let extra = nk.serialize();
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
@@ -904,7 +911,6 @@ mod tests {
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "3,1");
-
     }
 
     #[test]
