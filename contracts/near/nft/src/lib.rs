@@ -199,11 +199,11 @@ impl Contract {
         }
         let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
 
+        // Wipe out any fields the user is not allowed to set on mint
         near_kart_new.version = 0;
         near_kart_new.level = 1;
         near_kart_new.ex1 = 0;
         near_kart_new.ex2 = 0;
-        near_kart_new.decal1 = String::new();
         near_kart_new.decal2 = String::new();
         near_kart_new.decal3 = String::new();
         near_kart_new.extra1 = String::from("7"); // Everyone gets the NEAR decal
@@ -305,13 +305,25 @@ impl Contract {
 
         let max_index = Contract::get_max_weapon_index_for_level(nk.level);
 
+        let shield_start_index = 200;
+
+        let mut weapon_or_shield_index_left = nk.left;
+        if nk.left >= shield_start_index {
+            weapon_or_shield_index_left -= shield_start_index;
+        }
+
+        let mut weapon_or_shield_index_right = nk.right;
+        if nk.right >= shield_start_index {
+            weapon_or_shield_index_right -= shield_start_index;
+        }
+
         if nk.front > max_index {
             panic!("error_level_not_high_enough_to_equip_front_weapon");
         }
-        else if nk.left > max_index {
+        else if weapon_or_shield_index_left > max_index {
             panic!("error_level_not_high_enough_to_equip_left_weapon");
         }
-        else if nk.right > max_index {
+        else if weapon_or_shield_index_right > max_index {
             panic!("error_level_not_high_enough_to_equip_right_weapon");
         }
         else if nk.transport > max_index {
@@ -699,6 +711,7 @@ mod tests {
         let token_id = "0".to_string();
         let mut starting_near_kart = NearKart::new();
         starting_near_kart.level = 1;
+        starting_near_kart.decal1 = "5".to_string();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
@@ -712,6 +725,7 @@ mod tests {
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.front, 0);
         assert_eq!(nk1.level, 1);
+        assert_eq!(nk1.decal1, "5");
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
