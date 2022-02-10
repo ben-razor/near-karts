@@ -130,6 +130,7 @@ function NearKarts(props) {
     decal1: '0',
     decal2: '0',
     decal3: '0',
+    unlockedDecals: []
   });
 
   const [imageDataURL, setImageDataURL] = useState('');
@@ -179,8 +180,16 @@ function NearKarts(props) {
     kartConfig.decal1 = nftData.decal1;
     kartConfig.decal2 = nftData.decal2;
     kartConfig.decal3 = nftData.decal3;
+    
+    kartConfig.unlockedDecals = nftData.extra1 ? nftData.extra1.split(',') : ['', '0', '7'];
 
     return kartConfig;
+  }
+
+  function validDecal(decal) {
+    let isValid = !decal || decal === '0' || controlEntry.unlockedDecals.includes(decal);
+    console.log('vd', decal, isValid, controlEntry.unlockedDecals);
+    return isValid;
   }
 
   function kartConfigToNFTData(kartConfig) {
@@ -486,10 +495,15 @@ function NearKarts(props) {
     else if(setId.startsWith('decal')) {
       elems = gameConfig.decals;
       
-      for(let elem of elems)
-      controlSetUI.push(
-        <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
-      )
+      for(let elem of elems) {
+        let disabled = false;
+        if(!validDecal(elem.id)) {
+          disabled = true;
+        }
+        controlSetUI.push(
+          <option key={setId + elem.id} disabled={disabled} value={elem.id}>{elem.name}</option>
+        )
+      }
     }
     else {
       if(setId === 'front') {
@@ -556,6 +570,10 @@ function NearKarts(props) {
     }
     else {
       controlUI.push(getControlRow('Color', <div key="ColorChooser">{getColorChooser()}</div>));
+      controlUI.push(<div className="br-info-message">
+        <i className="fa fa-info br-info-icon"></i>
+        Get new decals by winning battles!
+      </div>);
       controlUI.push(getControlRow('Decal', getControlSet('decal1', gameConfig)));
     }
 

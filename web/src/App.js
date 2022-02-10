@@ -148,6 +148,7 @@ function App() {
 
       if(action === 'mintWithImage') {
         console.log('mwi', data);
+        console.log('mwi', data.nftData);
         let name = data.name.slice(0, 32);
 
         if(!name) {

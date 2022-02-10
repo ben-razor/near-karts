@@ -635,6 +635,21 @@
     color: white;
 }
 
+.br-info-message {
+    display: flex;
+    align-items: center;
+    border: 1px solid white;
+    border-radius: $spacing-md;
+    margin: $spacing-sm;
+    padding: $spacing-sm;
+    text-align: left;
+}
+
+.br-info-icon {
+    width: 2em;
+    text-align: center;
+}
+
 .Toastify__toast-container--top-right {
     top: 0 !important;
 }
