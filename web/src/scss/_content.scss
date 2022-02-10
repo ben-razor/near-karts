@@ -202,6 +202,7 @@
 
 .br-strange-juice-3d {
     position: relative;
+    flex: 1;
 }
 
 .br-strange-juice-overlay {
@@ -632,4 +633,8 @@
 .br-pill-active {
     background-color: black;
     color: white;
+}
+
+.Toastify__toast-container--top-right {
+    top: 0 !important;
 }

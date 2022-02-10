@@ -62,8 +62,8 @@ const loader = new GLTFLoader();
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
 
-const w = 500;
-const h = 400;
+const w = 1000;
+const h = 800;
 const wPhoto = 400;
 const hPhoto = 400;
 const textDelay = 2000;
@@ -396,6 +396,8 @@ function NearKarts(props) {
     renderer.setClearColor(0x000000);
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = 1;
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = 'initial';
     threeElem.appendChild( renderer.domElement );
 
     addPointLights(scene, 0xffffff, 14, 10, [

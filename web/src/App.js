@@ -2,14 +2,13 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import Logo from './images/near-karts-1.png';
 import * as Tone from 'tone';
 import './scss/styles.scss';
-import { useToasts } from 'react-toast-notifications';
+import { toast as toasty } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
-import { getRandomInt } from "./js/helpers/math";
-import { base58_to_binary } from 'base58-js'
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -56,14 +55,17 @@ function App() {
   const [lastBattle, setLastBattle] = useState({});
   const [screen, setScreen] = useState(SCREENS.garage);
 
-  const { addToast } = useToasts();
-
   function toast(message, type='info') {
     console.log('toasty ', message);
-    addToast(message, { 
-      appearance: type,
-      autoDismiss: true,
-      autoDismissTimeout: TOAST_TIMEOUT
+    toasty[type](message, { 
+      position: "top-right",
+      autoClose: TOAST_TIMEOUT,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'dark'
     });
   }
 
