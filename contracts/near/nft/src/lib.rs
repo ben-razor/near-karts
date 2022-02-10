@@ -1,4 +1,4 @@
-/*!
+/*
 Non-Fungible Token implementation with JSON serialization.
 NOTES:
   - The maximum balance value is limited by U128 (2**128 - 1).
@@ -43,8 +43,8 @@ pub struct Contract {
     signer_pub_keys: UnorderedSet<String>,
     prev_block_index: near_sdk::BlockHeight,
     random_buffer: Vector<u8>,
-    last_battle: LookupMap<AccountId, SimpleBattle>,
-    unlocks: LookupMap<AccountId, Vector<u32>>
+    random_index: u8,
+    last_battle: LookupMap<AccountId, SimpleBattle>
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -76,7 +76,7 @@ pub struct SimpleBattle {
     winner: u8,
     battle: u32,
     prize: u32,
-    extra1: String
+    extra: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -125,9 +125,7 @@ enum StorageKey {
     Approval,
     SignerKey,
     RandomBufferKey,
-    LastBattleKey,
-    UnlocksKey,
-    UnlocksVecKey
+    LastBattleKey
 }
 
 #[near_bindgen]
@@ -166,8 +164,8 @@ impl Contract {
             signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey),
             prev_block_index: 0,
             random_buffer: Vector::new(StorageKey::RandomBufferKey),
-            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey),
-            unlocks: LookupMap::<AccountId, Vector<u32>>::new(StorageKey::UnlocksKey)
+            random_index:0,
+            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey)
         }
     }
 
@@ -214,8 +212,6 @@ impl Contract {
 
         self.nft_configure(token_id.clone(), near_kart_new);
         self.nft_update_media(token_id.clone(), cid, sig, pub_key);
-        let unlocks = Vector::new(StorageKey::UnlocksVecKey);
-        self.unlocks.insert(&token_id.clone(), &unlocks);
         return token;
     }
 
@@ -380,6 +376,34 @@ impl Contract {
         return opponent_id;
     }
 
+    fn nft_set_extra1(&mut self, token_id: TokenId, extra1: &String) {
+        self.assert_nft_owner(token_id.clone());
+        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
+        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
+        let extra = metadata.extra.unwrap_or(String::from(""));
+        let mut nk = NearKart::from_data(&extra);
+
+        nk.extra1 = extra1.clone();
+
+        let extra = nk.serialize();
+        metadata.extra = Some(extra);
+        lookup_map.insert(&token_id, &metadata);
+    }
+
+    fn nft_level_up(&mut self, token_id: TokenId) {
+        self.assert_nft_owner(token_id.clone());
+        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
+        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
+        let extra = metadata.extra.unwrap_or(String::from(""));
+        let mut nk = NearKart::from_data(&extra);
+
+        nk.level = nk.level + 1;
+
+        let extra = nk.serialize();
+        metadata.extra = Some(extra);
+        lookup_map.insert(&token_id, &metadata);
+    }
+
     pub fn game_simple_battle(&mut self, token_id: TokenId) -> SimpleBattle {
         self.assert_nft_owner(token_id.clone());
 
@@ -392,31 +416,40 @@ impl Contract {
 
         if won_battle {
             let won_prize_rand = self.get_random_u32();
-            //let won_prize = won_prize_rand % 2 != 0;
-            let won_prize = true;
+            let won_prize = won_prize_rand % 2 != 0;
 
             if won_prize {
                 let prize_rand = self.get_random_u32();
                 prize = prize_rand % NUM_DECALS + 1;
 
-                let mut unlocks = self.unlocks.get(&env::predecessor_account_id()).unwrap();
+                let near_kart = self.nft_get_near_kart(token_id.clone());
+                let unlocks_str = near_kart.extra1;
+                let mut unlocks: Vec<String> = unlocks_str.split(",").map(|s| s.to_string()).collect();
                 let mut has_already_unlocked = false;
 
                 for unlock in unlocks.iter() {
-                    if unlock == prize {
+                    if unlock == &prize.to_string() {
                         has_already_unlocked = true;
                         break;
                     }
                 }
 
                 if !has_already_unlocked {
-                    unlocks.push(&prize);
-                    self.unlocks.insert(&env::predecessor_account_id(), &unlocks);
+                    if unlocks.len() == 1 && unlocks[0] == "" {
+                        unlocks[0] = prize.to_string();
+                    }
+                    else {
+                        unlocks.push(prize.to_string());
+                    }
+                    let new_unlocks_str = unlocks.join(",");
+                    self.nft_set_extra1(token_id.clone(), &new_unlocks_str);
                 }
                 else {
                     prize = 0;
                 }
             }
+
+            self.nft_level_up(token_id.clone());
         }
 
         let result = SimpleBattle {
@@ -425,7 +458,7 @@ impl Contract {
             winner: winner, 
             battle: battle_rand,
             prize: prize,
-            extra1: "".to_string()
+            extra: "".to_string()
         };
 
         self.last_battle.insert(&env::predecessor_account_id(), &result.clone());
@@ -455,31 +488,49 @@ impl Contract {
         return ok;
     }
 
-    fn get_random_u32(&mut self) -> u32 {
+    pub fn get_random_u32(&mut self) -> u32 {
         let is_new_block = self.prev_block_index != env::block_index();
-        let mut rand_bytes = self.random_buffer.get_raw(0).unwrap_or(Vec::new());
+        let mut rand_bytes = self.random_buffer.to_vec();
+        let mut rand_index = self.random_index;
 
-        if is_new_block {
-            let random_seed : &[u8] = &env::random_seed();
-            rand_bytes = env::sha256(random_seed);
-            self.prev_block_index = env::block_index();
+        if rand_index == 0 {
+            if is_new_block {
+                let random_seed : &[u8] = &env::random_seed();
+                rand_bytes = env::sha256(random_seed);
+                self.prev_block_index = env::block_index();
+            }
+            else {
+                rand_bytes = env::sha256(&rand_bytes);
+            }
+
+            self.random_buffer.clear();
+            self.random_buffer.extend(rand_bytes.clone().into_iter());
         }
-        else {
-            rand_bytes = env::sha256(&rand_bytes);
+
+        let random_u32:u32 = Contract::read_u32(rand_bytes.clone(), rand_index);
+        
+        rand_index = rand_index + 1;
+
+        if rand_index == 8 {
+            rand_index = 0;
         }
+        
+        self.random_index = rand_index;
 
-        self.random_buffer.clear();
-        self.random_buffer.extend(rand_bytes.clone().into_iter());
+        return random_u32;
+    }
 
+    fn read_u32(bytes: Vec<u8>, index: u8) -> u32 {
         let mut raw_bytes: [u8; 4] = [ 0, 0, 0, 0];
 
         for x in 0..4 {
-            raw_bytes[x] = rand_bytes[x];
+            let offset = (index * 4) as usize;
+            raw_bytes[x] = bytes[offset + x];
         }
 
-        let random_u32 = u32::from_be_bytes(raw_bytes);
+        let num = u32::from_be_bytes(raw_bytes);
 
-        return random_u32;
+        return num;
     }
 
     fn get_pub_key(&self) -> String {
@@ -569,20 +620,13 @@ mod tests {
         builder
     }
 
-    fn configure_env_for_storage(mut context: VMContextBuilder) {
-        testing_env!(context.build());
-        testing_env!(context
-            .storage_usage(env::storage_usage())
-            .attached_deposit(MINT_STORAGE_COST)
-            .predecessor_account_id(accounts(0))
-            .build());
-    }
-
+    //const BOATLOAD_OF_GAS: u64 = u64::MAX;
     fn configure_env_for_storage_br(account_id: ValidAccountId, mut context: VMContextBuilder) {
         testing_env!(context.build());
         testing_env!(context
             .storage_usage(env::storage_usage())
             .attached_deposit(MINT_STORAGE_COST)
+    //        .prepaid_gas(BOATLOAD_OF_GAS)
             .predecessor_account_id(account_id)
             .build());
     }
@@ -601,6 +645,23 @@ mod tests {
             extra: Some("dc0012000100000000000000000000a0a0a0a0a0a0".to_string()),
             reference: None,
             reference_hash: None,
+        }
+    }
+
+    #[test]
+    fn test_get_random() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
+        let mut i = 0;
+        while i < 16 {
+            let val = contract.get_random_u32();
+            let val2 = contract.get_random_u32();
+            assert_ne!(val, val2);
+            i += 1;
+            println!("Number run {}", i);
         }
     }
 
@@ -813,8 +874,9 @@ mod tests {
         assert_eq!(battle_result.home_token_id, "megakart");
         assert_eq!(battle_result.away_token_id, "fluffykart");
         assert_gt!(battle_result.battle, 0);
-        assert_gt!(battle_result.prize, 0);
-        assert_eq!(contract.unlocks.get(&br_acc.to_string()).unwrap().len(), 1);
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(battle_result.winner, 0);
+        assert_eq!(nk1.level, 2);
 
         let battle_result_2 = contract.game_simple_battle(token_id.clone());
         let battle_2 = battle_result_2.battle;
@@ -823,6 +885,25 @@ mod tests {
         let last_battle = contract.get_last_battle(br_acc.clone());
         assert_eq!(last_battle.home_token_id, token_id.clone());
         assert_eq!(last_battle.battle, battle_result_2.battle);
+
+        let battle_result_3 = contract.game_simple_battle(token_id.clone());
+        assert_ne!(battle_result_3.battle, battle_2);
+        let battle_result_4 = contract.game_simple_battle(token_id.clone());
+        assert_ne!(battle_result_4.battle, battle_result_3.battle);
+        let battle_result_5 = contract.game_simple_battle(token_id.clone());
+        assert_gt!(battle_result_5.prize, 0);
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_gt!(nk1.extra1.len(), 0);
+        assert_eq!(nk1.extra1, "3");
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        let battle_result_6 = contract.game_simple_battle(token_id.clone());
+        assert_eq!(battle_result_6.prize, 1);
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_gt!(nk1.extra1.len(), 0);
+        assert_eq!(nk1.extra1, "3,1");
 
     }
 
@@ -846,7 +927,7 @@ mod tests {
     fn test_transfer() {
         let mut context = get_context(accounts(0));
         testing_env!(context.build());
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let contract = Contract::new_default_meta(accounts(0).into());
 
         let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
@@ -891,7 +972,7 @@ mod tests {
     fn test_approve() {
         let mut context = get_context(accounts(0));
         testing_env!(context.build());
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let contract = Contract::new_default_meta(accounts(0).into());
 
         let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
@@ -930,7 +1011,7 @@ mod tests {
     fn test_revoke() {
         let mut context = get_context(accounts(0));
         testing_env!(context.build());
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let contract = Contract::new_default_meta(accounts(0).into());
 
         let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
@@ -976,7 +1057,7 @@ mod tests {
     fn test_revoke_all() {
         let mut context = get_context(accounts(0));
         testing_env!(context.build());
-        let mut contract = Contract::new_default_meta(accounts(0).into());
+        let contract = Contract::new_default_meta(accounts(0).into());
 
         let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
