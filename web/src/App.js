@@ -403,12 +403,12 @@ function App() {
 
   return (
     <div className="br-page">
-      <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
       <div className="br-header">
         <div className="br-header-logo-panel">
           { isSignedIn ? getLastBattleUI() : ''}
         </div>
         <div className="br-header-title-panel">
+          <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">
