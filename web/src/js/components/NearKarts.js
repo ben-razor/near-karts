@@ -11,7 +11,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
 import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
-import gameConfig from '../../data/world/config';
+import gameConfig, { partIdToName } from '../../data/world/config';
 import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
@@ -143,6 +143,7 @@ function NearKarts(props) {
   const [battleHit, setBattleHit] = useState([0, 0])
   const [battleAttacking, setBattleAttacking] = useState([0, 0])
   const [battleStarted, setBattleStarted] = useState();
+  const [battleEnded, setBattleEnded] = useState();
   const [orbitControls, setOrbitControls] = useState();
   const [garagePanel, setGaragePanel] = useState('equip');
 
@@ -598,6 +599,9 @@ function NearKarts(props) {
                 setGroupIndex(groupIndex + 1);
                 setLineIndex(0);
               }
+              else {
+                setBattleEnded(true);
+              }
             }
             else {
               setLineIndex(lineIndex + 1);
@@ -611,15 +615,35 @@ function NearKarts(props) {
   }, [groupIndex, lineIndex, battleText, replayReq]);
 
   useEffect(() => {
+    let battleEndedChanged = stateCheck.changed('battleEnded1', battleEnded);
+    if(battleEndedChanged && battleEnded) {
+      toast('Battle Ended');
+      console.log('battleConfig', battleConfig);
+      if(battleConfig.winner === 0) {
+        toast('You Wind!');
+
+        if(battleConfig.prize > 0) {
+          let decalName  = partIdToName('decals', battleConfig.prize.toString());
+          toast('You won a ' + decalName);
+        }
+      }
+      else {
+        toast('You Load!');
+      }
+    }
+  }, [battleEnded, toast, battleConfig]);
+
+  useEffect(() => {
     setGroupIndex(0);
     setBattleStarted(false);
+    setBattleEnded(false);
     setLineIndex(-1);
     setReplayReq(replayReq + 1);
   }, [battleText]);
 
   useEffect(() => {
     let lineIndexChanged = stateCheck.changed('lineIndexBP', lineIndex, -1);
-    console.log('lic', lineIndexChanged);
+    
     if(lineIndexChanged && battleText.length) {
       if(b?.rounds?.length) {
         let roundData = b.rounds[groupIndex].data;
@@ -631,7 +655,6 @@ function NearKarts(props) {
         let isFirstLine = lineIndex === 0;
         let isLastLine = lineIndex === lines.length - 1;
 
-        console.log('IFL', isFirstLine);
         if(isFirstLine) {
           setBattleStarted(true);
           setBattleHit([0, 0]);
@@ -1070,6 +1093,7 @@ function NearKarts(props) {
     setGroupIndex(0);
     setBattlePower([100, 100]);
     setReplayReq(replayReq + 1);
+    setBattleEnded(false);
   }
 
   function getScreenBattle() {

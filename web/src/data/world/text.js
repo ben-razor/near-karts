@@ -40,7 +40,7 @@ const text_battle = {
     "text_battle_hit_fist_2": `{victim} got filled with nut shape holes`,
     "text_battle_hit_flamethrower_1": `{victim}'s kart is {hittyped}`,
     "text_battle_hit_aceed_1": `{victim} got a face full`,
-    "text_battle_hit_aceed_2": `{victim} got squelched by 303 millilitres of aceed`,
+    "text_battle_hit_aceed_2": `{victim} got squelched by 303 millilitres of acieed`,
     "text_battle_hit_aceed_3": `{victim} feels a bit melty`,
     "text_battle_hit_flipper_1": `{victim} spins and crashes to the ground`,
     "text_battle_hit_flipper_2": `{victim} goes flying`,

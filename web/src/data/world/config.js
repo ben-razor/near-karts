@@ -6,7 +6,7 @@ const config = {
     { id: "WeaponRocket", name: "Rocket" },
     { id: "WeaponFist", name: "Fist Full Of Nuts" },
     { id: "WeaponFlamethrower", name: "Flamethrower" },
-    { id: "WeaponAceed", name: "Aceed" },
+    { id: "WeaponAceed", name: "Acieed" },
   ],
   weapons_melee: [
     { id: "WeaponMeleeEmpty", name: "Empty" },
@@ -37,11 +37,26 @@ const config = {
     { id: '1', name: 'Heart'},
     { id: '2', name: 'Star'},
     { id: '3', name: 'Pentagram'},
-    { id: '4', name: 'Aceed'},
+    { id: '4', name: 'Acieed'},
     { id: '5', name: 'Jewel'},
     { id: '6', name: 'Yin-Yang'},
     { id: '7', name: 'NEAR'},
   ]
+}
+
+export function partIdToName(part, id) {
+  let name = '';
+  let partConfig = config[part];
+
+  if(partConfig) {
+    let item = partConfig.find(x => x.id === id);
+
+    if(item) {
+      name = item.name || '';
+    }
+  }
+
+  return name;
 }
 
 export default config;

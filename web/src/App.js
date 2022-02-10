@@ -354,7 +354,7 @@ function App() {
   }
 
   function viewBattle() {
-    toast('Viewing battle')
+    toast(getText('text_battle_started'));
     setBattleConfig(lastBattle);
     setScreen(SCREENS.battle);
   }
