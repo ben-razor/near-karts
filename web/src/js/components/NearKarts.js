@@ -12,10 +12,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
 import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
 import gameConfig, { partIdToName } from '../../data/world/config';
-import sceneConfig from '../../data/world/scenes';
 import getText from '../../data/world/text';
 import { CompactPicker } from 'react-color';
-import { ToastConsumer } from 'react-toast-notifications';
 import domtoimage from 'dom-to-image';
 import Battle from '../helpers/battle';
 let b = new Battle();
@@ -44,13 +42,13 @@ const baseNFTData = {
   "right": 0,
   "top": 0,
   "front": 0,
-  "skin": 0,
+  "skin": 3,
   "transport": 0,
-  "color1": 0,
+  "color1": 4473924,
   "color2": 0,
   "ex1": 0,
   "ex2": 0,
-  "decal1": "",
+  "decal1": "7",
   "decal2": "",
   "decal3": "",
   "extra1": "",
@@ -60,7 +58,6 @@ const baseNFTData = {
 
 const loader = new GLTFLoader();
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
-
 
 const w = 1000;
 const h = 800;
@@ -85,8 +82,10 @@ const stateCheck = new StateCheck();
 function NearKarts(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
+  const setNFTData = props.setNFTData;
   const nftMetadata = props.nftMetadata;
   const activeTokenId = props.activeTokenId;
+  const setActiveTokenId = props.setActiveTokenId;
   const activeKart = props.activeKart;
   const execute = props.execute;
   const processingActions = props.processingActions;
@@ -119,19 +118,7 @@ function NearKarts(props) {
   const [prevNFTData, setPrevNFTData] = useState({});
   const [kartNameEntry, setKartNameEntry] = useState('');
   const [replayReq, setReplayReq] = useState(0);
-  const [controlEntry, setControlEntry] = useState({
-    front: '',
-    left: '',
-    right: '',
-    top: '',
-    transport: 'TransportWheels',
-    skin: 'SkinPlastic',
-    color: '#ffee00',
-    decal1: '0',
-    decal2: '0',
-    decal3: '0',
-    unlockedDecals: []
-  });
+  const [controlEntry, setControlEntry] = useState({ ...gameConfig.defaultKartEntry });
 
   const [imageDataURL, setImageDataURL] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState(false);
@@ -146,6 +133,7 @@ function NearKarts(props) {
   const [battleEnded, setBattleEnded] = useState();
   const [orbitControls, setOrbitControls] = useState();
   const [garagePanel, setGaragePanel] = useState('equip');
+
 
   function kartChanged(nftData, prevNFTData) {
     let keys = Object.keys(baseNFTData);
@@ -228,7 +216,7 @@ function NearKarts(props) {
   useEffect(() => {
     let changedKeys = kartChanged(nftData, prevNFTData);
 
-    if(changedKeys.length) {
+    if(changedKeys.length && nftData !== {}) {
       let kartConfig = nftDataToKartConfig(nftData);
       setControlEntry(kartConfig);
       setPrevNFTData({...nftData});
@@ -736,6 +724,11 @@ function NearKarts(props) {
     return kartTitle.replace('A NEAR Kart Called ', '');
   }
 
+  function newKart() {
+    setActiveTokenId('new_kart');
+    setNFTData({ ...baseNFTData });
+  }
+
   function displayNFTs(nftList, activeTokenId) {
     let nftUI = [];
     let active = false;
@@ -753,6 +746,16 @@ function NearKarts(props) {
         {kartName(nft.metadata.title)}
       </div>);
     }
+
+    let newKartActive = false;
+    if(!activeTokenId || activeTokenId === 'new_kart') {
+      newKartActive = true;
+    }
+
+    nftUI.push(<div className={"br-nft-list-item " + (newKartActive ? 'br-nft-list-item-selected' : '')} 
+                    key="new_kart" onClick={e => newKart() }>
+      { getText('text_new_nft_name')}
+    </div>);
 
     return <Fragment>
       <div className="br-nft-list flexcroll">
@@ -1012,14 +1015,16 @@ function NearKarts(props) {
 
     let lastBattleUI = getLastBattleUI();
 
-    if(nftList.length) {
-      nftListUI = <div className="br-nft-gallery">
-        { displayNFTs(nftList, activeTokenId) }
+    nftListUI = <div className="br-nft-gallery">
+      { displayNFTs(nftList, activeTokenId) }
+      { nftList.length ?
         <BrButton label="Battle" id="gameSimpleBattle" className="br-button" 
                   onClick={ e => startBattle() }
                   isSubmitting={processingActions['gameSimpleBattle']} />
-      </div>
-    }
+        :
+        ''
+      } 
+    </div>
 
     return <Fragment>
       <div className={ "br-screen br-screen-garage " + getScreenClass(SCREENS.garage)}>

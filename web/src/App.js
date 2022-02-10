@@ -45,7 +45,7 @@ function App() {
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
   const [nftMetadata, setNFTMetadata] = useState({});
-  const [activeTokenId, setActiveTokenId] = useState('');
+  const [activeTokenId, setActiveTokenId] = useState();
   const [activeKart, setActiveKart] = useState('');
   const [processingActions, setProcessingActions] = useState({});
   const [audioInitialized, setAudioInitialized] = useState();
@@ -311,6 +311,7 @@ function App() {
 
   useEffect(() => {
     if(nftList.length) {
+      console.log('ATID', activeTokenId);
       if(activeTokenId) {
         for(let nft of nftList) {
           if(nft.token_id === activeTokenId) {
@@ -319,7 +320,9 @@ function App() {
         }
       }
       else {
-        selectNFT(nftList[0].token_id);
+        if(activeTokenId !== 'new_kart') {
+          selectNFT(nftList[0].token_id);
+        }
       }
     }
   }, [nftList, activeTokenId, selectNFT]);
@@ -424,7 +427,9 @@ function App() {
       </div>
       <div className="br-content">
         { isSignedIn ?
-            <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} activeTokenId={activeTokenId} activeKart={activeKart}
+            <NearKarts nftList={nftList} nftData={nftData} nftMetadata={nftMetadata} selectNFT={selectNFT} 
+                       setNFTData={setNFTData}
+                       activeTokenId={activeTokenId} setActiveTokenId={setActiveTokenId} activeKart={activeKart}
                        processingActions={processingActions} execute={execute} toast={toast} 
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}

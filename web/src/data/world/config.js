@@ -41,7 +41,20 @@ const config = {
     { id: '5', name: 'Jewel'},
     { id: '6', name: 'Yin-Yang'},
     { id: '7', name: 'NEAR'},
-  ]
+  ],
+  defaultKartEntry: {
+    front: '',
+    left: '',
+    right: '',
+    top: '',
+    transport: 'TransportWheels',
+    skin: 'SkinSteel',
+    color: '#444444',
+    decal1: '7',
+    decal2: '0',
+    decal3: '0',
+    unlockedDecals: ['', '0', '7']
+  }
 }
 
 export function partIdToName(part, id) {
