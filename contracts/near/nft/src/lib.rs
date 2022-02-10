@@ -33,6 +33,8 @@ use ed25519_dalek::{ Signature, Verifier, PublicKey};
 
 near_sdk::setup_alloc!();
 
+const NUM_DECALS: u32 = 7;
+
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Contract {
@@ -41,7 +43,8 @@ pub struct Contract {
     signer_pub_keys: UnorderedSet<String>,
     prev_block_index: near_sdk::BlockHeight,
     random_buffer: Vector<u8>,
-    last_battle: LookupMap<AccountId, SimpleBattle>
+    last_battle: LookupMap<AccountId, SimpleBattle>,
+    unlocks: LookupMap<AccountId, Vector<u32>>
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -71,7 +74,9 @@ pub struct SimpleBattle {
     home_token_id: String,
     away_token_id: String,
     winner: u8,
-    battle: u32
+    battle: u32,
+    prize: u32,
+    extra1: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -120,7 +125,9 @@ enum StorageKey {
     Approval,
     SignerKey,
     RandomBufferKey,
-    LastBattleKey
+    LastBattleKey,
+    UnlocksKey,
+    UnlocksVecKey
 }
 
 #[near_bindgen]
@@ -159,7 +166,8 @@ impl Contract {
             signer_pub_keys: UnorderedSet::new(StorageKey::SignerKey),
             prev_block_index: 0,
             random_buffer: Vector::new(StorageKey::RandomBufferKey),
-            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey)
+            last_battle: LookupMap::<AccountId, SimpleBattle>::new(StorageKey::LastBattleKey),
+            unlocks: LookupMap::<AccountId, Vector<u32>>::new(StorageKey::UnlocksKey)
         }
     }
 
@@ -206,6 +214,8 @@ impl Contract {
 
         self.nft_configure(token_id.clone(), near_kart_new);
         self.nft_update_media(token_id.clone(), cid, sig, pub_key);
+        let unlocks = Vector::new(StorageKey::UnlocksVecKey);
+        self.unlocks.insert(&token_id.clone(), &unlocks);
         return token;
     }
 
@@ -373,16 +383,49 @@ impl Contract {
     pub fn game_simple_battle(&mut self, token_id: TokenId) -> SimpleBattle {
         self.assert_nft_owner(token_id.clone());
 
+        let mut prize = 0;
         let opponent_token_id = self.get_random_opponent(token_id.clone());
 
         let battle_rand = self.get_random_u32();
         let winner = (battle_rand % 2) as u8;
+        let won_battle = winner == 0;
+
+        if won_battle {
+            let won_prize_rand = self.get_random_u32();
+            //let won_prize = won_prize_rand % 2 != 0;
+            let won_prize = true;
+
+            if won_prize {
+                let prize_rand = self.get_random_u32();
+                prize = prize_rand % NUM_DECALS + 1;
+
+                let mut unlocks = self.unlocks.get(&env::predecessor_account_id()).unwrap();
+                let mut has_already_unlocked = false;
+
+                for unlock in unlocks.iter() {
+                    if unlock == prize {
+                        has_already_unlocked = true;
+                        break;
+                    }
+                }
+
+                if !has_already_unlocked {
+                    unlocks.push(&prize);
+                    self.unlocks.insert(&env::predecessor_account_id(), &unlocks);
+                }
+                else {
+                    prize = 0;
+                }
+            }
+        }
 
         let result = SimpleBattle {
             home_token_id: token_id, 
             away_token_id: opponent_token_id, 
             winner: winner, 
-            battle: battle_rand
+            battle: battle_rand,
+            prize: prize,
+            extra1: "".to_string()
         };
 
         self.last_battle.insert(&env::predecessor_account_id(), &result.clone());
@@ -391,7 +434,6 @@ impl Contract {
             event: "game_simple_battle".to_string(),
             data: result.clone()
         };
-
         log!("EVENT_JSON:{}", serde_json::to_string(&b).unwrap());
 
         return result;
@@ -771,6 +813,8 @@ mod tests {
         assert_eq!(battle_result.home_token_id, "megakart");
         assert_eq!(battle_result.away_token_id, "fluffykart");
         assert_gt!(battle_result.battle, 0);
+        assert_gt!(battle_result.prize, 0);
+        assert_eq!(contract.unlocks.get(&br_acc.to_string()).unwrap().len(), 1);
 
         let battle_result_2 = contract.game_simple_battle(token_id.clone());
         let battle_2 = battle_result_2.battle;
@@ -779,6 +823,7 @@ mod tests {
         let last_battle = contract.get_last_battle(br_acc.clone());
         assert_eq!(last_battle.home_token_id, token_id.clone());
         assert_eq!(last_battle.battle, battle_result_2.battle);
+
     }
 
     #[test]
