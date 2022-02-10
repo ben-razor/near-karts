@@ -168,14 +168,13 @@
 }
 
 .br-threejs-container {
-    width: 900px;
     margin: auto;
     position: relative;
 }
 
 .br-screen-container {
-    width: 900px;
     margin: auto;
+    width: 100%;
 }
 
 .br-strange-juice-text-overlay {
@@ -580,7 +579,7 @@
 .br-battle-arrows-anim {
     animation: battle-arrows-frames 1s;
     animation-iteration-count: infinite;
-    animation-timing-function: steps(11, end); 
+    animation-timing-function: steps(10, end); 
 }
 
 .br-reverse {

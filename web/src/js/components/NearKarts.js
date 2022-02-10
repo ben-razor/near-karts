@@ -301,6 +301,7 @@ function NearKarts(props) {
       if(o.name === 'BotBody1') {
         for(let child of o.children) {
           console.log('child material name', child.material.name);
+
           if(child.material.name === 'MatBodyDecal1') {
             loadImageToMaterial(child.material, getTextureURL('badge', controlEntry.decal1));
           }
