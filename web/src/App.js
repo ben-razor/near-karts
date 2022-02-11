@@ -185,6 +185,7 @@ function App() {
             doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
           }
           else {
+            console.log('Saving kart', data);
             await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
             toast(getText('success_save_kart'));
             reloadTokens = true;

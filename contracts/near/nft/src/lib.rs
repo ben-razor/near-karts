@@ -75,7 +75,7 @@ pub struct SimpleBattle {
     away_token_id: String,
     winner: u8,
     battle: u32,
-    prize: u32,
+    prize: String,
     extra: String
 }
 
@@ -195,7 +195,7 @@ impl Contract {
         pub_key: String
     ) -> Token {
         if env::attached_deposit() < 1e23 as u128 {
-            panic!("Minting requires an attached deposit of at least 0.1 NEAR");
+            env::panic(b"Minting requires an attached deposit of at least 0.1 NEAR");
         }
         let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
 
@@ -301,8 +301,6 @@ impl Contract {
         let extra = metadata.extra.unwrap_or(String::from(""));
         let mut nk = NearKart::from_data(&extra);
 
-        nk.clone_from(&near_kart_new); 
-
         let max_index = Contract::get_max_weapon_index_for_level(nk.level);
 
         let shield_start_index = 200;
@@ -318,28 +316,36 @@ impl Contract {
         }
 
         if nk.front > max_index {
-            panic!("error_level_not_high_enough_to_equip_front_weapon");
+            env::panic(b"error_level_not_high_enough_to_equip_front_weapon");
         }
         else if weapon_or_shield_index_left > max_index {
-            panic!("error_level_not_high_enough_to_equip_left_weapon");
+            env::panic(b"error_level_not_high_enough_to_equip_left_weapon");
         }
         else if weapon_or_shield_index_right > max_index {
-            panic!("error_level_not_high_enough_to_equip_right_weapon");
+            env::panic(b"error_level_not_high_enough_to_equip_right_weapon");
         }
         else if nk.transport > max_index {
-            panic!("error_level_not_high_enough_to_use_transport");
+            env::panic(b"error_level_not_high_enough_to_use_transport");
         }
         else if nk.skin > max_index {
-            panic!("error_level_not_high_enough_to_use_skin");
+            env::panic(b"error_level_not_high_enough_to_use_skin");
         }
 
         if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
             let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
             if !unlocked_decals.contains(&nk.decal1) {
-                panic!("error_decal_front_is_not_unlocked");
+                println!("{:?} {}", unlocked_decals, nk.decal1);
+                env::panic(b"error_decal_front_is_not_unlocked");
             }
         }
 
+        nk.color1 = near_kart_new.color1;
+        nk.decal1 = near_kart_new.decal1;
+        nk.front = near_kart_new.front;
+        nk.left = near_kart_new.left;
+        nk.right = near_kart_new.right;
+        nk.skin = near_kart_new.skin;
+        nk.transport = near_kart_new.transport;
         let extra = nk.serialize();
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
@@ -476,7 +482,7 @@ impl Contract {
             away_token_id: opponent_token_id, 
             winner: winner, 
             battle: battle_rand,
-            prize: prize,
+            prize: prize.to_string(),
             extra: "".to_string()
         };
 
@@ -711,7 +717,7 @@ mod tests {
         let token_id = "0".to_string();
         let mut starting_near_kart = NearKart::new();
         starting_near_kart.level = 1;
-        starting_near_kart.decal1 = "5".to_string();
+        starting_near_kart.decal1 = "7".to_string();
         let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
@@ -725,7 +731,7 @@ mod tests {
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.front, 0);
         assert_eq!(nk1.level, 1);
-        assert_eq!(nk1.decal1, "5");
+        assert_eq!(nk1.decal1, "7");
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
@@ -912,7 +918,7 @@ mod tests {
         let battle_result_4 = contract.game_simple_battle(token_id.clone());
         assert_ne!(battle_result_4.battle, battle_result_3.battle);
         let battle_result_5 = contract.game_simple_battle(token_id.clone());
-        assert_gt!(battle_result_5.prize, 0);
+        assert_gt!(battle_result_5.prize, "0".to_string());
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "7,3");
@@ -921,10 +927,14 @@ mod tests {
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         let battle_result_6 = contract.game_simple_battle(token_id.clone());
-        assert_eq!(battle_result_6.prize, 1);
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(battle_result_6.prize, "1".to_string());
+        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "7,3,1");
+        nk1.decal1 = "3".to_string();
+        contract.nft_configure(token_id.clone(), nk1);
+        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk1.decal1, "3");
     }
 
     #[test]
@@ -984,7 +994,7 @@ mod tests {
             assert_eq!(token.metadata.unwrap().extra, sample_token_metadata().extra);
             assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         } else {
-            panic!("token not correctly created, or not found by nft_token");
+            env::panic(b"token not correctly created, or not found by nft_token");
         }
     }
 
