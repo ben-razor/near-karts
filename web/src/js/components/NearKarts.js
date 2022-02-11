@@ -1,7 +1,8 @@
 import React, {useEffect, useState, useCallback, Fragment} from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import lifeform from '../../data/models/bot-2.gltf';
+import lifeform from '../../data/models/bot-3.gltf';
+import imageFrame from '../../images/frame-dark-1.png';
 import BrButton from './lib/BrButton';
 import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../3d/jsm/postprocessing/RenderPass.js';
@@ -368,19 +369,19 @@ function NearKarts(props) {
     }
   }, [photoScene]);
 
-  const createScene = useCallback((threeElem, w, h, camPos, orbitControls=false, refreshEvery=1) => {
+  const createScene = useCallback((threeElem, w, h, camPos, orbitControls=false, refreshEvery=1, camLookAt=[0,0,0]) => {
     var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera( 50, w/h, 1, 5 );
+    var camera = new THREE.PerspectiveCamera( 50, w/h, 1, 10 );
     camera.position.copy(camPos);
-    camera.lookAt(0, 0.4, 0);
+    camera.lookAt(camLookAt[0], camLookAt[1], camLookAt[2]);
 
     let controls;
 
     if(orbitControls) {
       controls = new OrbitControls( camera, threeElem );
       controls.target.set(0, 0.4, 0);
-      controls.minDistance = 2;
-      controls.maxDistance = 4;
+      controls.minDistance = 3;
+      controls.maxDistance = 4.5;
       controls.minPolarAngle = 0;
       controls.maxPolarAngle = Math.PI / 2.1;
       controls.autoRotate = true;
@@ -417,12 +418,13 @@ function NearKarts(props) {
   }, []);
 
   useEffect(() => {
-    let { scene, camera } = createScene(threeRef.current, w, h, new THREE.Vector3(0, 0.5, 3), true, 4);
+    let { scene, camera } = createScene(threeRef.current, w, h, 
+      new THREE.Vector3(0, 0.5, 4), true, 4, [0, -1.5, 0]);
     setScene(scene);
     setCamera(camera);
 
     let { scene: photoScene, camera: photoCamera} = createScene(threePhotoRef.current, wPhoto, hPhoto, 
-      new THREE.Vector3(0, 0.8, 2.8), false, 20);
+      new THREE.Vector3(0, 1.8, 3.6), false, 20, [0, -0.5, 0]);
     setPhotoScene(photoScene);
   }, []);
   
@@ -1044,7 +1046,8 @@ function NearKarts(props) {
 
         <div className="br-offscreen">
           <div className="br-photo-composer" ref={photoComposerRef} style={{ width: wPhoto, height: hPhoto, borderRadius: '20px'}}>
-            <img alt="Kart NFT" src={imageDataURL} style={ { width: '400px', height: '400px', borderRadius: '20px' } } />
+            <img className="br-photo-frame" src={imageFrame} alt="Frame" />
+            <img alt="Kart NFT" src={imageDataURL} style={ { width: '400px', height: '400px', borderRadius: '80px' } } />
           </div>
         </div>
 
@@ -1187,7 +1190,8 @@ function NearKarts(props) {
     { getScreenBattleSetup() }
     { getScreenBattle() }
 
-    <div className="br-photo-booth" ref={threePhotoRef}></div>
+    <div className="br-photo-booth" ref={threePhotoRef}>
+    </div>
   </div>
 }
 

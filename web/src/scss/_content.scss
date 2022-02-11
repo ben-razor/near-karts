@@ -357,10 +357,20 @@
     position: relative;
     top: 600px;
     display: none;
+    width: 400px;
+    height: 400px;
 }
 
 .br-photo-overlay {
     display: none;
+}
+
+.br-photo-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 400px;
+    height: 400px;
 }
 
 .br-screen-hidden {
