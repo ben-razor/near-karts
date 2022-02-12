@@ -1,3 +1,4 @@
+/* global BigInt */
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import Logo from './images/near-karts-1.png';
 import * as Tone from 'tone';
@@ -9,6 +10,7 @@ import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
+import bigInt from 'big-integer';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -143,8 +145,8 @@ function App() {
       setProcessingActions(_processingActions);
       let reloadTokens = false;
 
-      let nearPenny = (10n**22n);
-      let pointOneNear = nearPenny * 10n;
+      let nearPenny = bigInt(10).pow(bigInt(22));
+      let pointOneNear = nearPenny.times(bigInt(10));
 
       if(action === 'mintWithImage') {
         console.log('mwi', data);

@@ -384,7 +384,7 @@ function NearKarts(props) {
       controls.maxDistance = 4.5;
       controls.minPolarAngle = 0;
       controls.maxPolarAngle = Math.PI / 2.1;
-      controls.autoRotate = true;
+      controls.autoRotate = false;
       setOrbitControls(controls);
     }
 
