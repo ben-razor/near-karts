@@ -163,11 +163,7 @@ function App() {
             await nftContract.nft_mint_with_verified_image({
               token_id: tokenId,
               receiver_id: wallet.getAccountId(),
-              token_metadata: {
-                title: `A NEAR Kart Called ${name}`, description: "From the NEAR Karts series",
-                media: `https://${data.cid}.ipfs.dweb.link/`, 
-                copies: 1
-              },
+              name,
               near_kart_new: data.nftData,
               cid: data.cid,
               sig: data.sigHex,
@@ -244,8 +240,8 @@ function App() {
             result.metadata = [homeMetadata, awayMetadata];
             setLastBattle(result);
             setBattleResult(result);
-
             toast(getText('text_battle_started'));
+            reloadTokens = true;
           }
         }
         catch(e) {
@@ -337,7 +333,7 @@ function App() {
           Humanity is in peril
         </div>
         <div className="br-intro-section">
-          Many disagreements reign
+          Many disagreements are reported
         </div>
         <div className="br-intro-section">
           To settle this we battle... in NEAR Karts!
@@ -349,6 +345,10 @@ function App() {
       <Fragment>
         <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
       </Fragment>
+      <div className="br-front-screen-image"></div>
+      <div className="br-intro-section">
+        NEAR Karts are NFTs on the NEAR Blockchain
+      </div>
     </div>
 
     return ui;
@@ -360,9 +360,10 @@ function App() {
   }
 
   function viewBattle() {
-    toast(getText('text_battle_started'));
     setBattleConfig(lastBattle);
-    setScreen(SCREENS.battle);
+    console.log('lbk', lastBattle.karts);
+    setBattleKarts(lastBattle.metadata);
+    setScreen(SCREENS.battleSetup);
   }
 
   function getLastBattleUI() {
@@ -414,17 +415,20 @@ function App() {
     <div className="br-page">
       <div className="br-header">
         <div className="br-header-logo-panel">
-          { isSignedIn ? getLastBattleUI() : ''}
+          { isSignedIn && screen !== SCREENS.battle ? getLastBattleUI() : ''}
         </div>
         <div className="br-header-title-panel">
           <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">
-            <BrButton label="Start Audio" id="startAudio" className="br-button" onClick={startAudio} />
-            <Fragment>
-              <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
-            </Fragment>
+            { isSignedIn ?
+              <Fragment>
+                <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
+              </Fragment>
+              :
+              ''
+            } 
           </div>
         </div>
       </div>

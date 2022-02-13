@@ -35,6 +35,7 @@ const DEBUG_FORCE_BATTLE = false;
 const DEBUG_IMAGES = false;
 const DEBUG_NO_MINT = false;
 const DEBUG_KART = false;
+const DEBUG_FAST_BATTLE = true;
 
 const baseNFTData = {
   "version": 0,
@@ -64,7 +65,10 @@ const w = 1000;
 const h = 800;
 const wPhoto = 400;
 const hPhoto = 400;
-const textDelay = 2000;
+let textDelay = 2000;
+if(DEBUG_FAST_BATTLE) {
+  textDelay = 200;
+}
 
 const keysPressed = {};
 const speed = 2;
@@ -171,14 +175,13 @@ function NearKarts(props) {
     kartConfig.decal2 = nftData.decal2;
     kartConfig.decal3 = nftData.decal3;
     
-    kartConfig.unlockedDecals = nftData.extra1 ? nftData.extra1.split(',') : ['', '0', '7'];
+    kartConfig.unlockedDecals = nftData.extra1 ? [...nftData.extra1.split(','), '0', '7'] : ['', '0', '7'];
 
     return kartConfig;
   }
 
   function validDecal(decal) {
     let isValid = !decal || decal === '0' || controlEntry.unlockedDecals.includes(decal);
-    console.log('vd', decal, isValid, controlEntry.unlockedDecals);
     return isValid;
   }
 
@@ -459,6 +462,9 @@ function NearKarts(props) {
   function getControlSet(setId, gameConfig) {
     let controlSetUI = [];
     let elems = [];
+    let index = 0;
+    let disabled;
+    let validIndex = getMaxWeaponIndexForLevel(nftData.level);
 
     if(setId === 'left' || setId === 'right') {
       let optionsWeapon = [];
@@ -466,18 +472,24 @@ function NearKarts(props) {
 
       elems = gameConfig.weapons_range;
 
+      index = 0;
       for(let elem of elems) {
+        disabled = index > validIndex;
         optionsWeapon.push(
-          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} disabled={disabled} value={elem.id}>{elem.name}</option>
         )
+        index++;
       }
 
       elems = gameConfig.shields_side;
 
+      index = 0;
       for(let elem of elems) {
+        disabled = index > validIndex;
         optionsShield.push(
-          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} disabled={disabled} value={elem.id}>{elem.name}</option>
         )
+        index++;
       }
 
       controlSetUI.push(<optgroup key={setId + "Weapons"} label="Weapons">{optionsWeapon}</optgroup>)
@@ -487,10 +499,8 @@ function NearKarts(props) {
       elems = gameConfig.decals;
       
       for(let elem of elems) {
-        let disabled = false;
-        if(!validDecal(elem.id)) {
-          disabled = true;
-        }
+        disabled = !validDecal(elem.id);
+
         controlSetUI.push(
           <option key={setId + elem.id} disabled={disabled} value={elem.id}>{elem.name}</option>
         )
@@ -507,10 +517,13 @@ function NearKarts(props) {
         elems = gameConfig.transport;
       }
 
+      index = 0;
       for(let elem of elems) {
+        disabled = index > validIndex;
         controlSetUI.push(
-          <option key={setId + elem.id} value={elem.id}>{elem.name}</option>
+          <option key={setId + elem.id} disabled={disabled} value={elem.id}>{elem.name}</option>
         )
+        index++;
       }
     }
 
@@ -549,10 +562,22 @@ function NearKarts(props) {
     return <div style={pickerStyle}><CompactPicker onChange={ colorChanged }/></div>;
   }
 
+  function showBeginnerHelp() {
+    return nftList.length === 0;
+  }
+
   function getControlUI(gameConfig, strangeJuice) {
     let controlUI = [];
 
     if(garagePanel === 'equip') {
+
+      if(showBeginnerHelp()) {
+        controlUI.push(<div className="br-info-message">
+          <i className="fa fa-info br-info-icon"></i>
+          { getText('text_unlock_items') }
+        </div>);
+      }
+
       controlUI.push(getControlRow('Left', getControlSet('left', gameConfig)));
       controlUI.push(getControlRow('Right', getControlSet('right', gameConfig)))
       controlUI.push(getControlRow('Front', getControlSet('front', gameConfig)))
@@ -561,10 +586,14 @@ function NearKarts(props) {
     }
     else {
       controlUI.push(getControlRow('Color', <div key="ColorChooser">{getColorChooser()}</div>));
-      controlUI.push(<div className="br-info-message">
-        <i className="fa fa-info br-info-icon"></i>
-        Get new decals by winning battles!
-      </div>);
+
+      if(showBeginnerHelp()) {
+        controlUI.push(<div className="br-info-message">
+          <i className="fa fa-info br-info-icon"></i>
+          { getText('text_get_new_decals') }
+        </div>);
+      }
+
       controlUI.push(getControlRow('Decal', getControlSet('decal1', gameConfig)));
     }
 
@@ -608,7 +637,6 @@ function NearKarts(props) {
     let battleEndedChanged = stateCheck.changed('battleEnded1', battleEnded);
     if(battleEndedChanged && battleEnded) {
       toast('Battle Ended');
-      console.log('battleConfig', battleConfig);
       if(battleConfig.winner === 0) {
         toast(exclamation(getText('text_you_won')));
 
@@ -947,6 +975,11 @@ function NearKarts(props) {
     execute('gameSimpleBattle');
   }
 
+  function watchBattle() {
+    toast(getText('text_battle_started'));
+    changeScreen(SCREENS.battle)
+  }
+
   function getScreenClass(screenId) {
     let screenClass = 'br-screen-hidden';
 
@@ -966,37 +999,12 @@ function NearKarts(props) {
     }
   }, [battleKarts]);
 
-  function viewBattle() {
-    setBattleConfig(lastBattle);
-    setScreen(SCREENS.battle);
-  }
-
   useEffect(() => {
     if(battleResult && battleResult.metadata) {
       setBattleConfig(battleResult);
-      setScreen(SCREENS.battle);
+      setScreen(SCREENS.battleSetup);
     }
   }, [battleResult]);
-
-  function getLastBattleUI() {
-    let lastBattleUI;
-
-    /*
-    if(lastBattle && lastBattle.metadata) {
-      lastBattleUI = <div className="br-last-battle-panel">
-        <div className="br-last-battle-details">
-          Last Battle:&nbsp; 
-          { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
-        </div>
-        <BrButton label="View" id="viewBattle" className="br-button br-icon-button" 
-                  onClick={ e => viewBattle() }
-                  isSubmitting={processingActions['viewBattle']} />
-      </div>
-    }
-    */
-
-    return lastBattleUI;
-  }
 
   function getGaragePanelTabs() {
     let equipActiveClass = garagePanel === 'equip' ? ' br-pill-active ' : '';
@@ -1012,14 +1020,17 @@ function NearKarts(props) {
     </div> 
   }
 
+  function getMaxWeaponIndexForLevel(level) {
+      let weapon_index = Math.max(level + 2, 3);
+      return weapon_index;
+  }
+
   function getScreenGarage() {
     let nftListUI;
 
-    let lastBattleUI = getLastBattleUI();
-
     nftListUI = <div className="br-nft-gallery">
       { displayNFTs(nftList, activeTokenId) }
-      { nftList.length ?
+      { nftList.length && nftData.level > 0 ?
         <BrButton label="Battle" id="gameSimpleBattle" className="br-button" 
                   onClick={ e => startBattle() }
                   isSubmitting={processingActions['gameSimpleBattle']} />
@@ -1030,7 +1041,6 @@ function NearKarts(props) {
 
     return <Fragment>
       <div className={ "br-screen br-screen-garage " + getScreenClass(SCREENS.garage)}>
-        {lastBattleUI}
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
@@ -1076,7 +1086,7 @@ function NearKarts(props) {
           </div>
           <div className="br-battle-setup-vs">
             <h1>{getText('text_vs')}</h1>
-            <BrButton label="Battle" id="battle" className="br-button" onClick={startBattle} />
+            <BrButton label="Battle" id="battle" className="br-button" onClick={e => watchBattle()} />
           </div>
           <div className="br-battle-setup-away">
             <h3>{getText('text_opponent_kart')}</h3>

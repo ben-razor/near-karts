@@ -93,7 +93,8 @@ const text = {
     "text_your_kart": `Your ${text_consts.nft_short_name}`,
     "text_opponent_kart": `Opponent ${text_consts.nft_short_name}`,
     "text_vs": `Vs`,
-
+    "text_get_new_decals": `Get new decals by winning battles!`,
+    "text_unlock_items": `Unlock items as you rise through the levels!`,
     "text_creating_image": `Photographing ${text_consts.nft_name} for NFT`,
     "text_mint_request": `Minting on ${text_consts.blockchain_name} blockchain`,
     "text_finding_opponent": `Finding opponent on ${text_consts.blockchain_name} blockchain`,

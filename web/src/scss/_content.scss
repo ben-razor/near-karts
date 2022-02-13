@@ -663,3 +663,12 @@
 .Toastify__toast-container--top-right {
     top: 0 !important;
 }
+
+.br-front-screen-image {
+    background-image: url(../images/gfx/near-propulsion-1.png);
+    background-size: contain;
+    width: 200px;
+    height: 200px;
+    margin: 1em auto 0 auto;
+    border-radius: $spacing-md;
+}
