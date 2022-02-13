@@ -274,7 +274,11 @@ function App() {
           setActiveKart(token);
         }
       }
+    })();
+  }, [nftList, nftContract, wallet]);
 
+  useEffect(() => {
+    (async () => {
       try {
         let result = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
 
@@ -293,7 +297,7 @@ function App() {
         console.log('Error loading last battle', e);
       }
     })();
-  }, [nftList, nftContract, wallet]);
+  }, [nftContract, wallet]);
 
   useEffect(() => {
     if(nftList.length) {

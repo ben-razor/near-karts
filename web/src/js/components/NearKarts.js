@@ -475,7 +475,7 @@ function NearKarts(props) {
   }
 
   function getControlSet(setId, gameConfig) {
-    if(screen !== SCREENS.garage) {
+    if(screen !== SCREENS.garage || !nftData.version) {
       return;
     }
     let controlSetUI = [];
