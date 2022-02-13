@@ -202,17 +202,17 @@ impl Contract {
         self.assert_nft_owner(token_id.clone());
 
         if env::attached_deposit() < 1e23 as u128 {
-            env::panic(b"Upgrade requires an attached deposit of at least 0.1 NEAR");
+            env::panic(b"error_upgrade_payment_too_low");
         }
 
         let is_signer = self._is_signer(pub_key.clone());
         if !is_signer {
-            env::panic(b"Pub Key is not a registered signer");
+            env::panic(b"error_pubkey_is_not_signer");
         }
 
         let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
         if !verified {
-            env::panic(b"Signature verification of cid failed");
+            env::panic(b"error_signature_verification_failed");
         }
 
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
@@ -256,17 +256,17 @@ impl Contract {
     ) -> Token {
 
         if env::attached_deposit() < 1e23 as u128 {
-            env::panic(b"Minting requires an attached deposit of at least 0.1 NEAR");
+            env::panic(b"error_mint_payment_too_low");
         }
 
         let is_signer = self._is_signer(pub_key.clone());
         if !is_signer {
-            env::panic(b"Pub Key is not a registered signer");
+            env::panic(b"error_pubkey_is_not_signer");
         }
 
         let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
         if !verified {
-            env::panic(b"Signature verification of cid failed");
+            env::panic(b"error_signature_verification_failed");
         }
 
         let tm = TokenMetadata {
