@@ -67,6 +67,7 @@ const h = 800;
 const wPhoto = 400;
 const hPhoto = 400;
 let textDelay = 2000;
+let postBattleDelay = 2000;
 if(DEBUG_FAST_BATTLE) {
   textDelay = 200;
 }
@@ -84,6 +85,16 @@ document.addEventListener('keyup', e => {
 });
 
 const stateCheck = new StateCheck();
+
+const postBattleScreens = {
+  NONE: 0,
+  RESULT: 1,
+  LEVEL_UP: 2,
+  PRIZE_PREPARE: 4,
+  PRIZE_RESULT: 5,
+  PRIZE_SUMMARY: 6,
+  END: 7
+};
 
 function NearKarts(props) {
   const showModal = props.showModal;
@@ -140,7 +151,7 @@ function NearKarts(props) {
   const [battleEnded, setBattleEnded] = useState();
   const [orbitControls, setOrbitControls] = useState();
   const [garagePanel, setGaragePanel] = useState('equip');
-
+  const [postBattleScreen, setPostBattleScreen] = useState(postBattleScreens.NONE);
 
   function kartChanged(nftData, prevNFTData) {
     let keys = Object.keys(baseNFTData);
@@ -652,7 +663,31 @@ function NearKarts(props) {
         toast(exclamation(getText('text_you_lost')));
       }
     }
+
+    setPostBattleScreen(postBattleScreens.RESULT);
+
   }, [battleEnded, toast, battleConfig]);
+
+  useEffect(() => {
+    if(postBattleScreen !== postBattleScreens.NONE) {
+      let timer = setTimeout(() => {
+        if(postBattleScreen === postBattleScreens.RESULT) {
+          setPostBattleScreen(postBattleScreens.LEVEL_UP);
+        }
+        else if(postBattleScreen === postBattleScreens.LEVEL_UP) {
+          setPostBattleScreen(postBattleScreens.PRIZE_PREPARE);
+        }
+        else if(postBattleScreen === postBattleScreens.PRIZE_PREPARE) {
+          setPostBattleScreen(postBattleScreens.PRIZE_RESULT);
+        }
+        else if(postBattleScreen === postBattleScreens.PRIZE_RESULT) {
+          setPostBattleScreen(postBattleScreens.END);
+        }
+      }, postBattleDelay);
+
+      return () => { clearInterval(timer) }
+    }
+  }, [postBattleScreen]);
 
   useEffect(() => {
     setGroupIndex(0);
@@ -992,6 +1027,7 @@ function NearKarts(props) {
     setBattleText([]);
 
     if(screen === SCREENS.battle) {
+      setPostBattleScreen(postBattleScreen.NONE);
       setBattlePower([100, 100]);
       setBattleHit([0, 0]);
       setBattleAttacking([0, 0]);
@@ -1064,6 +1100,80 @@ function NearKarts(props) {
     }
     let weapon_index = Math.max(level + 2, 3);
     return weapon_index;
+  }
+
+  function getScreenPostBattle(postBattleScreen) {
+    let content;
+
+    if(postBattleScreen === postBattleScreens.RESULT) {
+      content = <div className="br-post-battle-result">
+        { battleResult.winner === 0 ?
+          <div className="br-post-battle-result-won">
+            { exclamation(getText('text_you_won')) }
+          </div>
+          :
+          <div className="br-post-battle-result-lost">
+            { exclamation(getText('text_you_lost')) }
+          </div>
+        }
+      </div>
+    }
+    else if(postBattleScreen === postBattleScreens.LEVEL_UP) {
+      content = <div className="br-post-battle-level-up-start">
+        <h3 className="br-level-up">
+          { exclamation(getText('text_level_up'))}
+        </h3>
+        <div className="br-level-up-level">
+          { nftData.level }
+        </div>
+      </div>
+    }
+    else if(postBattleScreen === postBattleScreens.PRIZE_PREPARE) {
+      content = <div className="br-post-battle-prize-prepare">
+        <h3 className="br-prize">
+          { exclamation(getText('text_prize'))}
+        </h3>
+        <div className="br-prize-spinner">
+          Prizes are spinning!
+        </div>
+      </div>
+    }
+    else if(postBattleScreen === postBattleScreens.PRIZE_RESULT) {
+
+      let prizeSummary;
+      let text = exclamation(getText('text_no_prize'));
+      if(battleConfig.prize > 0) {
+        let decalName  = partIdToName('decals', battleConfig.prize.toString());
+        text = getText('text_won_prize', {'prize_name': decalName});
+      }
+      else {
+        prizeSummary = getText('text_better_luck');
+      }
+
+      content = <div className="br-post-battle-prize-result">
+        <div className="br-prize-image"></div>
+        <h3 className="br-prize">
+          {text}
+        </h3>
+        { prizeSummary ?  <div className="br-prize-summary"> { prizeSummary } </div> : '' }
+      </div>
+    }
+    else if(postBattleScreen === postBattleScreens.END) {
+      content = <div className="br-post-battle-end">
+        <div className="br-post-battle-end-panel">
+          <div className="br-post-battle-end-replay">
+            <BrButton label="Replay" id="br-post-battle-replay-button" className="br-button" onClick={e => replay() } />
+          </div>
+          <div className="br-post-battle-end-garage">
+            <BrButton label={ getText('text_return_to_garage') } id="br-post-battle-garage-button" 
+                      className="br-button" 
+                      onClick={e => changeScreen(SCREENS.garage)} />
+          </div>
+        </div>
+      </div>
+    }
+
+    return content;
   }
 
   function getScreenGarage() {
@@ -1199,6 +1309,9 @@ function NearKarts(props) {
           </div>
         </div>
         <div className="br-battle-viewer-main-panel">
+
+          { postBattleScreen !== postBattleScreens.NONE ?  getScreenPostBattle(postBattleScreen) : '' }
+
           { (battleAttacking[0] || battleAttacking[1]) && !(battleHit[0] || battleHit[1]) ?
             <div className="br-battle-visuals">
                 <div className={"br-battle-arrows br-battle-arrows-anim" +
@@ -1208,7 +1321,9 @@ function NearKarts(props) {
             :
             ''
           }
+
           { displayBattleText(battleText) }
+          
         </div>
         <div className={"br-battle-viewer-panel" + 
                         (battleAttacking[1] ? ' br-battle-viewer-attacking ' : '') +
@@ -1245,9 +1360,7 @@ function NearKarts(props) {
       </div>
       <h2>{ getText('text_battle') }</h2>
       <div className="br-battle-controls-holder">
-        <BrButton label="Replay" id="go-battle-to-garage" 
-                  className="br-button" 
-                  onClick={e => replay() } />
+        <BrButton label="Replay" id="go-battle-to-garage" className="br-button" onClick={e => replay() } />
       </div>
       { ui }
     </div>
