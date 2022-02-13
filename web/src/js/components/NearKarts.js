@@ -32,11 +32,11 @@ function getNearKartsServerURL(forceRemote=false) {
 const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
-const DEBUG_FORCE_POST_BATTLE = true;
+const DEBUG_FORCE_POST_BATTLE = false;
 const DEBUG_IMAGES = false;
 const DEBUG_NO_MINT = false;
 const DEBUG_KART = false;
-const DEBUG_FAST_BATTLE = true;
+const DEBUG_FAST_BATTLE = false;
 
 const baseNFTData = {
   "version": 1,
@@ -68,7 +68,7 @@ const h = 800;
 const wPhoto = 400;
 const hPhoto = 400;
 let textDelay = 2000;
-let postBattleDelay = 2000;
+let postBattleDelay = 3000;
 if(DEBUG_FAST_BATTLE) {
   textDelay = 200;
 }
@@ -665,7 +665,12 @@ function NearKarts(props) {
       clearInterval(battleTimer);
       battleTimer = setTimeout(() => {
         if(postBattleScreen === postBattleScreens.RESULT) {
-          setPostBattleScreen(postBattleScreens.LEVEL_UP);
+          if(battle.winner === 0) {
+            setPostBattleScreen(postBattleScreens.LEVEL_UP);
+          }
+          else {
+            setPostBattleScreen(postBattleScreens.END);
+          }
         }
         else if(postBattleScreen === postBattleScreens.LEVEL_UP) {
           setPostBattleScreen(postBattleScreens.PRIZE_PREPARE);
