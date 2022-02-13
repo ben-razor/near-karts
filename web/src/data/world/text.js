@@ -2,7 +2,8 @@ const text_consts = {
   "app_name": "NEAR Karts",
   "nft_name": "NEAR Kart",
   "nft_short_name": "Kart",
-  "blockchain_name": "NEAR"
+  "blockchain_name": "NEAR",
+  "mint_price": "0.1 NEAR"
 }
 
 const text_battle = {
@@ -98,6 +99,16 @@ const text = {
     "text_creating_image": `Photographing ${text_consts.nft_name} for NFT`,
     "text_mint_request": `Minting on ${text_consts.blockchain_name} blockchain`,
     "text_finding_opponent": `Finding opponent on ${text_consts.blockchain_name} blockchain`,
+
+    "text_help_welcome": `Welcome to ${text_consts.app_name}`,
+    "text_help_garage": `This is your garage where you equip and pimp your ${text_consts.nft_name}.`,
+    "text_help_equip_pimp": `Equip and pimp your ${text_consts.nft_name}`,
+    "text_help_mint": `Mint it on the ${text_consts.blockchain_name} blockchain for ${text_consts.mint_price} `,
+    "text_help_battle_title": `Battles`,
+    "text_help_battle": `Each battle won increases your ${text_consts.nft_name} level by 1`,
+    "text_help_level_up": `Win items as your level increases`,
+    "text_help_upgrade": `You can upgrade and save your ${text_consts.nft_name} once every 5 levels`,
+    "text_help_kart_name": `The name of your ${text_consts.nft_name} cannot be changed so choose wisely!`,
 
     "success_save_kart": `${text_consts.nft_name} saved!!`,
     "success_image_upload": `${text_consts.nft_short_name} image uploaded`,

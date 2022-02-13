@@ -85,6 +85,7 @@ document.addEventListener('keyup', e => {
 const stateCheck = new StateCheck();
 
 function NearKarts(props) {
+  const showModal = props.showModal;
   const nftList = props.nftList;
   const nftData = props.nftData;
   const setNFTData = props.setNFTData;
@@ -465,6 +466,7 @@ function NearKarts(props) {
     let index = 0;
     let disabled;
     let validIndex = getMaxWeaponIndexForLevel(nftData.level);
+    console.log('vi', nftData.level, validIndex);
 
     if(setId === 'left' || setId === 'right') {
       let optionsWeapon = [];
@@ -754,10 +756,17 @@ function NearKarts(props) {
     return kartTitle.replace('A NEAR Kart Called ', '');
   }
 
-  function newKart() {
+
+  const newKart = useCallback(() => {
     setActiveTokenId('new_kart');
     setNFTData({ ...baseNFTData });
-  }
+  }, [setActiveTokenId, setNFTData]);
+
+  useEffect(() => {
+    if(nftList && nftList.length === 0) {
+      newKart();
+    }
+  }, [nftList, newKart]);
 
   function displayNFTs(nftList, activeTokenId) {
     let nftUI = [];
@@ -1021,8 +1030,11 @@ function NearKarts(props) {
   }
 
   function getMaxWeaponIndexForLevel(level) {
-      let weapon_index = Math.max(level + 2, 3);
-      return weapon_index;
+    if(!level) {
+      level = 0;
+    }
+    let weapon_index = Math.max(level + 2, 3);
+    return weapon_index;
   }
 
   function getScreenGarage() {
@@ -1030,6 +1042,17 @@ function NearKarts(props) {
 
     nftListUI = <div className="br-nft-gallery">
       { displayNFTs(nftList, activeTokenId) }
+      { !nftList.length ? 
+        <div className="br-info-message-start">
+          <i className="fa fa-info br-info-icon"></i>
+          <div className="br-space-right">
+            { getText('text_help_welcome') }
+          </div>
+          <BrButton label="The System" id="helpMore" className="br-button" onClick={ e => showModal() } />
+        </div>
+        :
+        ''
+      }
       { nftList.length && nftData.level > 0 ?
         <BrButton label="Battle" id="gameSimpleBattle" className="br-button" 
                   onClick={ e => startBattle() }

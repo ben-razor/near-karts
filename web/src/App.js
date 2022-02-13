@@ -11,21 +11,21 @@ import { initNear } from './js/helpers/near';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
 import bigInt from 'big-integer';
+import Modal from 'react-modal';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
 const BOATLOAD_OF_GAS = '100000000000000';
 
-const nearkartsAddress = 'nearkarts.benrazor.testnet';
+const nearkartsAddress = 'nearkarts1.benrazor.testnet';
 const nearContractConfig = {
-  'nearkarts.benrazor.testnet': {
+  [nearkartsAddress]: {
     viewMethods: [
       'nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata', 
       'get_num_karts', 'get_token_id_by_index', 'get_last_battle'
     ],
     changeMethods: [
-      'nft_configure', 'nft_update_media', 'game_simple_battle',
-      'nft_mint_with_verified_image'
+      'nft_mint', 'upgrade', 'game_simple_battle'
     ]
   }
 }
@@ -37,6 +37,7 @@ const SCREENS = {
 };
 
 function App() {
+  const [ modalIsOpen, setModalIsOpen ] = useState(false);
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
@@ -160,7 +161,7 @@ function App() {
           let tokenId = name.replace(/\s+/g, '') + Date.now().toString();
 
           try {
-            await nftContract.nft_mint_with_verified_image({
+            await nftContract.nft_mint({
               token_id: tokenId,
               receiver_id: wallet.getAccountId(),
               name,
@@ -239,8 +240,7 @@ function App() {
             result.karts = [homeKart, awayKart];
             result.metadata = [homeMetadata, awayMetadata];
             setLastBattle(result);
-            setBattleResult(result);
-            toast(getText('text_battle_started'));
+            viewBattle(result);
             reloadTokens = true;
           }
         }
@@ -359,10 +359,10 @@ function App() {
     return kartTitle.replace('A NEAR Kart Called ', '');
   }
 
-  function viewBattle() {
-    setBattleConfig(lastBattle);
-    console.log('lbk', lastBattle.karts);
-    setBattleKarts(lastBattle.metadata);
+  function viewBattle(battle) {
+    setBattleConfig(battle);
+    console.log('lbk', battle.karts);
+    setBattleKarts(battle.metadata);
     setScreen(SCREENS.battleSetup);
   }
 
@@ -376,7 +376,7 @@ function App() {
           { kartName(lastBattle.metadata[0].title) } v { kartName(lastBattle.metadata[1].title) }
         </div>
         <BrButton label="View" id="viewBattle" className="br-button" 
-                  onClick={viewBattle}
+                  onClick={ e => viewBattle(lastBattle) }
                   isSubmitting={processingActions['viewBattle']} />
       </div>
     }
@@ -384,24 +384,52 @@ function App() {
     return lastBattleUI;
   }
 
-  useEffect(() => {
-    if(audioInitialized) {
-      const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-      const now = Tone.now()
-      synth.triggerAttack("D4", now);
-      synth.triggerAttack("F4", now + 0.5);
-      synth.triggerAttack("A4", now + 1);
-      synth.triggerAttack("C5", now + 1.5);
-      synth.triggerAttack("E5", now + 2);
-      synth.triggerRelease(["D4", "F4", "A4", "C5", "E5"], now + 4);
-      const feedbackDelay = new Tone.FeedbackDelay(0.33, 0.8).toDestination();
-      synth.connect(feedbackDelay);
-    }
-  }, [audioInitialized]);
 
-  async function startAudio() {
-    await Tone.start();
-    setAudioInitialized(true);
+  function getHelpText() {
+    let ui;
+
+    ui = <div className="br-help-panel">
+      <div className="br-help-line">{ getText('text_help_welcome') }</div>
+      <div className="br-help-line">{ getText('text_help_garage') }</div>
+      <div className="br-help-line">{ getText('text_help_mint') }</div>
+      <h3 className="br-help-title">{ getText('text_help_battle_title') }</h3>
+      <div className="br-help-line">{ getText('text_help_battle') }</div>
+      <div className="br-help-line">{ getText('text_help_level_up') }</div>
+      <div className="br-help-line">{ getText('text_help_upgrade') }</div>
+      <div className="br-help-highlight">{ getText('text_help_kart_name') }</div>
+    </div>
+
+    return ui;
+  }
+
+  const customStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      borderRadius: '8px 8px 0 0',
+      padding: 0
+    },
+    overlay: {zIndex: 999}
+  };
+
+  function openModal() {
+    setModalIsOpen(true);
+  }
+
+  function afterOpenModal() {
+
+  }
+
+  function closeModal() {
+    setModalIsOpen(false);
+  }
+
+  function showModal(id) {
+    openModal();
   }
 
   console.log('nftList', nftList);
@@ -413,6 +441,28 @@ function App() {
 
   return (
     <div className="br-page">
+      <div>
+        <Modal
+          isOpen={modalIsOpen}
+          onAfterOpen={afterOpenModal}
+          onRequestClose={closeModal}
+          style={customStyles}
+          contentLabel="NEAR Karts"
+        >
+          <div className="br-modal-title">
+            <h2 className="br-modal-heading">NEAR Karts</h2>
+            <div className="br-modal-close">
+              <BrButton label={<i className="fas fa-times-circle" />} className="br-button br-icon-button" 
+                          onClick={closeModal} />
+            </div>
+          </div>
+          <div className="br-modal-panel">
+            <div className="br-modal-content>">
+              { getHelpText('introduction') } 
+            </div>
+          </div>
+        </Modal>
+      </div>
       <div className="br-header">
         <div className="br-header-logo-panel">
           { isSignedIn && screen !== SCREENS.battle ? getLastBattleUI() : ''}
@@ -440,7 +490,8 @@ function App() {
                        processingActions={processingActions} execute={execute} toast={toast} 
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
-                       SCREENS={SCREENS} screen={screen} setScreen={setScreen} />
+                       SCREENS={SCREENS} screen={screen} setScreen={setScreen} 
+                       showModal={showModal} />
             :
             ''
         }
