@@ -466,6 +466,7 @@
 .br-battle-viewer-main-panel {
     flex: 1;
     flex-direction: column;
+    position: relative;
     align-items: center;
     font-family: NearKartsThin;
     font-size: 0.9em;
@@ -776,4 +777,99 @@
 
 .br-full-width {
     width: 100%;
+}
+
+.br-post-battle-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    width: 100%;
+    min-height: 400px;
+    font-size: 150%;
+}
+
+.br-post-battle-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 280px;
+    min-width: 90%;
+    background-color: hsla(0deg, 0%, 10%, 0.9);
+    border-left: 4px solid white;
+    border-right: 4px solid white;
+    border-radius: 3em;
+}
+
+.br-post-battle-result {
+    font-size: 300%;
+    color: hsl(0deg, 100%, 30%);
+    animation: text-pulse 3s;
+    animation-iteration-count: infinite;
+}
+
+.br-post-battle-result-won {
+
+}
+
+.br-post-battle-result-lost {
+
+}
+
+.br-post-battle-level-up-start {
+
+}
+
+.br-level-up {
+
+}
+
+.br-level-up-level {
+
+}
+
+.br-post-battle-prize-prepare {
+
+}
+
+.br-prize {
+
+}
+
+.br-prize-spinner {
+
+}
+
+.br-post-battle-prize-result {
+
+}
+
+.br-prize-image {
+
+}
+
+.br-prize {
+
+}
+
+.br-prize-summary {
+
+}
+
+.br-post-battle-end {
+
+}
+
+.br-post-battle-end-panel {
+
+}
+
+.br-post-battle-end-replay {
+    margin-bottom: $spacing-md;
+}
+
+.br-post-battle-end-garage {
+
 }
