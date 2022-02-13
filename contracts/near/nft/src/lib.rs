@@ -34,6 +34,11 @@ use ed25519_dalek::{ Signature, Verifier, PublicKey};
 near_sdk::setup_alloc!();
 
 const NUM_DECALS: u32 = 7;
+const NUM_WEAPONS: u8 = 6;
+const NUM_WEAPONS_MELEE: u8 = 5;
+const NUM_SHIELDS: u8 = 2;
+const NUM_SKINS: u8 = 4;
+const NUM_TRANSPORTS: u8 = 3;
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
@@ -61,6 +66,7 @@ pub struct NearKart {
     color2: u32,
     ex1: u8,
     ex2: u32,
+    locked: bool,
     decal1: String,
     decal2: String,
     decal3: String,
@@ -184,36 +190,208 @@ impl Contract {
     }
 
     #[payable]
-    pub fn nft_mint_with_verified_image(
+    pub fn upgrade(
+        &mut self,
+        token_id: TokenId,
+        near_kart_new: NearKart,
+        cid: String,
+        sig: String,
+        pub_key: String
+    ) {
+
+        self.assert_nft_owner(token_id.clone());
+
+        if env::attached_deposit() < 1e23 as u128 {
+            env::panic(b"Upgrade requires an attached deposit of at least 0.1 NEAR");
+        }
+
+        let is_signer = self._is_signer(pub_key.clone());
+        if !is_signer {
+            env::panic(b"Pub Key is not a registered signer");
+        }
+
+        let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
+        if !verified {
+            env::panic(b"Signature verification of cid failed");
+        }
+
+        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
+        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
+        let extra = metadata.extra.unwrap_or(String::from(""));
+        let mut nk = NearKart::from_data(&extra);
+
+        if nk.locked {
+            env::panic(b"error_cannot_upgrade_while_kart_is_locked");
+        }
+
+        Contract::assert_valid_equip(near_kart_new.clone());
+
+        nk.level = nk.level + 1;
+        nk.locked = true;
+        nk.color1 = near_kart_new.color1;
+        nk.decal1 = near_kart_new.decal1;
+        nk.front = near_kart_new.front;
+        nk.left = near_kart_new.left;
+        nk.right = near_kart_new.right;
+        nk.skin = near_kart_new.skin;
+        nk.transport = near_kart_new.transport;
+
+        let extra = nk.serialize();
+        metadata.extra = Some(extra);
+        lookup_map.insert(&token_id, &metadata);
+        
+        self.update_media(token_id.clone(), cid, sig, pub_key);
+    }
+
+    #[payable]
+    pub fn nft_mint(
         &mut self,
         token_id: TokenId,
         receiver_id: ValidAccountId,
-        token_metadata: TokenMetadata,
+        name: String,
         mut near_kart_new: NearKart,
         cid: String,
         sig: String,
         pub_key: String
     ) -> Token {
+
         if env::attached_deposit() < 1e23 as u128 {
             env::panic(b"Minting requires an attached deposit of at least 0.1 NEAR");
         }
-        let token = self.tokens.mint(token_id.clone(), receiver_id, Some(token_metadata));
 
-        // Wipe out any fields the user is not allowed to set on mint
-        near_kart_new.version = 0;
+        let is_signer = self._is_signer(pub_key.clone());
+        if !is_signer {
+            env::panic(b"Pub Key is not a registered signer");
+        }
+
+        let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
+        if !verified {
+            env::panic(b"Signature verification of cid failed");
+        }
+
+        let tm = TokenMetadata {
+            title: Some(name),
+            description: Some(String::from("NEAR Karts Series 1")),
+            media: Some(cid.clone()),
+            media_hash: None,
+            copies: Some(1),
+            issued_at: None,
+            expires_at: None,
+            starts_at: None,
+            updated_at: None,
+            extra: Some("".to_string()),
+            reference: None,
+            reference_hash: None
+        };
+
+        let token = self.tokens.mint(token_id.clone(), receiver_id, Some(tm));
+
+        // Initialize any fields the user is not allowed to set on mint
+        near_kart_new.version = 1;
         near_kart_new.level = 1;
         near_kart_new.ex1 = 0;
         near_kart_new.ex2 = 0;
+        near_kart_new.locked = true;
         near_kart_new.decal2 = String::new();
         near_kart_new.decal3 = String::new();
         near_kart_new.extra1 = String::from("7"); // Everyone gets the NEAR decal
         near_kart_new.extra2 = String::new();
         near_kart_new.extra3 = String::new();
 
-        self.nft_configure(token_id.clone(), near_kart_new);
-        self.nft_update_media(token_id.clone(), cid, sig, pub_key);
+        self.configure(token_id.clone(), near_kart_new);
+        self.update_media(token_id.clone(), cid, sig, pub_key);
         return token;
     }
+
+    fn configure(&mut self, token_id: TokenId, near_kart_new: NearKart) {
+        self.assert_nft_owner(token_id.clone());
+        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
+        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
+
+        Contract::assert_valid_equip(near_kart_new.clone());
+
+        let extra = near_kart_new.serialize();
+        metadata.extra = Some(extra);
+        lookup_map.insert(&token_id, &metadata);
+    }
+
+    fn assert_valid_equip(nk: NearKart) {
+        let max_index = Contract::get_max_weapon_index_for_level(nk.level);
+        let shield_start_index = 200;
+
+        let mut weapon_or_shield_index_left = nk.left;
+        let mut is_shield_left = false;
+        if nk.left >= shield_start_index {
+            weapon_or_shield_index_left -= shield_start_index;
+            is_shield_left = true;
+        }
+
+        let mut weapon_or_shield_index_right = nk.right;
+        let mut is_shield_right = false;
+        if nk.right >= shield_start_index {
+            is_shield_right = true;
+            weapon_or_shield_index_right -= shield_start_index;
+        }
+
+        if nk.front > NUM_WEAPONS_MELEE - 1 {
+            env::panic(b"error_front_weapon_index_too_high");
+        }
+        else if nk.transport > NUM_TRANSPORTS - 1 {
+            env::panic(b"error_transport_index_too_high");
+        }
+        else if nk.skin > NUM_SKINS - 1 {
+            env::panic(b"error_skin_index_too_high");
+        }
+        else {
+            if is_shield_left {
+                if weapon_or_shield_index_left > NUM_SHIELDS - 1 {
+                    env::panic(b"error_shield_left_index_too_high");
+                }
+            }
+            else {
+                if weapon_or_shield_index_left > NUM_WEAPONS - 1 {
+                    env::panic(b"error_weapon_left_index_too_high");
+                }
+            }
+            if is_shield_right {
+                if weapon_or_shield_index_right > NUM_SHIELDS - 1 {
+                    env::panic(b"error_shield_right_index_too_high");
+                }
+            }
+            else {
+                if weapon_or_shield_index_right > NUM_WEAPONS - 1 {
+                    env::panic(b"error_weapon_right_index_too_high");
+                }
+            }
+        }
+
+        if nk.front > max_index {
+            env::panic(b"error_level_not_high_enough_to_equip_front_weapon");
+        }
+        else if weapon_or_shield_index_left > max_index {
+            env::panic(b"error_level_not_high_enough_to_equip_left_weapon");
+        }
+        else if weapon_or_shield_index_right > max_index {
+            env::panic(b"error_level_not_high_enough_to_equip_right_weapon");
+        }
+        else if nk.transport > max_index {
+            env::panic(b"error_level_not_high_enough_to_use_transport");
+        }
+        else if nk.skin > max_index {
+            env::panic(b"error_level_not_high_enough_to_use_skin");
+        }
+
+        if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
+            let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
+            if !unlocked_decals.contains(&nk.decal1) {
+                println!("{:?} {}", unlocked_decals, nk.decal1);
+                env::panic(b"error_decal_front_is_not_unlocked");
+            }
+        }
+
+    }
+
+
 
     pub fn nft_delete(&self, token_id: TokenId) {
         Contract::assert_contract_owner();
@@ -294,70 +472,7 @@ impl Contract {
         assert_eq!( valid, true, "Caller must be relative of contract owner");
     }
 
-    pub fn nft_configure(&mut self, token_id: TokenId, near_kart_new: NearKart) {
-        self.assert_nft_owner(token_id.clone());
-        let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
-        let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
-        let extra = metadata.extra.unwrap_or(String::from(""));
-        let mut nk = NearKart::from_data(&extra);
-
-        let max_index = Contract::get_max_weapon_index_for_level(nk.level);
-
-        let shield_start_index = 200;
-
-        let mut weapon_or_shield_index_left = nk.left;
-        if nk.left >= shield_start_index {
-            weapon_or_shield_index_left -= shield_start_index;
-        }
-
-        let mut weapon_or_shield_index_right = nk.right;
-        if nk.right >= shield_start_index {
-            weapon_or_shield_index_right -= shield_start_index;
-        }
-
-        if nk.front > max_index {
-            env::panic(b"error_level_not_high_enough_to_equip_front_weapon");
-        }
-        else if weapon_or_shield_index_left > max_index {
-            env::panic(b"error_level_not_high_enough_to_equip_left_weapon");
-        }
-        else if weapon_or_shield_index_right > max_index {
-            env::panic(b"error_level_not_high_enough_to_equip_right_weapon");
-        }
-        else if nk.transport > max_index {
-            env::panic(b"error_level_not_high_enough_to_use_transport");
-        }
-        else if nk.skin > max_index {
-            env::panic(b"error_level_not_high_enough_to_use_skin");
-        }
-
-        if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
-            let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
-            if !unlocked_decals.contains(&nk.decal1) {
-                println!("{:?} {}", unlocked_decals, nk.decal1);
-                env::panic(b"error_decal_front_is_not_unlocked");
-            }
-        }
-
-        nk.color1 = near_kart_new.color1;
-        nk.decal1 = near_kart_new.decal1;
-        nk.front = near_kart_new.front;
-        nk.left = near_kart_new.left;
-        nk.right = near_kart_new.right;
-        nk.skin = near_kart_new.skin;
-        nk.transport = near_kart_new.transport;
-        let extra = nk.serialize();
-        metadata.extra = Some(extra);
-        lookup_map.insert(&token_id, &metadata);
-    }
-
-    pub fn nft_update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
-        let is_signer = self._is_signer(pub_key.clone());
-        assert_eq!( is_signer, true, "Pub Key is not a registered signer");
-
-        let verified = Contract::verify_sig(cid.clone(), sig.clone(), pub_key.clone());
-        assert_eq!( verified, true, "Signature verification of cid failed");
-
+    fn update_media(&mut self, token_id: TokenId, cid: String, sig: String, pub_key: String) {
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
 
@@ -415,7 +530,7 @@ impl Contract {
         lookup_map.insert(&token_id, &metadata);
     }
 
-    fn nft_level_up(&mut self, token_id: TokenId) {
+    fn level_up(&mut self, token_id: TokenId) {
         self.assert_nft_owner(token_id.clone());
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
@@ -423,6 +538,10 @@ impl Contract {
         let mut nk = NearKart::from_data(&extra);
 
         nk.level = nk.level + 1;
+
+        if nk.level % 5 == 0 {
+            nk.locked = false;
+        }
 
         let extra = nk.serialize();
         metadata.extra = Some(extra);
@@ -474,7 +593,7 @@ impl Contract {
                 }
             }
 
-            self.nft_level_up(token_id.clone());
+            self.level_up(token_id.clone());
         }
 
         let result = SimpleBattle {
@@ -513,7 +632,7 @@ impl Contract {
         return ok;
     }
 
-    pub fn get_random_u32(&mut self) -> u32 {
+    fn get_random_u32(&mut self) -> u32 {
         let is_new_block = self.prev_block_index != env::block_index();
         let mut rand_bytes = self.random_buffer.to_vec();
         let mut rand_index = self.random_index;
@@ -564,8 +683,12 @@ impl Contract {
     }
 
     fn get_max_weapon_index_for_level(level: u32) -> u8 {
-        let weapon_index = ((level as u8 / 5) + 1) * 5;
-        return weapon_index;
+        // let weapon_index = ((level as u8 / 5) + 1) * 5;
+        let mut weapon_index = level + 2;
+        if weapon_index > 255 {
+            weapon_index = 255;
+        }
+        return weapon_index as u8;
     }
 
     fn get_random_u8() -> u8 {
@@ -624,6 +747,8 @@ mod tests {
     use super::*;
 
     const MINT_STORAGE_COST: u128 = 1e23 as u128;
+    const DEFAULT_EXTRA: &str = "dc0013010100000000000000000000c3a0a0a0a137a0a0";
+    const DEFAULT_TITLE: &str = "MegaKart";
 
     fn get_context(predecessor_account_id: ValidAccountId) -> VMContextBuilder {
         let mut builder = VMContextBuilder::new();
@@ -654,23 +779,6 @@ mod tests {
     //        .prepaid_gas(BOATLOAD_OF_GAS)
             .predecessor_account_id(account_id)
             .build());
-    }
-
-    fn sample_token_metadata() -> TokenMetadata {
-        TokenMetadata {
-            title: Some("Olympus Mons".into()),
-            description: Some("The tallest mountain in the charted solar system".into()),
-            media: None,
-            media_hash: None,
-            copies: Some(1u64),
-            issued_at: None,
-            expires_at: None,
-            starts_at: None,
-            updated_at: None,
-            extra: Some("dc0012000100000000000000000000a0a0a0a137a0a0".to_string()),
-            reference: None,
-            reference_hash: None,
-        }
     }
 
     #[test]
@@ -722,8 +830,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -735,7 +843,7 @@ mod tests {
 
         let mut new_near_kart = NearKart::new();
         new_near_kart.front = 2;
-        contract.nft_configure(token_id.clone(), new_near_kart);
+        contract.configure(token_id.clone(), new_near_kart);
 
         let nk = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk.front, 2);
@@ -754,15 +862,74 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
         assert_eq!(token.token_id, token_id);
         assert_eq!(token.owner_id, br_acc.to_string());
-        assert_eq!(token.metadata.unwrap(), sample_token_metadata());
+        assert_eq!(token.metadata.unwrap().title, Some(String::from(DEFAULT_TITLE)));
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk1.extra1, "7");
+    }
+
+    #[test]
+    #[should_panic(expected = "error_cannot_upgrade_while_kart_is_locked")]
+    fn test_upgrade_locked_panic() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
+        let token_id = "0".to_string();
+        let starting_near_kart = NearKart::new();
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+
+        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+    }
+
+    #[test]
+    fn test_upgrade() {
+        let br_nk_acc = ValidAccountId::try_from("near_karts.benrazor.testnet".to_string()).unwrap();
+        let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
+        configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
+        let mut contract = Contract::new_default_meta(br_acc.clone());
+        
+        let token_id = "0".to_string();
+        let starting_near_kart = NearKart::new();
+        let cid = "bafkreic6ngsuiw43wzwrp6ocvd5zpddyac55ll6pbkhuqlwo7zft2g6bcm";
+        let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
+        let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
+        contract.add_signer_key(t_pub_key_1.to_string());
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
+            cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
+        );
+        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+
+        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk1.level, 5);
+        nk1.left = 4;
+        contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        let nk2 = contract.nft_get_near_kart(token_id.clone());
+        assert_eq!(nk2.left, 4)
     }
 
     #[test]
@@ -780,10 +947,12 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
+        println!("MINT1");
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
+        println!("MINT2");
 
         assert_eq!(token.token_id, token_id);
         assert_eq!(token.owner_id, "benrazor.testnet".to_string());
@@ -806,8 +975,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc, sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc, String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -819,7 +988,7 @@ mod tests {
         
         contract.add_signer_key(t_pub_key_1.to_string());
 
-        contract.nft_update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
+        contract.update_media(token_id.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
 
         let md = contract.nft_get_token_metadata(token_id.clone());
         assert_eq!(cid.to_string(), md.media.unwrap_or("".to_string()));
@@ -838,8 +1007,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -847,8 +1016,8 @@ mod tests {
 
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
-        let token_away = contract.nft_mint_with_verified_image(
-            token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token_away = contract.nft_mint(
+            token_id_away.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -880,8 +1049,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -889,8 +1058,8 @@ mod tests {
 
         let token_id_away = "fluffykart".to_string();
         let starting_near_kart = NearKart::new();
-        let token_away = contract.nft_mint_with_verified_image(
-            token_id_away.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token_away = contract.nft_mint(
+            token_id_away.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -932,7 +1101,7 @@ mod tests {
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "7,3,1");
         nk1.decal1 = "3".to_string();
-        contract.nft_configure(token_id.clone(), nk1);
+        contract.configure(token_id.clone(), nk1);
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.decal1, "3");
     }
@@ -970,8 +1139,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -991,7 +1160,7 @@ mod tests {
         if let Some(token) = contract.nft_token(token_id.clone()) {
             assert_eq!(token.token_id, token_id);
             assert_eq!(token.owner_id, accounts(1).to_string());
-            assert_eq!(token.metadata.unwrap().extra, sample_token_metadata().extra);
+            assert_eq!(token.metadata.unwrap().extra, Some(String::from(DEFAULT_EXTRA)));
             assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         } else {
             env::panic(b"token not correctly created, or not found by nft_token");
@@ -1015,8 +1184,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -1054,8 +1223,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
@@ -1100,8 +1269,8 @@ mod tests {
         let t_sig_1 = "43e2e88d7286e4aa26450f5167fb8c8718817832313938c532351d261e711d13926eb1ad847d3e7a81461bd7b0ee7da702fbcd45e1bad025c7b1378e66f6030d";
         let t_pub_key_1 = "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462";
         contract.add_signer_key(t_pub_key_1.to_string());
-        let token = contract.nft_mint_with_verified_image(
-            token_id.clone(), br_acc.clone(), sample_token_metadata(), starting_near_kart,
+        let token = contract.nft_mint(
+            token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 

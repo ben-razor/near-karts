@@ -38,7 +38,7 @@ const DEBUG_KART = false;
 const DEBUG_FAST_BATTLE = true;
 
 const baseNFTData = {
-  "version": 0,
+  "version": 1,
   "level": 0,
   "left": 0,
   "right": 0,
@@ -50,6 +50,7 @@ const baseNFTData = {
   "color2": 0,
   "ex1": 0,
   "ex2": 0,
+  "locked": false,
   "decal1": "7",
   "decal2": "",
   "decal3": "",
@@ -697,42 +698,57 @@ function NearKarts(props) {
     }
   }, [groupIndex, lineIndex, battleText]);
 
-  function mint() {
-    let nftData = kartConfigToNFTData(controlEntry);
-    let data = {
-      name: kartNameEntry,
-      nftData
-    };
+  function getMintUpgradeUI() {
+    let ui;
 
-    execute('mint', data);
-  }
+    if(nftData.level === 0) {
+      ui = <Fragment>
+        <div className="br-text-entry-row-label">
+          <input type="text" placeholder={getText('text_kart_name_label')} 
+                value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
+        </div>
+        <div className="br-text-entry-row-control">
+          <BrButton label="Mint" id="render" className="br-button" onClick={render}
+                isSubmitting={renderRequested || processingActions['mintWithImage']} />
+        </div>
+      </Fragment>
+    }
+    else {
+      if(nftData.locked) {
+        let nextUpgradeLevel = (Math.floor(nftData.level / 5) + 1) * 5;
+        ui = <div className="br-info-message br-full-width">
+          <i className="fa fa-info br-info-icon"></i>
+          <div>
+            { getText('text_locked') }
+            <br />
+            { getText('text_next_upgrade', { next_upgrade_level: nextUpgradeLevel }) }
+          </div>
+        </div>
+      }
+      else {
+        ui = <Fragment>
+          <div className="br-text-entry-row-label">
+            { getText('text_upgrade_save') }
+          </div>
+          <div className="br-text-entry-row-control">
+            <BrButton label="Upgrade" id="upgrade" className="br-button" onClick={render}
+                  isSubmitting={renderRequested || processingActions['upgrade']} />
+          </div>
+        </Fragment>
+      }
+    }
 
-  function saveKart() {
-    let nftData = kartConfigToNFTData(controlEntry);
-    console.log(controlEntry, nftData)
-    execute('saveKart', nftData);
+    return ui;
   }
 
   function getContractControls() {
     return <div className="br-contract-controls">
       { nftData && 
         <div className="br-text-entry-row">
-          <div className="br-text-entry-row-label">
-            <input type="text" placeholder={getText('text_kart_name_label')} 
-                  value={kartNameEntry} onChange={e => setKartNameEntry(e.target.value)} />
-          </div>
-          <div className="br-text-entry-row-control">
-            <BrButton label="Mint" id="render" className="br-button" onClick={render}
-                      isSubmitting={renderRequested || processingActions['mintWithImage']} />
-            { DEBUG_IMAGES && imageDataURL &&
-              <a href={imageDataURL} download={["near_kart", kartName(activeKart?.metadata?.title)].join('_') + '.png'}>Download</a>
-            }
-          </div>
+          { getMintUpgradeUI() }
+          
         </div>
       }
-      <div className="br-text-entry-row">
-        <BrButton label="Save" id="save" className="br-button" onClick={saveKart} />
-      </div>
     </div>
   }
 
@@ -832,15 +848,28 @@ function NearKarts(props) {
     setKartImageRendered(true);
   }
 
-  const mintWithImage = useCallback((verifiedImageData) => {
-    let nftData = kartConfigToNFTData(controlEntry);
+  const mintOrUpgrade = useCallback((verifiedImageData) => {
+    let newNFTData = kartConfigToNFTData(controlEntry);
+    newNFTData.level = nftData.level;
+    newNFTData.locked = nftData.locked;
 
     verifiedImageData.name = kartNameEntry;
-    verifiedImageData.nftData = nftData;
+    verifiedImageData.nftData = newNFTData;
 
-    toast(getText('text_mint_request'));
-    execute('mintWithImage', verifiedImageData);
-  }, [controlEntry, execute, kartNameEntry]);
+    if(nftData.level === 0) {
+      toast(getText('text_mint_request'));
+      execute('mintWithImage', verifiedImageData);
+    }
+    else {
+      if(!nftData.locked) {
+        toast(getText('text_upgrade_request'));
+        execute('upgrade', verifiedImageData);
+      }
+      else {
+        toast(getText('error_upgrade_kart_locked', 'warning'));
+      }
+    }
+  }, [controlEntry, execute, kartNameEntry, nftData, toast]);
 
   const saveImageData = useCallback(async (dataURL) => {
     let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
@@ -857,7 +886,7 @@ function NearKarts(props) {
           toast(getText('success_image_upload'));
           console.log('image data ', getImageURL(j.data.cid));
           if(!DEBUG_NO_MINT) {
-            mintWithImage(j.data);
+            mintOrUpgrade(j.data);
           }
         }
       }
@@ -873,7 +902,7 @@ function NearKarts(props) {
 
     setKartImageRendered(false);
     setRenderRequested(false);
-  }, [toast, mintWithImage]);
+  }, [toast, mintOrUpgrade]);
 
   useEffect(() => {
     if(stateCheck.changed('kartImageRendered', kartImageRendered, false) && kartImageRendered) { 
@@ -1067,6 +1096,12 @@ function NearKarts(props) {
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
+            <div className='br-level'>
+              {getText('text_level')}
+              <div className="br-level-number">
+                {nftData.level}
+              </div>
+            </div>
             <button className="br-autorotate-button br-button br-icon-button"
                     onMouseDown={toggleAutoRotate}><i className="fa fa-sync-alt"></i></button>
           </div>

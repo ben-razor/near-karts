@@ -615,6 +615,29 @@
     z-index: 1000;
 }
 
+.br-level {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    min-width: 5em;
+    min-height: 5em;
+    left: 10px;
+    top: 10px;
+    z-index: 1000;
+    padding: $spacing-sm;
+    border: 2px solid white;
+    border-radius: $spacing-sm;
+    color: white;
+}
+
+.br-level-number {
+    font-size: 1.25em;
+    padding: 0;
+    margin: 0;
+}
+
 .br-hurt {
     background-color: hsl(0deg, 100%, 24%);
 }
@@ -749,4 +772,8 @@
 
 .br-space-right {
     margin-right: $spacing-sm;
+}
+
+.br-full-width {
+    width: 100%;
 }

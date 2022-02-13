@@ -3,7 +3,8 @@ const text_consts = {
   "nft_name": "NEAR Kart",
   "nft_short_name": "Kart",
   "blockchain_name": "NEAR",
-  "mint_price": "0.1 NEAR"
+  "mint_price": "0.1 NEAR",
+  "upgrade_price": "0.1 NEAR"
 }
 
 const text_battle = {
@@ -98,12 +99,17 @@ const text = {
     "text_unlock_items": `Unlock items as you rise through the levels!`,
     "text_creating_image": `Photographing ${text_consts.nft_name} for NFT`,
     "text_mint_request": `Minting on ${text_consts.blockchain_name} blockchain`,
+    "text_upgrade_request": `Upgrading on ${text_consts.blockchain_name} blockchain`,
     "text_finding_opponent": `Finding opponent on ${text_consts.blockchain_name} blockchain`,
+    "text_locked": `${text_consts.nft_name} is locked for upgrades`,
+    "text_next_upgrade": `Next upgrade at level {next_upgrade_level}`,
+    "text_upgrade_save": `Upgrade and save your ${text_consts.nft_short_name} on ${text_consts.blockchain_name}`,
+    "text_level": `Level`,
 
     "text_help_welcome": `Welcome to ${text_consts.app_name}`,
     "text_help_garage": `This is your garage where you equip and pimp your ${text_consts.nft_name}.`,
     "text_help_equip_pimp": `Equip and pimp your ${text_consts.nft_name}`,
-    "text_help_mint": `Mint it on the ${text_consts.blockchain_name} blockchain for ${text_consts.mint_price} `,
+    "text_help_mint": `Mint it on the ${text_consts.blockchain_name} blockchain for ${text_consts.mint_price}`,
     "text_help_battle_title": `Battles`,
     "text_help_battle": `Each battle won increases your ${text_consts.nft_name} level by 1`,
     "text_help_level_up": `Win items as your level increases`,
@@ -117,11 +123,17 @@ const text = {
     "error_no_active_kart": `No ${text_consts.nft_name} is active`,
     "error_check_console": "Check console for details",
     "error_mint_kart": `Error minting ${text_consts.nft_name}`,
+    "error_upgrade_kart": `Error upgrading ${text_consts.nft_name}`,
     "error_starting_battle": `Error starting battle`,
     "error_no_opponent_selected": `Error no opponent selected`,
     "error_no_battle_self": `Error ${text_consts.nft_name} cannot battle self`,
     "error_no_kart_name": `No name supplied for ${text_consts.nft_name}`,
-    "error_image_upload_failed": `Image upload failed`
+    "error_image_upload_failed": `Image upload failed`,
+    "error_upgrade_kart_locked": `${text_consts.nft_name} is locked for upgrades`,
+    "error_signature_verification_failed": `Signature verification of cid failed`,
+    "error_pubkey_is_not_signer": `Pub Key is not a registered signer`,
+    "error_mint_payment_too_low": `Minting requires an attached deposit of at least ${text_consts.mint_price}`,
+    "error_upgrade_payment_too_low": `Upgrade requires an attached deposit of at least ${text_consts.upgrade_price}`
   }
 };
 

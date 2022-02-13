@@ -177,47 +177,34 @@ function App() {
           }
         }
       }
-      else if(action === 'saveKart') {
-        try {
-          let tokenId = activeTokenId;
-          if(!tokenId) {
-            doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
-          }
-          else {
-            console.log('Saving kart', data);
-            await nftContract.nft_configure({ token_id: tokenId, near_kart_new: data }, BOATLOAD_OF_GAS, '0');
-            toast(getText('success_save_kart'));
-            reloadTokens = true;
-          }
-        }
-        catch(e) {
-          toast(getText('error_save_kart'), 'error');
-          console.log(e);
-        }
-      }
-      else if(action === 'addImageToNFT') {
-        try {
-          let tokenId = activeTokenId;
-          if(!tokenId) {
-            doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
-          }
-          else {
-            await nftContract.nft_update_media({ 
-              token_id: tokenId, 
-              cid: data.cid,
-              sig: data.sigHex,
-              pub_key: data.pubKeyHex
-            }, BOATLOAD_OF_GAS, '0');
+      if(action === 'upgrade') {
+        console.log('upgrade', data);
+        console.log('upgrade', data.nftData);
 
-            toast(getText('success_save_kart'));
-            let _tokenMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId});
-            setNFTMetadata(_tokenMetadata);
-            reloadTokens = true;
-          }
+        if(data.nftData.locked) {
+          toast(getText('error_upgrade_kart_locked', 'warning'));
         }
-        catch(e) {
-          toast(getText('error_save_kart'), 'error');
-          console.log(e);
+        else {
+          let tokenId = activeTokenId;
+          if(!tokenId) {
+            doubleToast(getText('error_save_kart'), getText('error_no_active_kart'), 'error');
+          }
+          else {
+            try {
+              await nftContract.upgrade({
+                token_id: tokenId,
+                near_kart_new: data.nftData,
+                cid: data.cid,
+                sig: data.sigHex,
+                pub_key: data.pubKeyHex
+              }, BOATLOAD_OF_GAS, pointOneNear.toString());
+
+              reloadTokens = true;
+            } catch(e) {
+              toast(getText('error_upgrade_kart'), 'error');
+              console.log(e);
+            }
+          }
         }
       }
       else if(action === 'gameSimpleBattle') {
