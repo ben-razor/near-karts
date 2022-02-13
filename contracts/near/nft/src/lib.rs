@@ -16,7 +16,7 @@ NOTES:
     keys on its account.
 */
 use near_contract_standards::non_fungible_token::metadata::{
-    NFTContractMetadata, NonFungibleTokenMetadataProvider, TokenMetadata, NFT_METADATA_SPEC,
+    NFTContractMetadata, NonFungibleTokenMetadataProvider, TokenMetadata, NFT_METADATA_SPEC
 };
 use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_contract_standards::non_fungible_token::NonFungibleToken;
@@ -29,7 +29,87 @@ use near_sdk::{
 use serde::{Serialize, Deserialize};
 use rmp_serde;
 use hex; 
+use std::fmt;
 use ed25519_dalek::{ Signature, Verifier, PublicKey};
+
+/// This is the name of the NFT standard we're using
+pub const NFT_STANDARD_NAME: &str = "nep171";
+
+/// Enum that represents the data type of the EventLog.
+/// The enum can either be an NftMint or an NftTransfer.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "event", content = "data")]
+#[serde(rename_all = "snake_case")]
+#[serde(crate = "near_sdk::serde")]
+#[non_exhaustive]
+pub enum EventLogVariant {
+    NftMint(Vec<NftMintLog>),
+    NftTransfer(Vec<NftTransferLog>),
+}
+
+/// Interface to capture data about an event
+///
+/// Arguments:
+/// * `standard`: name of standard e.g. nep171
+/// * `version`: e.g. 1.0.0
+/// * `event`: associate event data
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct EventLog {
+    pub standard: String,
+    pub version: String,
+
+    // `flatten` to not have "event": {<EventLogVariant>} in the JSON, just have the contents of {<EventLogVariant>}.
+    #[serde(flatten)]
+    pub event: EventLogVariant,
+}
+
+impl fmt::Display for EventLog {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "EVENT_JSON:{}",
+            &serde_json::to_string(self).map_err(|_| fmt::Error)?
+        ))
+    }
+}
+
+/// An event log to capture token minting
+///
+/// Arguments
+/// * `owner_id`: "account.near"
+/// * `token_ids`: ["1", "abc"]
+/// * `memo`: optional message
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct NftMintLog {
+    pub owner_id: String,
+    pub token_ids: Vec<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+}
+
+/// An event log to capture token transfer
+///
+/// Arguments
+/// * `authorized_id`: approved account to transfer
+/// * `old_owner_id`: "owner.near"
+/// * `new_owner_id`: "receiver.near"
+/// * `token_ids`: ["1", "12345abc"]
+/// * `memo`: optional message
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct NftTransferLog {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub authorized_id: Option<String>,
+
+    pub old_owner_id: String,
+    pub new_owner_id: String,
+    pub token_ids: Vec<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+}
 
 near_sdk::setup_alloc!();
 
@@ -300,6 +380,20 @@ impl Contract {
 
         self.configure(token_id.clone(), near_kart_new);
         self.update_media(token_id.clone(), cid, sig, pub_key);
+
+        let nft_mint_log: EventLog = EventLog {
+            standard: NFT_STANDARD_NAME.to_string(),
+            version: NFT_METADATA_SPEC.to_string(),
+
+            event: EventLogVariant::NftMint(vec![NftMintLog {
+                owner_id: token.owner_id.to_string(),
+                token_ids: vec![token_id.to_string()],
+                memo: None,
+            }]),
+        };
+
+        log!("{}", &nft_mint_log.to_string());
+
         return token;
     }
 
@@ -739,7 +833,7 @@ impl NonFungibleTokenMetadataProvider for Contract {
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
-    use near_sdk::test_utils::{accounts, VMContextBuilder};
+    use near_sdk::test_utils::{accounts, VMContextBuilder, get_logs};
     use near_sdk::{testing_env, MockedBlockchain};
     use more_asserts::{assert_gt, assert_lt};
     use core::convert::TryFrom;
@@ -835,6 +929,9 @@ mod tests {
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
+        let logs = get_logs();
+        assert_eq!(logs.len(), 1);
+        assert_eq!(logs[0].chars().take(10).collect::<String>(), "EVENT_JSON");
         assert_eq!(token.token_id, token_id);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.front, 0);
