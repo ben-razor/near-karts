@@ -795,31 +795,40 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 280px;
-    min-width: 90%;
-    background-color: hsla(0deg, 0%, 10%, 0.9);
-    border-left: 4px solid white;
-    border-right: 4px solid white;
+    min-height: 300px;
+    min-width: 94%;
+    background-color: hsla(0deg, 0%, 15%, 0.9);
+    border-left: 4px solid hsl(0deg, 0%, 70%);
+    border-right: 4px solid hsl(0deg, 0%, 70%);
     border-radius: 3em;
 }
 
 .br-post-battle-result {
     font-size: 300%;
-    color: hsl(0deg, 100%, 30%);
-    animation: text-pulse 3s;
-    animation-iteration-count: infinite;
 }
 
 .br-post-battle-result-won {
-
 }
 
 .br-post-battle-result-lost {
-
 }
 
 .br-post-battle-level-up-start {
+    font-size: 220%;
+}
 
+.br-post-battle-title {
+    color: white;
+}
+
+.br-post-battle-text {
+    animation: text-pulse 2s;
+    animation-iteration-count: infinite;
+    color: hsl(300deg, 100%, 40%);
+}
+
+.br-post-battle-level-up-start {
+    font-size: 220%;
 }
 
 .br-level-up {
@@ -827,11 +836,11 @@
 }
 
 .br-level-up-level {
-
+    font-size: 1.5em;
 }
 
 .br-post-battle-prize-prepare {
-
+    font-size: 220%;
 }
 
 .br-prize {
@@ -843,11 +852,16 @@
 }
 
 .br-post-battle-prize-result {
+    font-size: 180%;
+}
+
+.br-post-battle-prize-name {
 
 }
 
 .br-prize-image {
-
+    width: 100px;
+    height: 100px;
 }
 
 .br-prize {
@@ -872,4 +886,22 @@
 
 .br-post-battle-end-garage {
 
+}
+
+.br-question-mark {
+    width: 140px;
+    height: 140px;
+    background-position: 0 0px;
+    background-image: url(../images/rot-qm-1.png);
+}
+
+@keyframes question-mark-frames {
+    0% { background-position: 0 2800px; }
+    100% { background-position: 0 0px; }
+}
+
+.br-question-mark-anim {
+    animation: question-mark-frames 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: steps(20, end); 
 }

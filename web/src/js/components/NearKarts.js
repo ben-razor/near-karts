@@ -32,6 +32,7 @@ function getNearKartsServerURL(forceRemote=false) {
 const nearKartsURL = getNearKartsServerURL();
 
 const DEBUG_FORCE_BATTLE = false;
+const DEBUG_FORCE_POST_BATTLE = true;
 const DEBUG_IMAGES = false;
 const DEBUG_NO_MINT = false;
 const DEBUG_KART = false;
@@ -654,19 +655,6 @@ function NearKarts(props) {
   useEffect(() => {
     let battleEndedChanged = stateCheck.changed('battleEnded1', battleEnded);
     if(battleEndedChanged && battleEnded) {
-      toast('Battle Ended');
-      if(battleConfig.winner === 0) {
-        toast(exclamation(getText('text_you_won')));
-
-        if(battleConfig.prize > 0) {
-          let decalName  = partIdToName('decals', battleConfig.prize.toString());
-          toast(getText('text_won_prize', {'prize_name': decalName}));
-        }
-      }
-      else {
-        toast(exclamation(getText('text_you_lost')));
-      }
-
       setPostBattleScreen(postBattleScreens.RESULT);
     }
   }, [battleEnded, toast, battleConfig]);
@@ -1035,7 +1023,7 @@ function NearKarts(props) {
     setBattleText([]);
 
     if(screen === SCREENS.battle) {
-      setPostBattleScreen(postBattleScreen.NONE);
+      setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreen.NONE);
       setBattlePower([100, 100]);
       setBattleHit([0, 0]);
       setBattleAttacking([0, 0]);
@@ -1115,12 +1103,12 @@ function NearKarts(props) {
 
     if(postBattleScreen === postBattleScreens.RESULT) {
       content = <div className="br-post-battle-panel br-post-battle-result">
-        { battleResult.winner === 0 ?
-          <div className="br-post-battle-result-won">
+        { battle.winner === 0 ?
+          <div className="br-post-battle-text br-post-battle-result-won">
             { exclamation(getText('text_you_won')) }
           </div>
           :
-          <div className="br-post-battle-result-lost">
+          <div className="br-post-battle-text br-post-battle-result-lost">
             { exclamation(getText('text_you_lost')) }
           </div>
         }
@@ -1128,42 +1116,53 @@ function NearKarts(props) {
     }
     else if(postBattleScreen === postBattleScreens.LEVEL_UP) {
       content = <div className="br-post-battle-panel br-post-battle-level-up-start">
-        <h3 className="br-level-up">
+        <h3 className="br-post-battle-title br-level-up">
           { exclamation(getText('text_level_up'))}
         </h3>
-        <div className="br-level-up-level">
+        <div className="br-post-battle-text br-level-up-level">
           { nftData.level }
         </div>
       </div>
     }
     else if(postBattleScreen === postBattleScreens.PRIZE_PREPARE) {
       content = <div className="br-post-battle-panel br-post-battle-prize-prepare">
-        <h3 className="br-prize">
-          { exclamation(getText('text_prize'))}
+        <h3 className="br-post-battle-title br-prize">
+          { getText('text_prize') }
         </h3>
         <div className="br-prize-spinner">
-          Prizes are spinning!
+          <div className="br-question-mark br-question-mark-anim">
+
+          </div>
         </div>
       </div>
     }
     else if(postBattleScreen === postBattleScreens.PRIZE_RESULT) {
 
       let prizeSummary;
-      let text = exclamation(getText('text_no_prize'));
-      if(battleConfig.prize > 0) {
-        let decalName  = partIdToName('decals', battleConfig.prize.toString());
-        text = getText('text_won_prize', {'prize_name': decalName});
+      let title = exclamation(getText('text_no_prize'));
+      let image;
+      let decalName;
+      title = getText('text_won_prize', {'prize_name': decalName});
+      if(battle.prize > 0) {
+        decalName  = partIdToName('decals', battleConfig.prize.toString());
+        image = getTextureURL('badge', battle.prize.toString());
       }
       else {
+        decalName  = getText('text_no_prize');
         prizeSummary = getText('text_better_luck');
       }
 
       content = <div className="br-post-battle-panel br-post-battle-prize-result">
-        <div className="br-prize-image"></div>
-        <h3 className="br-prize">
-          {text}
+        <h3 className="br-post-battle-title br-prize">
+          {title}
         </h3>
-        { prizeSummary ?  <div className="br-prize-summary"> { prizeSummary } </div> : '' }
+        {
+          image ? <img className="br-prize-image" src={image} alt="Prize" /> : ''
+        }
+        <div className="br-post-battle-text">
+          { decalName ?  decalName : '' }
+        </div>
+        { prizeSummary ?  <div className="br-prize-summary loading-fade-in"> { prizeSummary } </div> : '' }
       </div>
     }
     else if(postBattleScreen === postBattleScreens.END) {
@@ -1286,7 +1285,7 @@ function NearKarts(props) {
 
   function replay() {
     console.log('Replay pb')
-    setPostBattleScreen(postBattleScreens.NONE);
+    setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreen.NONE);
     setLineIndex(0);
     setGroupIndex(0);
     setBattlePower([100, 100]);

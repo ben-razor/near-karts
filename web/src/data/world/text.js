@@ -77,9 +77,9 @@ const text_battle = {
     "text_battle_shield_kevlar_1": "{victim}'s kevlar shield blocks the attack",
 
     "text_battle_battle_won": `{winner} wins the battle!!`,
-    "text_you_won": "You Won",
-    "text_you_lost": "You Lode",
-    "text_won_prize": "You won a {prize_name}",
+    "text_you_won": "Victorious",
+    "text_you_lost": "Defeated",
+    "text_won_prize": "You won",
     "text_prize": "Prize",
     "text_level_up": "Level Up",
     "text_new_nft_name": `New ${text_consts.nft_name}`,
