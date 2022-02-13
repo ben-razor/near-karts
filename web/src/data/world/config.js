@@ -54,6 +54,27 @@ const config = {
     decal2: '0',
     decal3: '0',
     unlockedDecals: ['', '0', '7']
+  },
+  baseNFTData: {
+    "version": 1,
+    "level": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+    "front": 0,
+    "skin": 3,
+    "transport": 0,
+    "color1": 4473924,
+    "color2": 0,
+    "ex1": 0,
+    "ex2": 0,
+    "locked": false,
+    "decal1": "7",
+    "decal2": "",
+    "decal3": "",
+    "extra1": "",
+    "extra2": "",
+    "extra3": ""
   }
 }
 

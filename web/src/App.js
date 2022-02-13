@@ -12,6 +12,7 @@ import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
 import bigInt from 'big-integer';
 import Modal from 'react-modal';
+import gameConfig from './data/world/config';
 
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
@@ -45,6 +46,7 @@ function App() {
   const [wallet, setWallet] = useState();
   const [walletSignedIn, setWalletSignedIn] = useState(true);
   const [nftContract, setNFTContract] = useState();
+  const [tokensLoaded, setTokensLoaded] = useState(true);
   const [nftList, setNFTList] = useState([]);
   const [nftData, setNFTData] = useState({});
   const [nftMetadata, setNFTMetadata] = useState({});
@@ -259,6 +261,7 @@ function App() {
           setActiveTokenId(_nftList[0].token_id);
         }
         setNFTList(_nftList);
+        setTokensLoaded(true);
       })();
     }
   }, [nftContract, wallet]);
@@ -275,28 +278,47 @@ function App() {
         }
       }
     })();
-  }, [nftList, nftContract, wallet]);
+  }, [nftList, nftContract]);
+
+  const newKart = useCallback((isInitializing) => {
+    setActiveTokenId('new_kart');
+    setNFTData({ ...gameConfig.baseNFTData });
+  }, [setActiveTokenId, setNFTData]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        let result = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
-
-        let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
-        let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
-
-        let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
-        let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
-
-        result.karts = [homeKart, awayKart];
-        result.metadata = [homeMetadata, awayMetadata];
-
-        setLastBattle(result);
+    if(nftList && tokensLoaded) {
+      if(nftList.length === 0) {
+        newKart(true);
       }
-      catch(e) {
-        console.log('Error loading last battle', e);
+      else {
+        setActiveTokenId(nftList[0].token_id);
+        selectNFT(nftList[0].token_id);
       }
-    })();
+    }
+  }, [nftList, tokensLoaded, newKart, selectNFT]);
+
+  useEffect(() => {
+    if(nftContract && wallet) {
+      (async () => {
+        try {
+          let result = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
+
+          let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
+          let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
+
+          let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
+          let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
+
+          result.karts = [homeKart, awayKart];
+          result.metadata = [homeMetadata, awayMetadata];
+
+          setLastBattle(result);
+        }
+        catch(e) {
+          console.log('Error loading last battle', e);
+        }
+      })();
+    }
   }, [nftContract, wallet]);
 
   useEffect(() => {
@@ -482,7 +504,7 @@ function App() {
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
                        SCREENS={SCREENS} screen={screen} setScreen={setScreen} 
-                       showModal={showModal} />
+                       showModal={showModal} newKart={newKart} />
             :
             ''
         }

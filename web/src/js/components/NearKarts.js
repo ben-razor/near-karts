@@ -38,27 +38,6 @@ const DEBUG_NO_MINT = false;
 const DEBUG_KART = false;
 const DEBUG_FAST_BATTLE = false;
 
-const baseNFTData = {
-  "version": 1,
-  "level": 0,
-  "left": 0,
-  "right": 0,
-  "top": 0,
-  "front": 0,
-  "skin": 3,
-  "transport": 0,
-  "color1": 4473924,
-  "color2": 0,
-  "ex1": 0,
-  "ex2": 0,
-  "locked": false,
-  "decal1": "7",
-  "decal2": "",
-  "decal3": "",
-  "extra1": "",
-  "extra2": "",
-  "extra3": ""
-};
 
 const loader = new GLTFLoader();
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
@@ -119,6 +98,7 @@ function NearKarts(props) {
   const SCREENS = props.SCREENS;
   const screen = props.screen;
   const setScreen = props.setScreen;
+  const newKart = props.newKart;
 
   window.nftData = nftData;
 
@@ -156,7 +136,7 @@ function NearKarts(props) {
   const [postBattleScreen, setPostBattleScreen] = useState(postBattleScreens.NONE);
 
   function kartChanged(nftData, prevNFTData) {
-    let keys = Object.keys(baseNFTData);
+    let keys = Object.keys(gameConfig.baseNFTData);
 
     let changedKeys = [];
 
@@ -201,7 +181,7 @@ function NearKarts(props) {
   }
 
   function kartConfigToNFTData(kartConfig) {
-    let nftData = {...baseNFTData};
+    let nftData = {...gameConfig.baseNFTData};
     let index;
 
     for(let side of ['left', 'right']) {
@@ -807,18 +787,6 @@ function NearKarts(props) {
     kartTitle = kartTitle || '';
     return kartTitle.replace('A NEAR Kart Called ', '');
   }
-
-
-  const newKart = useCallback(() => {
-    setActiveTokenId('new_kart');
-    setNFTData({ ...baseNFTData });
-  }, [setActiveTokenId, setNFTData]);
-
-  useEffect(() => {
-    if(nftList && nftList.length === 0) {
-      newKart();
-    }
-  }, [nftList, newKart]);
 
   function displayNFTs(nftList, activeTokenId) {
     let nftUI = [];
