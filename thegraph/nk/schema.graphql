@@ -1,5 +1,11 @@
-type NearKart @entity {
+type NearKartsSimpleBattle @entity {
   id: ID!
-  block: Bytes!
-  count: BigInt!
+  timestamp: BigInt,
+  homeAccount: String!,
+  homeTokenId: String!,
+  awayTokenId: String!,
+  winner: Int!,
+  battle: BigInt,
+  prize: String!,
+  extra: String!
 }

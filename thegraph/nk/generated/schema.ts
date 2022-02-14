@@ -11,31 +11,39 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class NearKart extends Entity {
+export class NearKartsSimpleBattle extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
 
-    this.set("block", Value.fromBytes(Bytes.empty()));
-    this.set("count", Value.fromBigInt(BigInt.zero()));
-    this.set("title", Value.fromString(""));
+    this.set("homeAccount", Value.fromString(""));
+    this.set("homeTokenId", Value.fromString(""));
+    this.set("awayTokenId", Value.fromString(""));
+    this.set("winner", Value.fromI32(0));
+    this.set("prize", Value.fromString(""));
+    this.set("extra", Value.fromString(""));
   }
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save NearKart entity without an ID");
+    assert(
+      id != null,
+      "Cannot save NearKartsSimpleBattle entity without an ID"
+    );
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        "Cannot save NearKart entity with non-string ID. " +
+        "Cannot save NearKartsSimpleBattle entity with non-string ID. " +
           'Considering using .toHex() to convert the "id" to a string.'
       );
-      store.set("NearKart", id.toString(), this);
+      store.set("NearKartsSimpleBattle", id.toString(), this);
     }
   }
 
-  static load(id: string): NearKart | null {
-    return changetype<NearKart | null>(store.get("NearKart", id));
+  static load(id: string): NearKartsSimpleBattle | null {
+    return changetype<NearKartsSimpleBattle | null>(
+      store.get("NearKartsSimpleBattle", id)
+    );
   }
 
   get id(): string {
@@ -47,30 +55,91 @@ export class NearKart extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get block(): Bytes {
-    let value = this.get("block");
-    return value!.toBytes();
+  get timestamp(): BigInt | null {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  set block(value: Bytes) {
-    this.set("block", Value.fromBytes(value));
+  set timestamp(value: BigInt | null) {
+    if (!value) {
+      this.unset("timestamp");
+    } else {
+      this.set("timestamp", Value.fromBigInt(<BigInt>value));
+    }
   }
 
-  get count(): BigInt {
-    let value = this.get("count");
-    return value!.toBigInt();
-  }
-
-  set count(value: BigInt) {
-    this.set("count", Value.fromBigInt(value));
-  }
-
-  get title(): string {
-    let value = this.get("title");
+  get homeAccount(): string {
+    let value = this.get("homeAccount");
     return value!.toString();
   }
 
-  set title(value: string) {
-    this.set("title", Value.fromString(value));
+  set homeAccount(value: string) {
+    this.set("homeAccount", Value.fromString(value));
+  }
+
+  get homeTokenId(): string {
+    let value = this.get("homeTokenId");
+    return value!.toString();
+  }
+
+  set homeTokenId(value: string) {
+    this.set("homeTokenId", Value.fromString(value));
+  }
+
+  get awayTokenId(): string {
+    let value = this.get("awayTokenId");
+    return value!.toString();
+  }
+
+  set awayTokenId(value: string) {
+    this.set("awayTokenId", Value.fromString(value));
+  }
+
+  get winner(): i32 {
+    let value = this.get("winner");
+    return value!.toI32();
+  }
+
+  set winner(value: i32) {
+    this.set("winner", Value.fromI32(value));
+  }
+
+  get battle(): BigInt | null {
+    let value = this.get("battle");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set battle(value: BigInt | null) {
+    if (!value) {
+      this.unset("battle");
+    } else {
+      this.set("battle", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get prize(): string {
+    let value = this.get("prize");
+    return value!.toString();
+  }
+
+  set prize(value: string) {
+    this.set("prize", Value.fromString(value));
+  }
+
+  get extra(): string {
+    let value = this.get("extra");
+    return value!.toString();
+  }
+
+  set extra(value: string) {
+    this.set("extra", Value.fromString(value));
   }
 }
