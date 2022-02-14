@@ -29,10 +29,10 @@
      showgrid="true"
      units="px"
      inkscape:zoom="0.37461999"
-     inkscape:cx="160.1623"
-     inkscape:cy="471.1441"
+     inkscape:cx="453.79318"
+     inkscape:cy="662.00417"
      inkscape:window-width="1366"
-     inkscape:window-height="768"
+     inkscape:window-height="713"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -236,7 +236,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="Labels"
-     style="display:inline">
+     style="display:none">
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:13.4056px;line-height:1.25;font-family:Exo;-inkscape-font-specification:'Exo Bold';letter-spacing:0px;word-spacing:0px;stroke-width:0.275641"
@@ -283,7 +283,7 @@
      inkscape:label="Lines"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline">
+     style="display:none">
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3872px;line-height:1.25;font-family:Exo;-inkscape-font-specification:Exo;letter-spacing:0px;word-spacing:0px;stroke-width:0.2994"
@@ -324,7 +324,7 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="Numbers"
-     style="display:inline">
+     style="display:none">
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.3872px;line-height:1.25;font-family:Exo;-inkscape-font-specification:Exo;letter-spacing:0px;word-spacing:0px;stroke-width:0.2994"
@@ -440,7 +440,7 @@
      inkscape:groupmode="layer"
      id="layer6"
      inkscape:label="Circles"
-     style="display:inline">
+     style="display:none">
     <circle
        style="display:inline;fill:none;fill-opacity:1;stroke:#001425;stroke-width:2.57915;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.694118;stop-color:#000000"
        id="circle104898"
@@ -463,7 +463,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Pointer"
-     style="display:inline">
+     style="display:none">
     <path
        style="fill:url(#linearGradient48703);fill-opacity:1;stroke:none;stroke-width:1.7653;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
        d="m 158.58098,81.491671 c 0,0 -2.64583,0 -2.64583,-2.645833 0,0 0,-39.687501 2.64583,-42.333334 2.64583,2.645833 2.64583,42.333334 2.64583,42.333334 0,2.645833 -2.64583,2.645833 -2.64583,2.645833 z"
@@ -500,7 +500,7 @@
        y="0"><tspan
          x="-239.4"
          y="303.43871"
-         id="tspan119316">SETTINGS</tspan></text>
+         id="tspan121166">SETTINGS</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,306.74769,-31.220832)"
@@ -510,7 +510,7 @@
        y="0"><tspan
          x="-230.02666"
          y="303.43871"
-         id="tspan119318">SYSTEM</tspan></text>
+         id="tspan121168">SYSTEM</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,100.37264,-8.9958306)"
@@ -520,7 +520,7 @@
        y="0"><tspan
          x="-264.11991"
          y="301.09481"
-         id="tspan119320">PERFORMANCE</tspan></text>
+         id="tspan121170">PERFORMANCE</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,312.03937,-8.9958306)"
@@ -530,7 +530,7 @@
        y="0"><tspan
          x="-251.5199"
          y="301.09481"
-         id="tspan119322">CONNECTION</tspan></text>
+         id="tspan121172">CONNECTION</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,105.66431,32.279171)"
@@ -540,7 +540,7 @@
        y="0"><tspan
          x="-244.4"
          y="303.43871"
-         id="tspan119324">EXPLORER</tspan></text>
+         id="tspan121174">EXPLORER</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,306.74771,32.279171)"
@@ -550,7 +550,7 @@
        y="0"><tspan
          x="-208.22661"
          y="303.43871"
-         id="tspan119326">Tgas</tspan></text>
+         id="tspan121176">Tgas</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458334,0,0,0.26458334,100.37264,12.170836)"
@@ -560,7 +560,7 @@
        y="0"><tspan
          x="-242.62791"
          y="301.09481"
-         id="tspan119328">EFFICIENCY</tspan></text>
+         id="tspan121178">EFFICIENCY</tspan></text>
     <path
        style="display:inline;fill:none;fill-opacity:1;stroke:#001425;stroke-width:2.11667;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.694118;stop-color:#000000"
        d="m 291.04168,21.166667 c 0,0 15.875,15.875001 15.875,58.208335 0,42.333338 -15.875,58.208338 -15.875,58.208338"
