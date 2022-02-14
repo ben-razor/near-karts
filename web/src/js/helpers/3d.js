@@ -14,12 +14,11 @@ export function loadAlphaImageToMaterial(mat, imageURL) {
 }
 
 export function loadImageToMaterial(mat, imageURL) {
-  let loader = new THREE.ImageBitmapLoader();
-  loader.load(imageURL, function(imageBitmap) {
-    const tex = new THREE.CanvasTexture( imageBitmap );
+  let loader = new THREE.TextureLoader();
+  loader.load(imageURL, function(tex) {
     tex.center.set(0.5, 0.5);
     mat.emissiveMap = tex;
-  });
+  }, undefined, x => { console.log('litmerr', x) });
 }
 
 export function setAlphaToEmissive(mat) {

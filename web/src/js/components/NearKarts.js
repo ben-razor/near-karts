@@ -301,6 +301,7 @@ function NearKarts(props) {
           console.log('child material name', child.material.name);
 
           if(child.material.name === 'MatBodyDecal1') {
+            console.log('LITM', getTextureURL('badge', controlEntry.decal1));
             loadImageToMaterial(child.material, getTextureURL('badge', controlEntry.decal1));
           }
           if(child.material.name === 'MatBody' || child.material.name === 'MatBodyDecal1') {
