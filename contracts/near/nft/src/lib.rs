@@ -20,6 +20,7 @@ use near_contract_standards::non_fungible_token::metadata::{
 };
 use near_contract_standards::non_fungible_token::{Token, TokenId};
 use near_contract_standards::non_fungible_token::NonFungibleToken;
+use near_contract_standards::non_fungible_token::core::StorageKey as NFTStorageKey;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{ LazyOption, UnorderedSet, Vector, LookupMap };
 use near_sdk::json_types::ValidAccountId;
@@ -323,6 +324,49 @@ impl Contract {
         self.update_media(token_id.clone(), cid, sig, pub_key);
     }
 
+    fn internal_mint(
+        &mut self,
+        token_id: TokenId,
+        token_owner_id: AccountId,
+        token_metadata: Option<TokenMetadata>
+    ) -> Token {
+        if self.tokens.token_metadata_by_id.is_some() && token_metadata.is_none() {
+            env::panic(b"Must provide metadata");
+        }
+        if self.tokens.owner_by_id.get(&token_id).is_some() {
+            env::panic(b"token_id must be unique");
+        }
+
+        let owner_id: AccountId = token_owner_id;
+
+        // Core behavior: every token must have an owner
+        self.tokens.owner_by_id.insert(&token_id, &owner_id);
+
+        // Metadata extension: Save metadata, keep variable around to return later.
+        // Note that check above already panicked if metadata extension in use but no metadata
+        // provided to call.
+        self.tokens.token_metadata_by_id
+            .as_mut()
+            .and_then(|by_id| by_id.insert(&token_id, token_metadata.as_ref().unwrap()));
+
+        // Enumeration extension: Record tokens_per_owner for use with enumeration view methods.
+        if let Some(tokens_per_owner) = &mut self.tokens.tokens_per_owner {
+            let mut token_ids = tokens_per_owner.get(&owner_id).unwrap_or_else(|| {
+                UnorderedSet::new(NFTStorageKey::TokensPerOwner {
+                    account_hash: env::sha256(owner_id.as_bytes()),
+                })
+            });
+            token_ids.insert(&token_id);
+            tokens_per_owner.insert(&owner_id, &token_ids);
+        }
+
+        // Approval Management extension: return empty HashMap as part of Token
+        let approved_account_ids =
+            if self.tokens.approvals_by_id.is_some() { Some(HashMap::new()) } else { None };
+
+        Token { token_id, owner_id, metadata: token_metadata, approved_account_ids }
+    }
+
     #[payable]
     pub fn nft_mint(
         &mut self,
@@ -364,7 +408,7 @@ impl Contract {
             reference_hash: None
         };
 
-        let token = self.tokens.mint(token_id.clone(), receiver_id, Some(tm));
+        let token = self.internal_mint(token_id.clone(), receiver_id.to_string(), Some(tm));
 
         // Initialize any fields the user is not allowed to set on mint
         near_kart_new.version = 1;
@@ -484,8 +528,6 @@ impl Contract {
         }
 
     }
-
-
 
     pub fn nft_delete(&self, token_id: TokenId) {
         Contract::assert_contract_owner();
@@ -970,6 +1012,10 @@ mod tests {
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.extra1, "7");
+
+        let nft_count = contract.nft_count(br_acc.clone());
+        assert_eq!(nft_count, 1);
+
     }
 
     #[test]
