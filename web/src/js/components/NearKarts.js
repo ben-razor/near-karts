@@ -81,6 +81,7 @@ function NearKarts(props) {
   const showModal = props.showModal;
   const nftList = props.nftList;
   const nftData = props.nftData;
+  const tokensLoaded = props.tokensLoaded;
   const setNFTData = props.setNFTData;
   const nftMetadata = props.nftMetadata;
   const activeTokenId = props.activeTokenId;
@@ -875,6 +876,36 @@ function NearKarts(props) {
     }
   }, [controlEntry, execute, kartNameEntry, nftData, toast]);
 
+
+  useEffect(() => {
+    (async () => { 
+      const query = `
+        {
+          nearKartsSimpleBattles(orderBy: timestamp, orderDirection: desc, first: 5) {
+            id
+            timestamp
+            homeAccount
+            homeTokenId
+          }
+        }
+      `;
+
+      let r = await fetch('https://api.thegraph.com/subgraphs/name/ben-razor/near-karts', {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query
+        })
+      });
+
+      let j = await r.json();
+
+      console.log('GraphQL results', j);
+    })();
+  }, []);
+
   const saveImageData = useCallback(async (dataURL) => {
     let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');
 
@@ -1162,7 +1193,7 @@ function NearKarts(props) {
     let nftListUI;
 
     nftListUI = <div className="br-nft-gallery">
-      { displayNFTs(nftList, activeTokenId) }
+      { tokensLoaded ? displayNFTs(nftList, activeTokenId) : ''}
       { !nftList.length ? 
         <div className="br-info-message-start">
           <i className="fa fa-info br-info-icon"></i>

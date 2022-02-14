@@ -291,8 +291,9 @@ function App() {
         newKart(true);
       }
       else {
-        setActiveTokenId(nftList[0].token_id);
-        selectNFT(nftList[0].token_id);
+        let numKarts = nftList.length;
+        setActiveTokenId(nftList[numKarts - 1].token_id);
+        selectNFT(nftList[numKarts - 1].token_id);
       }
     }
   }, [nftList, tokensLoaded, newKart, selectNFT]);
@@ -333,7 +334,8 @@ function App() {
       }
       else {
         if(activeTokenId !== 'new_kart') {
-          selectNFT(nftList[0].token_id);
+          let numKarts = nftList.length;
+          selectNFT(nftList[numKarts - 1].token_id);
         }
       }
     }
@@ -504,7 +506,7 @@ function App() {
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
                        SCREENS={SCREENS} screen={screen} setScreen={setScreen} 
-                       showModal={showModal} newKart={newKart} />
+                       showModal={showModal} newKart={newKart} tokensLoaded={tokensLoaded} />
             :
             ''
         }
