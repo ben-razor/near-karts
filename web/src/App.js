@@ -31,10 +31,10 @@ const nearContractConfig = {
   }
 }
 
-const SCREENS = {
-  garage: 1,
-  battleSetup: 2,
-  battle: 3
+const screens= {
+  GARAGE: 1,
+  BATTLE_SETUP: 2,
+  BATTLE: 3
 };
 
 function App() {
@@ -58,7 +58,7 @@ function App() {
   const [battleKarts, setBattleKarts] = useState([]);
   const [battleConfig, setBattleConfig] = useState({});
   const [lastBattle, setLastBattle] = useState({});
-  const [screen, setScreen] = useState(SCREENS.garage);
+  const [screen, setScreen] = useState(screens.GARAGE);
 
   function toast(message, type='info') {
     console.log('toasty ', message);
@@ -378,7 +378,7 @@ function App() {
     setBattleConfig(battle);
     console.log('lbk', battle.karts);
     setBattleKarts(battle.metadata);
-    setScreen(SCREENS.battleSetup);
+    setScreen(screens.BATTLE_SETUP);
   }
 
   function getLastBattleUI() {
@@ -480,7 +480,7 @@ function App() {
       </div>
       <div className="br-header">
         <div className="br-header-logo-panel">
-          { isSignedIn && screen !== SCREENS.battle ? getLastBattleUI() : ''}
+          { isSignedIn && screen !== screens.BATTLE ? getLastBattleUI() : ''}
         </div>
         <div className="br-header-title-panel">
           <img className="br-header-logo" alt="Ben Razor Head" src={Logo} />
@@ -505,7 +505,7 @@ function App() {
                        processingActions={processingActions} execute={execute} toast={toast} 
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
-                       SCREENS={SCREENS} screen={screen} setScreen={setScreen} 
+                       screens={screens} screen={screen} setScreen={setScreen} 
                        showModal={showModal} newKart={newKart} tokensLoaded={tokensLoaded} />
             :
             ''

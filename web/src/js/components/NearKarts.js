@@ -96,7 +96,7 @@ function NearKarts(props) {
   const battleConfig = props.battleConfig;
   const setBattleConfig = props.setBattleConfig;
   const lastBattle = props.lastBattle;
-  const SCREENS = props.SCREENS;
+  const screens = props.screens;
   const screen = props.screen;
   const setScreen = props.setScreen;
   const newKart = props.newKart;
@@ -124,7 +124,7 @@ function NearKarts(props) {
   const [imageDataURL, setImageDataURL] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState(false);
   const [renderRequested, setRenderRequested] = useState();
-  const [prevScreen, setPrevScreen] = useState(SCREENS.garage);
+  const [prevScreen, setPrevScreen] = useState(screens.GARAGE);
   const [battle, setBattle] = useState({});
   const [battleText, setBattleText] = useState([]);
   const [battlePower, setBattlePower] = useState([100, 100])
@@ -456,7 +456,7 @@ function NearKarts(props) {
   }
 
   function getControlSet(setId, gameConfig) {
-    if(screen !== SCREENS.garage || !nftData.version) {
+    if(screen !== screens.GARAGE || !nftData.version) {
       return;
     }
     let controlSetUI = [];
@@ -897,7 +897,7 @@ function NearKarts(props) {
         },
         body: JSON.stringify({
           query
-        })
+        })  
       });
 
       let j = await r.json();
@@ -1026,7 +1026,7 @@ function NearKarts(props) {
   useEffect(() => {
     setBattleText([]);
 
-    if(screen === SCREENS.battle) {
+    if(screen === screens.BATTLE) {
       setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreen.NONE);
       setBattlePower([100, 100]);
       setBattleHit([0, 0]);
@@ -1034,7 +1034,7 @@ function NearKarts(props) {
       b.reset();
       setBattle(battleConfig);
     }
-    else if(screen === SCREENS.garage) {
+    else if(screen === screens.GARAGE) {
       setBattle({});
     }
   }, [screen]);
@@ -1051,7 +1051,7 @@ function NearKarts(props) {
 
   function watchBattle() {
     toast(getText('text_battle_started'));
-    changeScreen(SCREENS.battle)
+    changeScreen(screens.BATTLE)
   }
 
   function getScreenClass(screenId) {
@@ -1069,14 +1069,14 @@ function NearKarts(props) {
 
   useEffect(() => {
     if(battleKarts.length) {
-      changeScreen(SCREENS.battleSetup)
+      changeScreen(screens.BATTLE_SETUP)
     }
   }, [battleKarts]);
 
   useEffect(() => {
     if(battleResult && battleResult.metadata) {
       setBattleConfig(battleResult);
-      setScreen(SCREENS.battleSetup);
+      setScreen(screens.BATTLE_SETUP);
     }
   }, [battleResult]);
 
@@ -1178,7 +1178,7 @@ function NearKarts(props) {
           <div className="br-post-battle-end-garage">
             <BrButton label={ getText('text_return_to_garage') } id="br-post-battle-garage-button" 
                       className="br-button" 
-                      onClick={e => changeScreen(SCREENS.garage)} />
+                      onClick={e => changeScreen(screens.GARAGE)} />
           </div>
         </div>
       </div>
@@ -1215,7 +1215,7 @@ function NearKarts(props) {
     </div>
 
     return <Fragment>
-      <div className={ "br-screen br-screen-garage " + getScreenClass(SCREENS.garage)}>
+      <div className={ "br-screen br-screen-garage " + getScreenClass(screens.GARAGE)}>
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
@@ -1247,11 +1247,11 @@ function NearKarts(props) {
   }
 
   function getScreenBattleSetup() {
-    return <div className={"br-screen br-screen-battle-setup " + getScreenClass(SCREENS.battleSetup)}>
+    return <div className={"br-screen br-screen-battle-setup " + getScreenClass(screens.BATTLE_SETUP)}>
       <div className="br-back-button-holder">
         <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-setup-to-garage" 
                   className="br-button" 
-                  onClick={e => changeScreen(SCREENS.garage)} />
+                  onClick={e => changeScreen(screens.GARAGE)} />
       </div>
       <h1>{getText('text_battle_arena')}</h1>
       { battleKarts.length ?
@@ -1367,11 +1367,11 @@ function NearKarts(props) {
       </div>
     }
 
-    return <div className={"br-screen br-screen-battle " + getScreenClass(SCREENS.battle)}>
+    return <div className={"br-screen br-screen-battle " + getScreenClass(screens.BATTLE)}>
       <div className="br-back-button-holder">
         <BrButton label={<i className="fa fa-arrow-left"></i>} id="go-battle-to-garage" 
                   className="br-button" 
-                  onClick={e => changeScreen(SCREENS.garage)} />
+                  onClick={e => changeScreen(screens.GARAGE)} />
       </div>
       <h2>{ getText('text_battle') }</h2>
       <div className="br-battle-controls-holder">
