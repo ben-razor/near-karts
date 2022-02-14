@@ -305,7 +305,7 @@ impl Contract {
             env::panic(b"error_cannot_upgrade_while_kart_is_locked");
         }
 
-        Contract::assert_valid_equip(near_kart_new.clone());
+        Contract::assert_valid_equip(near_kart_new.clone(), nk.clone());
 
         nk.level = nk.level + 1;
         nk.locked = true;
@@ -446,14 +446,14 @@ impl Contract {
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
 
-        Contract::assert_valid_equip(near_kart_new.clone());
+        Contract::assert_valid_equip(near_kart_new.clone(), near_kart_new.clone());
 
         let extra = near_kart_new.serialize();
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
     }
 
-    fn assert_valid_equip(nk: NearKart) {
+    fn assert_valid_equip(nk: NearKart, nk_prev: NearKart) {
         let max_index = Contract::get_max_weapon_index_for_level(nk.level);
         let shield_start_index = 200;
 
@@ -520,7 +520,7 @@ impl Contract {
         }
 
         if nk.decal1 != "" && nk.decal1 != "0" && nk.decal1 != "7" {
-            let unlocked_decals: Vec<String> = nk.extra1.split(",").map(|s| s.to_string()).collect();
+            let unlocked_decals: Vec<String> = nk_prev.extra1.split(",").map(|s| s.to_string()).collect();
             if !unlocked_decals.contains(&nk.decal1) {
                 println!("{:?} {}", unlocked_decals, nk.decal1);
                 env::panic(b"error_decal_front_is_not_unlocked");
