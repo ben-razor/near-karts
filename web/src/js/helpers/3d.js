@@ -16,6 +16,7 @@ export function loadAlphaImageToMaterial(mat, imageURL) {
 export function loadImageToMaterial(mat, imageURL) {
   let loader = new THREE.TextureLoader();
   loader.load(imageURL, function(tex) {
+    tex.flipY = false;
     tex.center.set(0.5, 0.5);
     mat.emissiveMap = tex;
   }, undefined, x => { console.log('litmerr', x) });

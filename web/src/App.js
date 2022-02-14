@@ -18,7 +18,7 @@ const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
 const BOATLOAD_OF_GAS = '100000000000000';
 
-const nearkartsAddress = 'nearkarts1.benrazor.testnet';
+const nearkartsAddress = 'nearkarts2.benrazor.testnet';
 const nearContractConfig = {
   [nearkartsAddress]: {
     viewMethods: [
@@ -351,7 +351,7 @@ function App() {
           Many disagreements are reported
         </div>
         <div className="br-intro-section">
-          To settle this we battle... in NEAR Karts!
+          To settle this we will battle... in NEAR Karts!
         </div>
         <div className="br-intro-section">
           Own your Karts. Win your battles. Humanity will be saved.
