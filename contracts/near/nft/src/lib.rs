@@ -701,7 +701,8 @@ impl Contract {
 
         if won_battle {
             let won_prize_rand = self.get_random_u32();
-            let won_prize = won_prize_rand % 2 != 0;
+            let won_prize_selector = won_prize_rand % 4;
+            let won_prize = won_prize_selector != 0;
 
             if won_prize {
                 let prize_rand = self.get_random_u32();
@@ -1240,7 +1241,7 @@ mod tests {
         let battle_result_5 = contract.game_simple_battle(token_id.clone());
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "7");
+        assert_eq!(nk1.extra1, "7,3");
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
@@ -1250,7 +1251,7 @@ mod tests {
         let battle_result_6 = contract.game_simple_battle(token_id.clone());
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "7,3,2,5");
+        assert_eq!(nk1.extra1, "7,3,1,2,6");
         nk1.decal1 = "3".to_string();
         contract.configure(token_id.clone(), nk1);
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
