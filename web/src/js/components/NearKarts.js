@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useCallback, Fragment} from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import lifeform from '../../data/models/bot-3.gltf';
+import lifeform from '../../data/models/bot-3.glb';
 import imageFrame from '../../images/frame-dark-1.png';
 import BrButton from './lib/BrButton';
 import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
@@ -120,6 +120,7 @@ function NearKarts(props) {
   const [kartNameEntry, setKartNameEntry] = useState('');
   const [replayReq, setReplayReq] = useState(0);
   const [controlEntry, setControlEntry] = useState({ ...gameConfig.defaultKartEntry });
+  const [kartStyleInitialized, setKartStyleInitialized] = useState();
 
   const [imageDataURL, setImageDataURL] = useState('');
   const [kartImageRendered, setKartImageRendered] = useState(false);
@@ -334,8 +335,7 @@ function NearKarts(props) {
         }
       }
 
-      if(o.name.startsWith('Decal')) {
-      }
+      setKartStyleInitialized(true);
     });
   }, []);
 
