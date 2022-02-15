@@ -358,7 +358,7 @@ function App() {
         </div>
       </div>
       <Fragment>
-        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
+        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button br-button-medium" onClick={signIn} />
       </Fragment>
       <div className="br-front-screen-image"></div>
       <div className="br-intro-section">
