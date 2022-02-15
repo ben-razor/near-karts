@@ -424,7 +424,7 @@ function NearKarts(props) {
     setCamera(camera);
 
     let { scene: photoScene, camera: photoCamera} = createScene(threePhotoRef.current, wPhoto, hPhoto, 
-      new THREE.Vector3(0, 1.8, 3.6), false, 20, [0, -0.5, 0]);
+      new THREE.Vector3(0, 1.6, 3.6), false, 20, [0, -0.5, 0]);
     setPhotoScene(photoScene);
   }, []);
   
