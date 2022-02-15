@@ -691,8 +691,13 @@ impl Contract {
         let opponent_token_id = self.get_random_opponent(token_id.clone());
 
         let battle_rand = self.get_random_u32();
-        let winner = (battle_rand % 2) as u8;
-        let won_battle = winner == 0;
+        let mut winner = 0;
+        let winner_rand = (battle_rand % 4) as u8;
+        let won_battle = winner_rand != 0;
+
+        if !won_battle {
+            winner = 1;
+        }
 
         if won_battle {
             let won_prize_rand = self.get_random_u32();
@@ -1066,10 +1071,13 @@ mod tests {
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
 
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk1.level, 5);
         nk1.left = 4;
+
         contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
         let nk2 = contract.nft_get_near_kart(token_id.clone());
         assert_eq!(nk2.left, 4)
@@ -1214,8 +1222,8 @@ mod tests {
         assert_eq!(battle_result.away_token_id, "fluffykart");
         assert_gt!(battle_result.battle, 0);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
-        assert_eq!(battle_result.winner, 0);
-        assert_eq!(nk1.level, 2);
+        assert_eq!(battle_result.winner, 1);
+        assert_eq!(nk1.level, 1);
 
         let battle_result_2 = contract.game_simple_battle(token_id.clone());
         let battle_2 = battle_result_2.battle;
@@ -1230,19 +1238,19 @@ mod tests {
         let battle_result_4 = contract.game_simple_battle(token_id.clone());
         assert_ne!(battle_result_4.battle, battle_result_3.battle);
         let battle_result_5 = contract.game_simple_battle(token_id.clone());
-        assert_gt!(battle_result_5.prize, "0".to_string());
         let nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "7,3");
+        assert_eq!(nk1.extra1, "7");
+        contract.game_simple_battle(token_id.clone());
+        contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         let battle_result_6 = contract.game_simple_battle(token_id.clone());
-        assert_eq!(battle_result_6.prize, "1".to_string());
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
-        assert_eq!(nk1.extra1, "7,3,1");
+        assert_eq!(nk1.extra1, "7,3,2,5");
         nk1.decal1 = "3".to_string();
         contract.configure(token_id.clone(), nk1);
         let mut nk1 = contract.nft_get_near_kart(token_id.clone());
