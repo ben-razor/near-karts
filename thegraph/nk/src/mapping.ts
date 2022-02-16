@@ -14,7 +14,7 @@ export function handleReceipt(
   let tsStr = receiptWithOutcome.block.header.timestampNanosec.toString();
   log.info('ts {}', [tsStr]);
   let msInDay = BigInt.fromI32(86400000)
-  let msInMonth = BigInt.fromI32(2592000000);
+  let msInMonth = BigInt.fromI64(2592000000);
   let timestampNano = BigInt.fromString(tsStr);
   let timestamp = timestampNano.div(BigInt.fromU64(1e6 as u64));
   log.info('ts2 {}', [timestamp.toString()]);
@@ -51,6 +51,31 @@ export function handleReceipt(
           entity.ownerId = homeAccount;
           entity.tokenId = tokenId;
           entity.save();
+        }
+      }
+    }
+    else if(eventStr == 'configure_on_mint' || eventStr == 'configure_on_upgrade') {
+      let data = jo.get('data');
+      let kartMeta = data ? data.toObject() : null;
+
+      if(kartMeta) {
+        let tokenIdJsonValue = kartMeta.get('token_id');
+        let tokenId = tokenIdJsonValue ? tokenIdJsonValue.toString() : '';
+
+        if(tokenId) {
+          let nameJsonValue = kartMeta.get('name');
+          let name = nameJsonValue ? nameJsonValue.toString() : '';
+
+          let mediaJsonValue = kartMeta.get('media');
+          let media = mediaJsonValue ? mediaJsonValue.toString() : '';
+
+          let nearKart = NearKart.load(tokenId);
+          
+          if(nearKart) {
+            nearKart.name = name;
+            nearKart.media = media;
+            nearKart.save();
+          }
         }
       }
     }
