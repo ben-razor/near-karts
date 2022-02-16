@@ -6,12 +6,15 @@ dataSources:
     name: Contract
     network: near-testnet
     source:
-      account: nearkarts1.benrazor.testnet
-      startBlock: 82432645
+      account: nearkarts2.benrazor.testnet
+      startBlock: 82593443
     mapping:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
+        - NearKart
+        - ScoreDaily
+        - ScoreMonthly
         - NearKartsSimpleBattle
       receiptHandlers:
         - handler: handleReceipt

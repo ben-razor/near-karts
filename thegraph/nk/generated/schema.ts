@@ -11,6 +11,246 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
+export class NearKart extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("ownerId", Value.fromString(""));
+    this.set("tokenId", Value.fromString(""));
+    this.set("name", Value.fromString(""));
+    this.set("media", Value.fromString(""));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save NearKart entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save NearKart entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("NearKart", id.toString(), this);
+    }
+  }
+
+  static load(id: string): NearKart | null {
+    return changetype<NearKart | null>(store.get("NearKart", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get ownerId(): string {
+    let value = this.get("ownerId");
+    return value!.toString();
+  }
+
+  set ownerId(value: string) {
+    this.set("ownerId", Value.fromString(value));
+  }
+
+  get tokenId(): string {
+    let value = this.get("tokenId");
+    return value!.toString();
+  }
+
+  set tokenId(value: string) {
+    this.set("tokenId", Value.fromString(value));
+  }
+
+  get name(): string {
+    let value = this.get("name");
+    return value!.toString();
+  }
+
+  set name(value: string) {
+    this.set("name", Value.fromString(value));
+  }
+
+  get media(): string {
+    let value = this.get("media");
+    return value!.toString();
+  }
+
+  set media(value: string) {
+    this.set("media", Value.fromString(value));
+  }
+
+  get dailyScores(): Array<string> {
+    let value = this.get("dailyScores");
+    return value!.toStringArray();
+  }
+
+  set dailyScores(value: Array<string>) {
+    this.set("dailyScores", Value.fromStringArray(value));
+  }
+
+  get monthlyScores(): Array<string> {
+    let value = this.get("monthlyScores");
+    return value!.toStringArray();
+  }
+
+  set monthlyScores(value: Array<string>) {
+    this.set("monthlyScores", Value.fromStringArray(value));
+  }
+}
+
+export class ScoreDaily extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("period", Value.fromBigInt(BigInt.zero()));
+    this.set("numWins", Value.fromI32(0));
+    this.set("numLosses", Value.fromI32(0));
+    this.set("nearKart", Value.fromString(""));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save ScoreDaily entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save ScoreDaily entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("ScoreDaily", id.toString(), this);
+    }
+  }
+
+  static load(id: string): ScoreDaily | null {
+    return changetype<ScoreDaily | null>(store.get("ScoreDaily", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get period(): BigInt {
+    let value = this.get("period");
+    return value!.toBigInt();
+  }
+
+  set period(value: BigInt) {
+    this.set("period", Value.fromBigInt(value));
+  }
+
+  get numWins(): i32 {
+    let value = this.get("numWins");
+    return value!.toI32();
+  }
+
+  set numWins(value: i32) {
+    this.set("numWins", Value.fromI32(value));
+  }
+
+  get numLosses(): i32 {
+    let value = this.get("numLosses");
+    return value!.toI32();
+  }
+
+  set numLosses(value: i32) {
+    this.set("numLosses", Value.fromI32(value));
+  }
+
+  get nearKart(): string {
+    let value = this.get("nearKart");
+    return value!.toString();
+  }
+
+  set nearKart(value: string) {
+    this.set("nearKart", Value.fromString(value));
+  }
+}
+
+export class ScoreMonthly extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("period", Value.fromBigInt(BigInt.zero()));
+    this.set("numWins", Value.fromI32(0));
+    this.set("numLosses", Value.fromI32(0));
+    this.set("nearKart", Value.fromString(""));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save ScoreMonthly entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save ScoreMonthly entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("ScoreMonthly", id.toString(), this);
+    }
+  }
+
+  static load(id: string): ScoreMonthly | null {
+    return changetype<ScoreMonthly | null>(store.get("ScoreMonthly", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get period(): BigInt {
+    let value = this.get("period");
+    return value!.toBigInt();
+  }
+
+  set period(value: BigInt) {
+    this.set("period", Value.fromBigInt(value));
+  }
+
+  get numWins(): i32 {
+    let value = this.get("numWins");
+    return value!.toI32();
+  }
+
+  set numWins(value: i32) {
+    this.set("numWins", Value.fromI32(value));
+  }
+
+  get numLosses(): i32 {
+    let value = this.get("numLosses");
+    return value!.toI32();
+  }
+
+  set numLosses(value: i32) {
+    this.set("numLosses", Value.fromI32(value));
+  }
+
+  get nearKart(): string {
+    let value = this.get("nearKart");
+    return value!.toString();
+  }
+
+  set nearKart(value: string) {
+    this.set("nearKart", Value.fromString(value));
+  }
+}
+
 export class NearKartsSimpleBattle extends Entity {
   constructor(id: string) {
     super();

@@ -1,3 +1,29 @@
+type NearKart @entity {
+  id: ID!
+  ownerId: String!
+  tokenId: String!
+  name: String!
+  media: String!
+  dailyScores: [ScoreDaily!]! @derivedFrom(field: "nearKart")
+  monthlyScores: [ScoreMonthly!]! @derivedFrom(field: "nearKart")
+}
+
+type ScoreDaily @entity {
+  id: ID!
+  period: BigInt!,
+  numWins: Int!,
+  numLosses: Int!,
+  nearKart: NearKart!
+}
+
+type ScoreMonthly @entity {
+  id: ID!
+  period: BigInt!,
+  numWins: Int!,
+  numLosses: Int!,
+  nearKart: NearKart!
+}
+
 type NearKartsSimpleBattle @entity {
   id: ID!
   timestamp: BigInt,
