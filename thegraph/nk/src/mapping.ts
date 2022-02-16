@@ -66,6 +66,7 @@ export function handleReceipt(
           if(nearKart) {
             nearKart.name = name;
             nearKart.media = media;
+            nearKart.mediaHistory = nearKart.mediaHistory ? nearKart.mediaHistory as Array<string> : [media];
             nearKart.save();
           }
         }

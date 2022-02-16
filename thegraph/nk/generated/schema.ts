@@ -84,6 +84,23 @@ export class NearKart extends Entity {
     this.set("media", Value.fromString(value));
   }
 
+  get mediaHistory(): Array<string> | null {
+    let value = this.get("mediaHistory");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set mediaHistory(value: Array<string> | null) {
+    if (!value) {
+      this.unset("mediaHistory");
+    } else {
+      this.set("mediaHistory", Value.fromStringArray(<Array<string>>value));
+    }
+  }
+
   get dailyScores(): Array<string> {
     let value = this.get("dailyScores");
     return value!.toStringArray();

@@ -4,6 +4,7 @@ type NearKart @entity {
   tokenId: String!
   name: String!
   media: String!
+  mediaHistory: [String!]
   dailyScores: [ScoreDaily!]! @derivedFrom(field: "nearKart")
   monthlyScores: [ScoreMonthly!]! @derivedFrom(field: "nearKart")
 }
