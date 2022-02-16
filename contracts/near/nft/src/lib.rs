@@ -172,6 +172,20 @@ pub struct BattleLog {
     pub data: SimpleBattle
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KartMeta {
+    token_id: String,
+    name: String,
+    media: String,
+    reference: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct KartMetaLog {
+    pub event: String,
+    pub data: KartMeta
+}
+
 impl NearKart {
     pub fn new() -> Self {
         let mut kart = Self::default();
@@ -321,7 +335,21 @@ impl Contract {
         metadata.extra = Some(extra);
         lookup_map.insert(&token_id, &metadata);
         
-        self.update_media(token_id.clone(), cid, sig, pub_key);
+        self.update_media(token_id.clone(), cid.clone(), sig, pub_key);
+
+        let kart_meta = KartMeta {
+            token_id: token_id.clone(),
+            name: metadata.title.unwrap(),
+            media: cid.clone(),
+            reference: String::from("")
+        };
+
+        let kml: KartMetaLog= KartMetaLog{
+            event: "configure_on_upgrade".to_string(),
+            data: kart_meta
+        };
+        log!("EVENT_JSON:{}", serde_json::to_string(&kml).unwrap());
+
     }
 
     fn internal_mint(
@@ -394,7 +422,7 @@ impl Contract {
         }
 
         let tm = TokenMetadata {
-            title: Some(name),
+            title: Some(name.clone()),
             description: Some(String::from("NEAR Karts Series 1")),
             media: Some(cid.clone()),
             media_hash: None,
@@ -423,7 +451,7 @@ impl Contract {
         near_kart_new.extra3 = String::new();
 
         self.configure(token_id.clone(), near_kart_new);
-        self.update_media(token_id.clone(), cid, sig, pub_key);
+        self.update_media(token_id.clone(), cid.clone(), sig, pub_key);
 
         let nft_mint_log: EventLog = EventLog {
             standard: NFT_STANDARD_NAME.to_string(),
@@ -437,6 +465,20 @@ impl Contract {
         };
 
         log!("{}", &nft_mint_log.to_string());
+
+        let kart_meta = KartMeta {
+            token_id: token_id.clone(),
+            name: name.clone(),
+            media: cid.clone(),
+            reference: String::from("")
+        };
+
+        let kml: KartMetaLog= KartMetaLog{
+            event: "configure_on_mint".to_string(),
+            data: kart_meta
+        };
+        log!("EVENT_JSON:{}", serde_json::to_string(&kml).unwrap());
+
 
         return token;
     }
@@ -978,7 +1020,7 @@ mod tests {
         );
 
         let logs = get_logs();
-        assert_eq!(logs.len(), 1);
+        assert_eq!(logs.len(), 2);
         assert_eq!(logs[0].chars().take(10).collect::<String>(), "EVENT_JSON");
         assert_eq!(token.token_id, token_id);
         let nk1 = contract.nft_get_near_kart(token_id.clone());
