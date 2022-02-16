@@ -12,18 +12,12 @@ export function handleReceipt(
   let logs = receiptWithOutcome.outcome.logs;
   let homeAccount = receiptWithOutcome.receipt.predecessorId;
   let tsStr = receiptWithOutcome.block.header.timestampNanosec.toString();
-  log.info('ts {}', [tsStr]);
   let msInDay = BigInt.fromI32(86400000)
   let msInMonth = BigInt.fromI64(2592000000);
   let timestampNano = BigInt.fromString(tsStr);
   let timestamp = timestampNano.div(BigInt.fromU64(1e6 as u64));
-  log.info('ts2 {}', [timestamp.toString()]);
-
   let period = timestamp.div(msInDay);
-  log.info('period {}', [period.toString()]);
-
   let periodMonth = timestamp.div(msInMonth);
-  log.info('period month {}', [periodMonth.toString()]);
 
   for(let i = 0; i < logs.length; i++) {
     let l = logs[i];
@@ -40,12 +34,10 @@ export function handleReceipt(
       let mintInfo = mintInfoJsonValue ? mintInfoJsonValue.toObject() : null;
 
       if(mintInfo) {
-        log.info('In mint info', []);
         let tokenIdJsonValue = mintInfo.get('token_ids');
         let tokenId = tokenIdJsonValue ? tokenIdJsonValue.toArray()[0].toString() : '';
 
         if(tokenId) {
-          log.info('In create mint: {}', [tokenId]);
           let entity = new NearKart(tokenId)
 
           entity.ownerId = homeAccount;
@@ -111,12 +103,10 @@ export function handleReceipt(
 
         let nearKart = NearKart.load(entity.homeTokenId);
 
-        log.info('Pre score', []);
         if(nearKart) {
           let scoreDailyId = entity.homeTokenId + '_' + period.toString();
           let scoreDailyEntity = ScoreDaily.load(scoreDailyId);
 
-          log.info('score daily: ', [scoreDailyId]);
           if(!scoreDailyEntity) {
             scoreDailyEntity = new ScoreDaily(scoreDailyId);
           }
@@ -135,7 +125,6 @@ export function handleReceipt(
           let scoreMonthlyId = entity.homeTokenId + '_' + periodMonth.toString();
           let scoreMonthlyEntity = ScoreMonthly.load(scoreMonthlyId);
 
-          log.info('score monthly: ', [scoreMonthlyId]);
           if(!scoreMonthlyEntity) {
             scoreMonthlyEntity = new ScoreMonthly(scoreMonthlyId);
           }
