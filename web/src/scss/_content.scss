@@ -670,6 +670,19 @@
     border-radius: 0 $spacing-md $spacing-md 0;
 }
 
+.br-pill-border {
+    border-style: solid;
+    border-color: black;
+}
+
+.br-pill-left-border {
+    border-width: 1px 0 1px 1px;
+}
+
+.br-pill-right-border {
+    border-width: 1px 1px 1px 0;
+}
+
 .br-pill-active {
     background-color: black;
     color: white;
@@ -929,4 +942,8 @@
 
 .br-highscore-table th,td {
     text-align: left;
+}
+
+.br-highscore-controls {
+    width: 100%;
 }

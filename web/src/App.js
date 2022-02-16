@@ -100,9 +100,22 @@ function App() {
 
   useEffect(() => {
     if(showingHighScores) {
+      
+      let period = 0;
+      let highScoreEntity;
+
+      if(highScoreMode === highScoreModes.DAILY) {
+        period = Math.floor((new Date()).getTime() / MS_IN_DAY);
+        highScoreEntity = 'scoreDailies';
+      }
+      else {
+        period= Math.floor((new Date()).getTime() /  MS_IN_MONTH);
+        highScoreEntity = 'scoreMonthlies';
+      }
+
       const tokensQuery = `
         query($period: BigInt) {
-          scoreDailies( orderBy: numWins, orderDirection:desc, where: { period: $period}, first: 10) {
+          ${highScoreEntity}( orderBy: numWins, orderDirection:desc, where: { period: $period}, first: 10) {
             id
             period
             numWins
@@ -116,16 +129,6 @@ function App() {
           }
         }
     `;
-    
-    let period = 0;
-
-    if(highScoreMode === highScoreModes.DAILY) {
-      period = Math.floor((new Date()).getTime() / MS_IN_DAY);
-    }
-    else {
-      period= Math.floor((new Date()).getTime() /  MS_IN_MONTH);
-    }
-
     client
       .query({
         query: gql(tokensQuery), 
@@ -534,9 +537,19 @@ function App() {
       }
 
       if(rows.length) {
+        let dailyActiveClass = highScoreMode === highScoreModes.DAILY ? ' br-pill-active ' : '';
+        let monthlyActiveClass = highScoreMode === highScoreModes.MONTHLY ? ' br-pill-active ' : '';
+
         ui = <Fragment>
           <div className="br-highscore-controls">
-
+          <div className="br-pills">
+            <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + dailyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.DAILY) }>
+              Daily 
+            </div>
+            <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + monthlyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.MONTHLY)}>
+              Monthly 
+            </div>
+          </div> 
           </div>
           <table className="br-highscore-table">
             <thead>
