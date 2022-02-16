@@ -40,7 +40,6 @@ const DEBUG_FAST_BATTLE = false;
 
 
 const loader = new GLTFLoader();
-const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 
 const w = 1000;
 const h = 800;
@@ -82,24 +81,20 @@ function NearKarts(props) {
   const nftList = props.nftList;
   const nftData = props.nftData;
   const tokensLoaded = props.tokensLoaded;
-  const setNFTData = props.setNFTData;
-  const nftMetadata = props.nftMetadata;
   const activeTokenId = props.activeTokenId;
-  const setActiveTokenId = props.setActiveTokenId;
-  const activeKart = props.activeKart;
   const execute = props.execute;
   const processingActions = props.processingActions;
   const toast = props.toast;
   const battleKarts = props.battleKarts;
   const battleResult = props.battleResult;
-  const setBattleResult = props.setBattleResult;
   const battleConfig = props.battleConfig;
   const setBattleConfig = props.setBattleConfig;
-  const lastBattle = props.lastBattle;
   const screens = props.screens;
   const screen = props.screen;
   const setScreen = props.setScreen;
   const newKart = props.newKart;
+  const getTextureURL = props.getTextureURL;
+  const getImageURL = props.getImageURL;
 
   window.nftData = nftData;
 
@@ -227,17 +222,6 @@ function NearKarts(props) {
     }
 
   }, [nftData, prevNFTData]);
-
-  function getTextureURL(element, style) {
-    if(!style) style = 0;
-    let url = baseImageURL + `set-1-${element}-${style}.png`;
-    return url;
-  }
-
-  function getIconURL(element, style='1') {
-    let url = baseImageURL + `icons-1-${element}-${style}.png`;
-    return url;
-  }
 
   function startHidden(name) {
     let hidden = false;
@@ -825,14 +809,6 @@ function NearKarts(props) {
     </Fragment>
   }
 
-  function getImageURL(cid) {
-    let imageURL = cid;
-    if(!cid.startsWith('http')) {
-      imageURL = `https://storage.googleapis.com/near-karts/${cid}.png`; 
-    }
-    return imageURL;
-  }
-
   function dataURLToFile(src, fileName, mimeType){
     return (fetch(src)
         .then(function(res){return res.arrayBuffer();})
@@ -876,36 +852,6 @@ function NearKarts(props) {
       }
     }
   }, [controlEntry, execute, kartNameEntry, nftData, toast]);
-
-
-  useEffect(() => {
-    (async () => { 
-      const query = `
-        {
-          nearKartsSimpleBattles(orderBy: timestamp, orderDirection: desc, first: 5) {
-            id
-            timestamp
-            homeAccount
-            homeTokenId
-          }
-        }
-      `;
-
-      let r = await fetch('https://api.thegraph.com/subgraphs/name/ben-razor/near-karts', {
-        method: 'POST', 
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query
-        })  
-      });
-
-      let j = await r.json();
-
-      console.log('GraphQL results', j);
-    })();
-  }, []);
 
   const saveImageData = useCallback(async (dataURL) => {
     let f = await dataURLToFile(dataURL, 'bla.png', 'image/png');

@@ -13,7 +13,9 @@ import getText from './data/world/text';
 import bigInt from 'big-integer';
 import Modal from 'react-modal';
 import gameConfig from './data/world/config';
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 
+const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
 const BOATLOAD_OF_GAS = '100000000000000';
@@ -31,14 +33,32 @@ const nearContractConfig = {
   }
 }
 
+
+const MS_IN_DAY = 86400000;
+const MS_IN_MONTH = MS_IN_DAY * 30;
+
 const screens= {
   GARAGE: 1,
   BATTLE_SETUP: 2,
   BATTLE: 3
 };
 
+const highScoreModes = {
+  DAILY: 1,
+  MONTHLY: 2
+}
+
+const GRAPH_API = 'https://api.thegraph.com/subgraphs/name/ben-razor/near-karts';
+const client = new ApolloClient({
+  uri: GRAPH_API,
+  cache: new InMemoryCache(),
+})
+
 function App() {
   const [ modalIsOpen, setModalIsOpen ] = useState(false);
+  const [ showingHighScores, setShowingHighScores ] = useState(false);
+  const [ highScoreMode, setHighScoreMode] = useState(highScoreModes.DAILY);
+  const [ highScoreData, setHighScoreData] = useState([]);
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
@@ -77,6 +97,63 @@ function App() {
   function doubleToast(message1, message2, type='info') {
     toast( <Fragment><div>{message1}</div><div>{message2}</div></Fragment>, type)
   }
+
+  useEffect(() => {
+    if(showingHighScores) {
+      const tokensQuery = `
+        query($period: BigInt) {
+          scoreDailies( orderBy: numWins, orderDirection:desc, where: { period: $period}, first: 10) {
+            id
+            period
+            numWins
+            numLosses
+            nearKart {
+              id
+              name
+              media,
+              ownerId
+            }
+          }
+        }
+    `;
+    
+    let period = 0;
+
+    if(highScoreMode === highScoreModes.DAILY) {
+      period = Math.floor((new Date()).getTime() / MS_IN_DAY);
+    }
+    else {
+      period= Math.floor((new Date()).getTime() /  MS_IN_MONTH);
+    }
+
+    client
+      .query({
+        query: gql(tokensQuery), 
+        variables: { period}
+      })
+      .then((data) => { 
+        if(data.data) {
+          let _highScoreData = [];
+
+          if(highScoreMode === highScoreModes.DAILY) {
+            _highScoreData = data.data.scoreDailies;
+          }
+          else {
+            _highScoreData = data.data.scoreMonthlies;
+          }
+
+          setHighScoreData(_highScoreData); 
+          console.log('High score data: ', _highScoreData);
+        }
+        else {
+          console.log('No high score data');
+        }
+      })
+      .catch((err) => {
+        console.log('Error fetching data: ', err)
+      })
+    }
+  }, [showingHighScores, highScoreMode]);
 
   const connect = useCallback(async() => {
     (async () => {
@@ -117,6 +194,26 @@ function App() {
       connectNFT(nearkartsAddress);
     }
   }, [wallet, connectNFT]);
+
+
+  function getTextureURL(element, style) {
+    if(!style) style = 0;
+    let url = baseImageURL + `set-1-${element}-${style}.png`;
+    return url;
+  }
+
+  function getIconURL(element, style='1') {
+    let url = baseImageURL + `icons-1-${element}-${style}.png`;
+    return url;
+  }
+
+  function getImageURL(cid) {
+    let imageURL = cid;
+    if(!cid.startsWith('http')) {
+      imageURL = `https://storage.googleapis.com/near-karts/${cid}.png`; 
+    }
+    return imageURL;
+  }
 
   const signIn = () => {
     if(wallet?.isSignedIn()) {
@@ -417,6 +514,53 @@ function App() {
     return ui;
   }
 
+  function getHighScores() {
+    let rows = [];
+    let ui;
+
+    if(highScoreData?.length) {
+      for(let h of highScoreData) {
+        let mediaURL = getImageURL(h.nearKart.media);
+
+        rows.push(<tr className="br-highscore-row" key={h.id}>
+          <td className="br-highscore-media-td">
+            <img className="br-kart-image-tiny" src={mediaURL} alt="Kart"/>
+          </td>
+          <td className="br-highscore-td">{h.nearKart.name}</td>
+          <td className="br-highscore-td">{h.nearKart.ownerId}</td>
+          <td className="br-highscore-td">{h.numWins}</td>
+          <td className="br-highscore-td">{h.numLosses}</td>
+        </tr>)
+      }
+
+      if(rows.length) {
+        ui = <Fragment>
+          <div className="br-highscore-controls">
+
+          </div>
+          <table className="br-highscore-table">
+            <thead>
+              <th className="br-highscore-media"></th>
+              <th className="br-highscore-name">Kart</th>
+              <th className="br-highscore-owner">Owner</th>
+              <th className="br-highscore-wins">Wins</th>
+              <th className="br-highscore-losses">Defeats</th>
+            </thead>
+            <tbody>
+              {rows}
+            </tbody>
+          </table>
+        </Fragment>
+      }
+    }
+    else {
+      ui = <div className="br-info-message">
+        Leaderboard is waiting for data
+      </div>
+    }
+    return <div className="br-highscore-panel">{ui}</div>;
+  }
+
   const customStyles = {
     content: {
       top: '50%',
@@ -444,7 +588,17 @@ function App() {
   }
 
   function showModal(id) {
+    setShowingHighScores(false);
     openModal();
+  }
+
+  function closeHighScoreModal() {
+    setShowingHighScores(false);
+  }
+
+  function showHighScoreModal() {
+    closeModal();
+    setShowingHighScores(true);
   }
 
   console.log('nftList', nftList);
@@ -478,6 +632,28 @@ function App() {
           </div>
         </Modal>
       </div>
+      <div>
+        <Modal
+          isOpen={showingHighScores}
+          onRequestClose={closeHighScoreModal}
+          style={customStyles}
+          contentLabel="NEAR Karts Leaderboard"
+          appElement={document.getElementById('root')}
+        >
+          <div className="br-modal-title">
+            <h2 className="br-modal-heading">Leaderboard</h2>
+            <div className="br-modal-close">
+              <BrButton label={<i className="fas fa-times-circle" />} className="br-button br-icon-button" 
+                          onClick={closeHighScoreModal} />
+            </div>
+          </div>
+          <div className="br-modal-panel">
+            <div className="br-modal-content>">
+              { getHighScores(highScoreMode) } 
+            </div>
+          </div>
+        </Modal>
+      </div>
       <div className="br-header">
         <div className="br-header-logo-panel">
           { isSignedIn && screen !== screens.BATTLE ? getLastBattleUI() : ''}
@@ -487,6 +663,9 @@ function App() {
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">
+            <Fragment>
+              <BrButton label="Leaderboard" id="showHighScoresButton" className="br-button" onClick={showHighScoreModal} />
+            </Fragment>
             { isSignedIn ?
               <Fragment>
                 <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
@@ -506,7 +685,9 @@ function App() {
                        battleResult={battleResult} battleKarts={battleKarts} lastBattle={lastBattle} 
                        setBattleResult={setBattleResult} battleConfig={battleConfig} setBattleConfig={setBattleConfig}
                        screens={screens} screen={screen} setScreen={setScreen} 
-                       showModal={showModal} newKart={newKart} tokensLoaded={tokensLoaded} />
+                       showModal={showModal} newKart={newKart} tokensLoaded={tokensLoaded} 
+                       getTextureURL={getTextureURL} getIconURL={getIconURL} 
+                       getImageURL={getImageURL} />
             :
             ''
         }

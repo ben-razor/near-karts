@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^3.5.9",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -14,6 +15,7 @@
     "dom-to-image": "^2.6.0",
     "dotenv": "^10.0.0",
     "fs": "^0.0.1-security",
+    "graphql": "^16.3.0",
     "near-api-js": "^0.44.2",
     "process": "^0.11.10",
     "react": "^17.0.2",

@@ -4,12 +4,16 @@
     }
     .br-page {
         margin: 0;
+        width: 100%;
     }
 }
 
 @media (max-width: 768px) {
     body {
         font-size: 0.9em;
+    }
+    .br-header-controls-panel {
+        flex: 0 1;
     }
 }
 

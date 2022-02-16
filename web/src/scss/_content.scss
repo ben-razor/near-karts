@@ -909,3 +909,24 @@
     animation-iteration-count: infinite;
     animation-timing-function: steps(20, end); 
 }
+
+.br-kart-image-tiny {
+    width: 40px;
+}
+
+.br-highscore-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 600px;
+    padding: $spacing-sm;
+    justify-content: center;
+    align-items: center;
+}
+
+.br-highscore-table {
+    width: 100%;
+}
+
+.br-highscore-table th,td {
+    text-align: left;
+}
