@@ -15,10 +15,10 @@ Mint it on the NEAR blockchain
 
 **Battles**
 
-Each battle won increases your NEAR Kart level by 1  
-Win items as your level increases  
-Upgrade and save your NEAR Kart once every **5** levels  
-The name of your NEAR Kart cannot be changed so choose wisely! 
+* Each battle won increases your NEAR Kart level by 1  
+* Win items as your level increases  
+* Upgrade and save your NEAR Kart once every **5** levels  
+* The name of your NEAR Kart cannot be changed so choose wisely! 
 
 ## NEAR Kart NFT
 
