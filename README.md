@@ -10,7 +10,7 @@ Demo Video: https://youtu.be/AINOyA30sX8
 
 ## Concept
 
-Equip and pimp your 3D NEAR Kart NFT in the garage  
+Equip and pimp a 3D NEAR Kart NFT
 Mint it on the NEAR blockchain for 0.1 NEAR  
 
 **Battles**
