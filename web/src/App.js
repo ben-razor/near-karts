@@ -567,6 +567,10 @@ function App() {
           Leaderboard is waiting for data
         </div>
       }
+      <div className="br-small-message br-space-top">
+        New battle results are added after a short processing time
+      </div>
+
     </Fragment>
   
     return <div className="br-highscore-panel">{ui}</div>;

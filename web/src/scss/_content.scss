@@ -635,12 +635,14 @@
     border: 2px solid white;
     border-radius: $spacing-sm;
     color: white;
+    user-select: none;
 }
 
 .br-level-number {
     font-size: 1.25em;
     padding: 0;
     margin: 0;
+    user-select: none;
 }
 
 .br-hurt {
@@ -782,6 +784,14 @@
 
 .br-help-title {
 
+}
+
+.br-space-top {
+    margin-top: $spacing-sm;
+}
+
+.br-space-bottom {
+    margin-bottom: $spacing-sm;
 }
 
 .br-space-left {
@@ -955,4 +965,9 @@
     background-color: black;
     opacity: 0;
     z-index: 100;
+}
+
+.br-small-message {
+    color: hsl(0deg, 0%, 20%);
+    font-size: 90%;
 }
