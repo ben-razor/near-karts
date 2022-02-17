@@ -16,27 +16,7 @@ The [NEAR Karts Subgraph](https://thegraph.com/hosted-service/subgraph/ben-razor
 * Battle details that can be used to replay previous battles
 * Records of minting and upgrading events
 
-## Weapons
+## Important Files
 
-Right / Left / Back
-
-Level 1 to 8
-
-Range: Laser, Rocket, Fistful of Nuts, Flamethrower, Aceed
-
-Melee: Scoop, Short Sword, Long Sword, Axe, Hammer, Fist, Sabre Tooth, Circular Saw, Mace
-
-## Shield
-
-Tortoise, Fluffy Kitten, Aligator, Tiger, Emperor Tamarin
-
-## Skin
-
-Plastic, Kevlar, Carbon Fibre, Aluminium, Steel
-
-## Transport
-
-Wheels, Treads, Double Treads, Hover
-
-## Inspiration
+[Karts NFT Contract on NEAR](https://github.com/ben-razor/near-karts/blob/main/contracts/near/nft/src/lib.rs)
 
