@@ -1,6 +1,12 @@
 # Near Karts
 
-Battle Kart NFTs on NEAR blockchain.
+Battle Kart dynamic NFTs on NEAR blockchain.
+
+A submission for the [NEAR MetaBuild hackathon](https://metabuild.devpost.com/).
+
+Demo App: https://near-karts.web.app/
+
+Demo Video: https://youtu.be/AINOyA30sX8
 
 ## The Graph Integration
 
