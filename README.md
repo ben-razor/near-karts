@@ -18,5 +18,5 @@ The [NEAR Karts Subgraph](https://thegraph.com/hosted-service/subgraph/ben-razor
 
 ## Important Files
 
-[Karts NFT Contract on NEAR](https://github.com/ben-razor/near-karts/blob/main/contracts/near/nft/src/lib.rs)
+[Kart NFT Contract on NEAR](https://github.com/ben-razor/near-karts/blob/main/contracts/near/nft/src/lib.rs)
 
