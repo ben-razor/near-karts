@@ -2,7 +2,7 @@
 
 Battle Kart dynamic NFTs on NEAR blockchain.
 
-A submission for the [NEAR MetaBuild hackathon](https://metabuild.devpost.com/). Currently running in alpha on testnet.
+A submission for the [NEAR MetaBuild hackathon](https://metabuild.devpost.com/) running in alpha on testnet.
 
 Demo App: https://near-karts.web.app/
 
