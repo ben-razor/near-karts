@@ -38,23 +38,22 @@ const DEBUG_NO_MINT = false;
 const DEBUG_KART = false;
 const DEBUG_FAST_BATTLE = false;
 
-
 const loader = new GLTFLoader();
 
 const w = 1000;
 const h = 800;
 const wPhoto = 400;
 const hPhoto = 400;
+
 let textDelay = 2000;
 let postBattleDelay = 3000;
 if(DEBUG_FAST_BATTLE) {
   textDelay = 200;
 }
 
-const keysPressed = {};
-const speed = 2;
+const LIGHT_INTENSITY = 14;
 
-const kartDetailsOnImage = false;
+const keysPressed = {};
 
 document.addEventListener('keydown', e => {
   keysPressed[e.key.toLowerCase()] = true;
@@ -383,7 +382,7 @@ function NearKarts(props) {
     renderer.domElement.style.height = 'initial';
     threeElem.appendChild( renderer.domElement );
 
-    addPointLights(scene, 0xffffff, 14, 10, [
+    let lights = addPointLights(scene, 0xffffff, LIGHT_INTENSITY, 10, [
       new THREE.Vector3(5, 5, 5), new THREE.Vector3(-5, 5, 5), new THREE.Vector3(0, 5, -2)
     ])
 
@@ -391,6 +390,7 @@ function NearKarts(props) {
     var animate = function () {
       requestAnimationFrame( animate );
       if(controls) controls.update();
+      
       if(i++ % refreshEvery === 0) {
         renderer.render(scene, camera);
       }
@@ -413,11 +413,14 @@ function NearKarts(props) {
   }, []);
   
   function addPointLights(scene, color, intensity, dist, positions=[]) {
+    let lights = [];
     for(let pos of positions) {
       const light = new THREE.PointLight( color, intensity, dist);
       light.position.copy(pos);
       scene.add( light );
+      lights.push(light);
     }
+    return lights;
   }
 
   function toggleAutoRotate() {
@@ -1166,6 +1169,9 @@ function NearKarts(props) {
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
+            <div className="br-3d-overlay loading-fade-out-slow">
+              
+            </div>
             <div className='br-level'>
               {getText('text_level')}
               <div className="br-level-number">

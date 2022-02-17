@@ -50,6 +50,14 @@
     animation: loading-fade-in-instant 3s;
 }
 
+.loading-fade-out-slow {
+    animation: loading-fade-out 12s;
+}
+
+.loading-fade-out {
+    animation: loading-fade-out 5s;
+}
+
 .loading-fade-out-fast {
     animation: loading-fade-out-instant 3s;
 }

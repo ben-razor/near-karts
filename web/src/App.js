@@ -113,7 +113,7 @@ function App() {
         highScoreEntity = 'scoreMonthlies';
       }
 
-      const tokensQuery = `
+      const q = `
         query($period: BigInt) {
           ${highScoreEntity}( orderBy: numWins, orderDirection:desc, where: { period: $period}, first: 10) {
             id
@@ -129,11 +129,8 @@ function App() {
           }
         }
     `;
-    client
-      .query({
-        query: gql(tokensQuery), 
-        variables: { period}
-      })
+    console.log('Q',  q, period);
+    client.query({ query: gql(q), variables: { period} })
       .then((data) => { 
         if(data.data) {
           let _highScoreData = [];
@@ -519,6 +516,7 @@ function App() {
 
   function getHighScores() {
     let rows = [];
+    let table;
     let ui;
 
     if(highScoreData?.length) {
@@ -534,43 +532,43 @@ function App() {
           <td className="br-highscore-td">{h.numWins}</td>
           <td className="br-highscore-td">{h.numLosses}</td>
         </tr>)
-      }
 
-      if(rows.length) {
-        let dailyActiveClass = highScoreMode === highScoreModes.DAILY ? ' br-pill-active ' : '';
-        let monthlyActiveClass = highScoreMode === highScoreModes.MONTHLY ? ' br-pill-active ' : '';
-
-        ui = <Fragment>
-          <div className="br-highscore-controls">
-          <div className="br-pills">
-            <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + dailyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.DAILY) }>
-              Daily 
-            </div>
-            <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + monthlyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.MONTHLY)}>
-              Monthly 
-            </div>
-          </div> 
-          </div>
-          <table className="br-highscore-table">
-            <thead>
-              <th className="br-highscore-media"></th>
-              <th className="br-highscore-name">Kart</th>
-              <th className="br-highscore-owner">Owner</th>
-              <th className="br-highscore-wins">Wins</th>
-              <th className="br-highscore-losses">Defeats</th>
-            </thead>
-            <tbody>
-              {rows}
-            </tbody>
-          </table>
-        </Fragment>
+        table = <table className="br-highscore-table">
+          <thead>
+            <th className="br-highscore-media"></th>
+            <th className="br-highscore-name">Kart</th>
+            <th className="br-highscore-owner">Owner</th>
+            <th className="br-highscore-wins">Wins</th>
+            <th className="br-highscore-losses">Defeats</th>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
       }
     }
-    else {
-      ui = <div className="br-info-message">
-        Leaderboard is waiting for data
+
+    let dailyActiveClass = highScoreMode === highScoreModes.DAILY ? ' br-pill-active ' : '';
+    let monthlyActiveClass = highScoreMode === highScoreModes.MONTHLY ? ' br-pill-active ' : '';
+
+    ui = <Fragment>
+      <div className="br-highscore-controls">
+      <div className="br-pills">
+        <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + dailyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.DAILY) }>
+          Daily 
+        </div>
+        <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + monthlyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.MONTHLY)}>
+          Monthly 
+        </div>
+      </div> 
       </div>
-    }
+      {
+        table ? table : <div className="br-info-message">
+          Leaderboard is waiting for data
+        </div>
+      }
+    </Fragment>
+  
     return <div className="br-highscore-panel">{ui}</div>;
   }
 
