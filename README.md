@@ -20,9 +20,9 @@ Win items as your level increases
 Upgrade and save your NEAR Kart once every **5** levels  
 The name of your NEAR Kart cannot be changed so choose wisely! 
 
-## Near Kart NFT
+## NEAR Kart NFT
 
-NFTs are NEP-171 NFTs on the NEAR blockchain.
+NEAR Karts NFTs are NEP-171 NFTs on the NEAR blockchain.
 
 nft_mint is modified to support minting only with verified nft data.
 
