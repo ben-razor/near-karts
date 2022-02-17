@@ -10,8 +10,9 @@ Demo Video: https://youtu.be/AINOyA30sX8
 
 ## Concept
 
-Equip and pimp a 3D NEAR Kart NFT
-Mint it on the NEAR blockchain
+Equip and pimp a 3D NEAR Kart NFT and mint it on the NEAR blockchain.
+
+NFT is upgradable as the Kart rises through the levels.
 
 **Battles**
 
