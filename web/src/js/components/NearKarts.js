@@ -4,11 +4,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import lifeform from '../../data/models/bot-3.glb';
 import imageFrame from '../../images/frame-dark-1.png';
 import BrButton from './lib/BrButton';
-import { EffectComposer } from '../3d/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from '../3d/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from '../3d/jsm/postprocessing/ShaderPass.js';
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
 import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
@@ -390,7 +385,7 @@ function NearKarts(props) {
     var animate = function () {
       requestAnimationFrame( animate );
       if(controls) controls.update();
-      
+
       if(i++ % refreshEvery === 0) {
         renderer.render(scene, camera);
       }

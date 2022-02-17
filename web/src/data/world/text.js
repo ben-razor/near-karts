@@ -110,6 +110,9 @@ const text = {
     "text_next_upgrade": `Next upgrade at level {next_upgrade_level}`,
     "text_upgrade_save": `Upgrade and save your ${text_consts.nft_short_name} on ${text_consts.blockchain_name}`,
     "text_level": `Level`,
+    "text_leaderboard_waiting": `Leaderboard is waiting for data`,
+    "text_leaderboard_processing": `New battle results are added after a short processing time`,
+
 
     "text_help_welcome": `Welcome to ${text_consts.app_name}`,
     "text_help_garage": `This is your garage where you equip and pimp your ${text_consts.nft_name}.`,

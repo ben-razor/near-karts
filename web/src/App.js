@@ -33,7 +33,6 @@ const nearContractConfig = {
   }
 }
 
-
 const MS_IN_DAY = 86400000;
 const MS_IN_MONTH = MS_IN_DAY * 30;
 
@@ -73,7 +72,6 @@ function App() {
   const [activeTokenId, setActiveTokenId] = useState();
   const [activeKart, setActiveKart] = useState('');
   const [processingActions, setProcessingActions] = useState({});
-  const [audioInitialized, setAudioInitialized] = useState();
   const [battleResult, setBattleResult] = useState({});
   const [battleKarts, setBattleKarts] = useState([]);
   const [battleConfig, setBattleConfig] = useState({});
@@ -81,7 +79,6 @@ function App() {
   const [screen, setScreen] = useState(screens.GARAGE);
 
   function toast(message, type='info') {
-    console.log('toasty ', message);
     toasty[type](message, { 
       position: "top-right",
       autoClose: TOAST_TIMEOUT,
@@ -129,7 +126,7 @@ function App() {
           }
         }
     `;
-    console.log('Q',  q, period);
+
     client.query({ query: gql(q), variables: { period} })
       .then((data) => { 
         if(data.data) {
@@ -171,8 +168,6 @@ function App() {
   }, [contract]);
 
   useEffect(() => {
-    const keyStore = new nearAPI.keyStores.BrowserLocalStorageKeyStore();
-    console.log('ks', keyStore);
     connect();
   }, [connect]);
 
@@ -564,11 +559,11 @@ function App() {
       </div>
       {
         table ? table : <div className="br-info-message">
-          Leaderboard is waiting for data
+        {getText('text_leaderboard_waiting')}
         </div>
       }
       <div className="br-small-message br-space-top">
-        New battle results are added after a short processing time
+        {getText('text_leaderboard_processing')}
       </div>
 
     </Fragment>
