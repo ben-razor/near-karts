@@ -694,7 +694,16 @@ impl Contract {
         return opponent_id;
     }
 
-    fn nft_set_extra1(&mut self, token_id: TokenId, extra1: &String) {
+    /// Set the extra1 field of the NearKart data structure.
+    /// 
+    /// This is used to store a comma separated list of unlocked decals.
+    ///
+    /// # Arguments
+    ///
+    /// * `token_id` - The id of the token update
+    /// * `extra1` - CSV string of unlocked decal ids
+    ///
+    fn near_kart_set_extra1(&mut self, token_id: TokenId, extra1: &String) {
         self.assert_nft_owner(token_id.clone());
         let lookup_map = self.tokens.token_metadata_by_id.as_mut().unwrap();
         let mut metadata = lookup_map.get(&token_id.to_string()).unwrap();
@@ -770,7 +779,7 @@ impl Contract {
                         unlocks.push(prize.to_string());
                     }
                     let new_unlocks_str = unlocks.join(",");
-                    self.nft_set_extra1(token_id.clone(), &new_unlocks_str);
+                    self.near_kart_set_extra1(token_id.clone(), &new_unlocks_str);
                 }
                 else {
                     prize = 0;
@@ -860,12 +869,7 @@ impl Contract {
 
         return num;
     }
-
-    fn get_pub_key(&self) -> String {
-        let pub_key = near_sdk::env::signer_account_pk();
-        return hex::encode(pub_key);
-    }
-
+    
     fn get_max_weapon_index_for_level(level: u32) -> u8 {
         // let weapon_index = ((level as u8 / 5) + 1) * 5;
         let mut weapon_index = level + 2;
@@ -874,28 +878,7 @@ impl Contract {
         }
         return weapon_index as u8;
     }
-
-    fn get_random_u8() -> u8 {
-        let rand = near_sdk::env::random_seed()[0];
-        return rand;
-    }
-
-    fn get_new_from_vec(mut r: Vec<u8>, current: u8) -> u8 {
-        r.retain(|v| *v != current);
-        let new_index = Contract::get_random_u8() % r.len() as u8;
-        return r[new_index as usize];
-    }
-
-    fn get_new_color(old_color: u8) -> u8 {
-        let mut new_color = Contract::get_random_u8() % 9;
-
-        if old_color == new_color {
-            new_color = (new_color + 1) % 9;
-        }
-
-        new_color
-    }
-
+    
     fn is_sub_account(main_account: String, sub_account: String) -> bool{
         let main_parts_vec = main_account.split(".").collect::<Vec<&str>>();
     
@@ -1306,10 +1289,7 @@ mod tests {
         let br_acc = ValidAccountId::try_from("benrazor.testnet".to_string()).unwrap();
         configure_env_for_storage_br(br_acc.clone(), get_context_br(br_nk_acc.clone(), br_acc.clone()));
         let mut contract = Contract::new_default_meta(br_acc.clone());
-
-        let pub_key = contract.get_pub_key();
-        assert_eq!(pub_key, "c58b29b2a183a22fca6e6503e30d61a0ac3e36dbcfb946eb59fbb9d76876a462");
-
+        
         let rand_1 = contract.get_random_u32();
         let rand_2 = contract.get_random_u32();
 
