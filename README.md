@@ -14,14 +14,16 @@ Equip and pimp a 3D NEAR Kart NFT and mint it on the NEAR blockchain.
 
 NFT is upgradable as the Kart rises through the levels.
 
-**Battles**
+#### Battles
 
 * Each battle won increases your NEAR Kart level by 1  
 * Win items as your level increases  
 * Upgrade and save your NEAR Kart once every **5** levels  
 * The name of your NEAR Kart cannot be changed so choose wisely! 
 
-### Paras Decentralized App using NFT NEP-171 standard! 
+## Sponsor Challenges
+
+#### Paras Decentralized App using NFT NEP-171 standard! 
 
 NEAR Karts NFTs are NEP-171 NFTs on the NEAR blockchain.
 
@@ -31,7 +33,7 @@ non_fungible_token_core, non_fungible_token_approval and impl_non_fungible_token
 
 [NEAR Kart NEP-171 Implementation](https://github.com/ben-razor/near-karts/blob/main/contracts/near/nft/src/lib.rs)
 
-### The Graph Integration
+#### The Graph Integration
 
 The Graph is integrated into the application to provide daily and monthly leaderboards.
 
@@ -41,7 +43,7 @@ The [NEAR Karts Subgraph](https://thegraph.com/hosted-service/subgraph/ben-razor
 * Battle details that can be used to replay previous battles
 * Records of minting and upgrading events
 
-### NEAR Foundation - Calling all Liberal Artists
+#### NEAR Foundation - Calling all Liberal Artists
 
 As part of the development of the demo video, a collection of 4 artworks were created focussing on the effiency and speed of NEAR blockchain.
 
