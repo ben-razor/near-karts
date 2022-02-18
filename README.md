@@ -45,7 +45,7 @@ The artwork is styled as promos / posters for automobile products.
 
 ![Artwork collection](https://github.com/ben-razor/near-karts/blob/main/artwork/images/game/collection/combined-1.png)
 
-The full size renders are located in (https://github.com/ben-razor/near-karts/tree/main/artwork/images/game/collection)[https://github.com/ben-razor/near-karts/tree/main/artwork/images/game/collection]
+The full size renders are located in [https://github.com/ben-razor/near-karts/tree/main/artwork/images/game/collection](https://github.com/ben-razor/near-karts/tree/main/artwork/images/game/collection)
 
 ## Important Files
 
