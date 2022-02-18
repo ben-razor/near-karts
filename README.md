@@ -21,7 +21,7 @@ NFT is upgradable as the Kart rises through the levels.
 * Upgrade and save your NEAR Kart once every **5** levels  
 * The name of your NEAR Kart cannot be changed so choose wisely! 
 
-## NEAR Kart NFT
+## NEAR Kart NFT (Paras Challenge)
 
 NEAR Karts NFTs are NEP-171 NFTs on the NEAR blockchain.
 
@@ -36,6 +36,16 @@ The [NEAR Karts Subgraph](https://thegraph.com/hosted-service/subgraph/ben-razor
 * A historical record of the NFT image for each kart as they are upgraded
 * Battle details that can be used to replay previous battles
 * Records of minting and upgrading events
+
+## Artwork (NEAR Protocol challenge)
+
+As part of the development of the demo video, a collection of 4 artworks were created focussing on the effiency and speed of NEAR blockchain.
+
+The artwork is styled as promos / posters for automobile products.
+
+![Artwork collection](https://github.com/ben-razor/near-karts/blob/main/artwork/images/game/collection/combined-1.png)
+
+The full size renders are located in (https://github.com/ben-razor/near-karts/tree/main/artwork/images/game/collection)[]
 
 ## Important Files
 
