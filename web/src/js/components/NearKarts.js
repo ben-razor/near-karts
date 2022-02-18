@@ -972,7 +972,7 @@ function NearKarts(props) {
     setBattleText([]);
 
     if(screen === screens.BATTLE) {
-      setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreen.NONE);
+      setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreens.NONE);
       setBattlePower([100, 100]);
       setBattleHit([0, 0]);
       setBattleAttacking([0, 0]);
