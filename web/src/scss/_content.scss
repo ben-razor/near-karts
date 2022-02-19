@@ -25,8 +25,10 @@
     align-items: center;
 }
 
-.br-header-title {
-
+.br-header-controls {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .br-header-logo-panel {
@@ -710,6 +712,10 @@
     text-align: left;
 }
 
+.br-info-message-warning {
+    color: hsl(344deg, 90%, 30%);
+}
+
 .br-info-icon {
     width: 2em;
     text-align: center;
@@ -729,7 +735,8 @@
 }
 
 .br-modal-panel {
-    min-height: 12em;
+    min-height: 22em;
+    min-width: 34em;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -738,7 +745,7 @@
 .br-modal-buttons {
     display: flex;
     flex-direction: row;
-    justify-content: end;
+    justify-content: flex-end;
 }
 
 .br-modal-button {
@@ -769,7 +776,6 @@
     flex-direction: column;
     align-items: center;
     margin: $spacing-md;
-
 }
 
 .br-help-line {

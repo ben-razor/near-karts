@@ -47,6 +47,11 @@ const highScoreModes = {
   MONTHLY: 2
 }
 
+const helpModes = {
+  INTRO: 1,
+  BATTLE: 2
+}
+
 const GRAPH_API = 'https://api.thegraph.com/subgraphs/name/ben-razor/near-karts';
 const client = new ApolloClient({
   uri: GRAPH_API,
@@ -58,6 +63,7 @@ function App() {
   const [ showingHighScores, setShowingHighScores ] = useState(false);
   const [ highScoreMode, setHighScoreMode] = useState(highScoreModes.DAILY);
   const [ highScoreData, setHighScoreData] = useState([]);
+  const [ helpMode, setHelpMode] = useState(helpModes.INTRO);
   const [contract, setContract] = useState();
   const [currentUser, setCurrentUser] = useState();
   const [nearConfig, setNearConfig] = useState();
@@ -495,16 +501,49 @@ function App() {
   function getHelpText() {
     let ui;
 
-    ui = <div className="br-help-panel">
-      <div className="br-help-line">{ getText('text_help_welcome') }</div>
-      <div className="br-help-line">{ getText('text_help_garage') }</div>
-      <div className="br-help-line">{ getText('text_help_mint') }</div>
-      <h3 className="br-help-title">{ getText('text_help_battle_title') }</h3>
-      <div className="br-help-line">{ getText('text_help_battle') }</div>
-      <div className="br-help-line">{ getText('text_help_level_up') }</div>
-      <div className="br-help-line">{ getText('text_help_upgrade') }</div>
-      <div className="br-help-highlight">{ getText('text_help_kart_name') }</div>
-    </div>
+    let introActiveClass = helpMode === helpModes.INTRO ? ' br-pill-active ' : '';
+    let battleActiveClass = helpMode === helpModes.BATTLE ? ' br-pill-active ' : '';
+
+    ui = <Fragment>
+      <div className="br-help-controls">
+        <div className="br-pills">
+          <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + introActiveClass } onClick={ e => setHelpMode(helpModes.INTRO) }>
+            Intro 
+          </div>
+          <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + battleActiveClass } onClick={ e => setHelpMode(helpModes.BATTLE)}>
+            Battles 
+          </div>
+        </div> 
+      </div>
+      { helpMode === helpModes.INTRO ?
+        <div className="br-help-panel">
+          <div className="br-help-line">{ getText('text_help_welcome') }</div>
+          <div className="br-help-line">{ getText('text_help_near_karts') }</div>
+          <h3 className="br-help-title">{ getText('text_help_garage_title') }</h3>
+          <div className="br-help-line">{ getText('text_help_garage') }</div>
+          <div className="br-help-line">{ getText('text_help_mint') }</div>
+          <div className="br-help-highlight">{ getText('text_help_kart_name') }</div>
+          <div className="br-info-message br-info-message-start br-space-top br-full-width br-info-message-warning">
+            <i className="fa fa-info br-info-icon"></i>
+            {getText('text_alpha_warning')}
+            <br />
+            {getText('text_data_loss_warning')}
+          </div>
+        </div>
+        :
+        <div className="br-help-panel">
+          <div className="br-help-line">{ getText('text_help_battle') }</div>
+          <div className="br-help-line">{ getText('text_help_level_up') }</div>
+          <div className="br-help-highlight">{ getText('text_help_upgrade') }</div>
+          <div className="br-info-message br-info-message-start br-space-top br-full-width">
+            <i className="fa fa-info br-info-icon"></i>
+            {getText('text_help_no_equip_benefit')}
+            <br />
+            {getText('text_help_look_cool')}
+          </div>
+        </div>
+      }
+    </Fragment>            
 
     return ui;
   }
@@ -673,6 +712,12 @@ function App() {
         </div>
         <div className="br-header-controls-panel">
           <div className="br-header-controls">
+            { screen === screens.GARAGE ?
+              <button className="br-button br-icon-button"
+                      onMouseDown={showModal}><i className="fa fa-info"></i></button>
+              :
+              ''
+            }
             <Fragment>
               <BrButton label="Leaderboard" id="showHighScoresButton" className="br-button" onClick={showHighScoreModal} />
             </Fragment>
