@@ -1165,7 +1165,6 @@ function NearKarts(props) {
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
             <div className="br-3d-overlay loading-fade-out-slow">
-              
             </div>
             <div className='br-level'>
               {getText('text_level')}

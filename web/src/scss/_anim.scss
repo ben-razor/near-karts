@@ -6,7 +6,7 @@
 
 @keyframes loading-fade-out {
     0% { opacity: 1; }
-    10% { opacity: 1; }
+    20% { opacity: 1; }
     100% { opacity: 0; }
 }
 
@@ -51,7 +51,7 @@
 }
 
 .loading-fade-out-slow {
-    animation: loading-fade-out 12s;
+    animation: loading-fade-out 14s;
 }
 
 .loading-fade-out {
@@ -66,7 +66,6 @@
     animation: loading-fade-out-instant 0.5s;
 }
 
-
 .loading-fade-in-delay-50-fast {
     animation: loading-fade-in-delay-50 3s;
 }
@@ -74,6 +73,16 @@
 .fade-in-with-grow-fast {
     transform-origin: bottom center;
     animation: fade-in-with-grow 1s;
+}
+
+@keyframes loading-lower-z {
+    0% { z-index: 100; }
+    100% { z-index: 0; }
+}
+
+.loading-lower-z-slow {
+    animation: loading-lower-z 12s;
+    animation-timing-function: step-end;
 }
 
 @keyframes shake {

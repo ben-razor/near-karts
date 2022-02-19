@@ -116,7 +116,7 @@ const text = {
 
     "text_help_welcome": `Welcome to ${text_consts.app_name}`,
     "text_help_near_karts": `${text_consts.app_name} is a system for creating Battle Kart NFTs`,
-    "text_help_garage": `This is your garage where you equip and pimp your ${text_consts.nft_name}.`,
+    "text_help_garage": `In your garage you equip and pimp your ${text_consts.nft_name}.`,
     "text_help_equip_pimp": `Equip and pimp your ${text_consts.nft_name}`,
     "text_help_mint": `Mint it on the ${text_consts.blockchain_name} blockchain for ${text_consts.mint_price}`,
     "text_help_garage_title": `Garage`,
@@ -125,7 +125,7 @@ const text = {
     "text_help_level_up": `Unlock items as your level increases`,
     "text_help_upgrade": `You can upgrade and save your ${text_consts.nft_name} once every 5 levels`,
     "text_help_kart_name": `The name of your ${text_consts.nft_name} cannot be changed so choose wisely!`,
-    "text_help_no_equip_benefit": `Your equipment has no effect on the battle outcome`,
+    "text_help_no_equip_benefit": `Your equipment does not effect on the battle outcome`,
     "text_help_look_cool": `It just makes your ${text_consts.nft_name} look cool!`,
 
     "text_alpha_warning": `${text_consts.app_name} is an alpha demo running on ${text_consts.blockchain_name} testnet`,
