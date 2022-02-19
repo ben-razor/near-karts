@@ -133,6 +133,9 @@ pub struct Contract {
     last_battle: LookupMap<AccountId, SimpleBattle>
 }
 
+// Kart configuration is serialized and extra field of the NFT metadata
+//
+// It is serialized in Rust MessagePack format.
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct NearKart {
     version: u8,
@@ -590,19 +593,6 @@ impl Contract {
         return count;
     }
 
-    pub fn nft_get_a_token_id(&self, account_id: ValidAccountId) -> Option<TokenId> {
-        let token_id;
-
-        let lookup_map = self.tokens.tokens_per_owner.as_ref().unwrap();
-        let token_set = lookup_map.get(&account_id.to_string());
-        match token_set {
-            Some(token_set) => token_id = Some(token_set.to_vec()[0].to_string()),
-            None => token_id = None
-        }
-
-        token_id
-    }
-
     pub fn nft_get_token_metadata(&self, token_id: TokenId) -> TokenMetadata {
         let lookup_map = self.tokens.token_metadata_by_id.as_ref().unwrap();
         let metadata = lookup_map.get(&token_id.to_string()).unwrap();
@@ -621,7 +611,7 @@ impl Contract {
         return metadata.extra.unwrap_or("".to_string());
     }
 
-    pub fn nft_get_near_kart(&self, token_id: TokenId) -> NearKart {
+    pub fn near_kart_get_config(&self, token_id: TokenId) -> NearKart {
         let extra = self.nft_get_metadata_extra(token_id);
         let sj = NearKart::from_data(&extra);
         return sj;
@@ -759,7 +749,7 @@ impl Contract {
                 let prize_rand = self.get_random_u32();
                 prize = prize_rand % NUM_DECALS + 1;
 
-                let near_kart = self.nft_get_near_kart(token_id.clone());
+                let near_kart = self.near_kart_get_config(token_id.clone());
                 let unlocks_str = near_kart.extra1;
                 let mut unlocks: Vec<String> = unlocks_str.split(",").map(|s| s.to_string()).collect();
                 let mut has_already_unlocked = false;
@@ -1006,7 +996,7 @@ mod tests {
         assert_eq!(logs.len(), 2);
         assert_eq!(logs[0].chars().take(10).collect::<String>(), "EVENT_JSON");
         assert_eq!(token.token_id, token_id);
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        let nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk1.front, 0);
         assert_eq!(nk1.level, 1);
         assert_eq!(nk1.decal1, "7");
@@ -1015,7 +1005,7 @@ mod tests {
         new_near_kart.front = 2;
         contract.configure(token_id.clone(), new_near_kart);
 
-        let nk = contract.nft_get_near_kart(token_id.clone());
+        let nk = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk.front, 2);
     }
 
@@ -1041,7 +1031,7 @@ mod tests {
         assert_eq!(token.owner_id, br_acc.to_string());
         assert_eq!(token.metadata.unwrap().title, Some(String::from(DEFAULT_TITLE)));
         assert_eq!(token.approved_account_ids.unwrap(), HashMap::new());
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        let nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk1.extra1, "7");
 
         let nft_count = contract.nft_count(br_acc.clone());
@@ -1068,7 +1058,7 @@ mod tests {
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
 
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        let nk1 = contract.near_kart_get_config(token_id.clone());
         contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
     }
 
@@ -1089,7 +1079,7 @@ mod tests {
             token_id.clone(), br_acc.clone(), String::from(DEFAULT_TITLE), starting_near_kart,
             cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string()
         );
-        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        let mut nk1 = contract.near_kart_get_config(token_id.clone());
 
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
@@ -1100,12 +1090,12 @@ mod tests {
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
 
-        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        let mut nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk1.level, 5);
         nk1.left = 4;
 
         contract.upgrade(token_id.clone(), nk1.clone(), cid.to_string(), t_sig_1.to_string(), t_pub_key_1.to_string());
-        let nk2 = contract.nft_get_near_kart(token_id.clone());
+        let nk2 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk2.left, 4)
     }
 
@@ -1247,7 +1237,7 @@ mod tests {
         assert_eq!(battle_result.home_token_id, "megakart");
         assert_eq!(battle_result.away_token_id, "fluffykart");
         assert_gt!(battle_result.battle, 0);
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        let nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(battle_result.winner, 1);
         assert_eq!(nk1.level, 1);
 
@@ -1264,7 +1254,7 @@ mod tests {
         let battle_result_4 = contract.game_simple_battle(token_id.clone());
         assert_ne!(battle_result_4.battle, battle_result_3.battle);
         let battle_result_5 = contract.game_simple_battle(token_id.clone());
-        let nk1 = contract.nft_get_near_kart(token_id.clone());
+        let nk1 = contract.near_kart_get_config(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "7,3");
         contract.game_simple_battle(token_id.clone());
@@ -1274,12 +1264,12 @@ mod tests {
         contract.game_simple_battle(token_id.clone());
         contract.game_simple_battle(token_id.clone());
         let battle_result_6 = contract.game_simple_battle(token_id.clone());
-        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        let mut nk1 = contract.near_kart_get_config(token_id.clone());
         assert_gt!(nk1.extra1.len(), 0);
         assert_eq!(nk1.extra1, "7,3,1,2,6");
         nk1.decal1 = "3".to_string();
         contract.configure(token_id.clone(), nk1);
-        let mut nk1 = contract.nft_get_near_kart(token_id.clone());
+        let mut nk1 = contract.near_kart_get_config(token_id.clone());
         assert_eq!(nk1.decal1, "3");
     }
 
