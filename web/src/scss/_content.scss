@@ -632,7 +632,7 @@
     min-height: 5em;
     left: 10px;
     top: 10px;
-    z-index: 1000;
+    z-index: 1;
     padding: $spacing-sm;
     border: 2px solid white;
     border-radius: $spacing-sm;
@@ -645,6 +645,7 @@
     padding: 0;
     margin: 0;
     user-select: none;
+    z-index: 1;
 }
 
 .br-hurt {
@@ -971,7 +972,8 @@
     height: 100%;
     background-color: black;
     opacity: 0;
-    z-index: 0;
+    z-index: 1;
+    user-select: none;
 }
 
 .br-small-message {

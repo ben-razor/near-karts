@@ -1164,11 +1164,11 @@ function NearKarts(props) {
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
-            <div className="br-3d-overlay loading-fade-out-slow">
+            <div className="br-3d-overlay loading-fade-out-slow" onselectstart="return false;" ondragstart="return false;">
             </div>
-            <div className='br-level'>
+            <div className='br-level' onselectstart="return false;" ondragstart="return false;">
               {getText('text_level')}
-              <div className="br-level-number">
+              <div className="br-level-number" onselectstart="return false;" ondragstart="return false;">
                 {nftData.level}
               </div>
             </div>
