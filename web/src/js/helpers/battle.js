@@ -35,7 +35,6 @@ export default class Battle {
   }
 
   load(battleResult) {
-    console.log('in battle constructor');
     this.battleResult = cloneObj(battleResult);
     this.kartIDs = [this.battleResult.home_token_id, this.battleResult.away_token_id];
     this.kartNames = [this.kartName(this.battleResult.metadata[0].title), this.kartName(this.battleResult.metadata[1].title)];
@@ -45,17 +44,11 @@ export default class Battle {
     this.finished = false;
     this.rounds = [];
     this.roundIndex = 0;
-    console.log('in battle constructor 2');
     this._initWeapons();
-    console.log('in battle constructor 3');
     this.generate();
-    console.log('in battle constructor 4');
-
-    console.log('battle texts', this.battleTexts);
   }
 
   _initWeapons() {
-    console.log('in init weapons')
     let weapons = [[], []];
     let shields = [[], []];
 
@@ -83,7 +76,6 @@ export default class Battle {
   }
 
   generate() {
-    console.log('in generate');
     let battleSeed = this.battleResult.battle.toString();
     this.rng = seedrandom(battleSeed); 
 
@@ -172,8 +164,6 @@ export default class Battle {
     let rounds = [...roundScores1, ...roundScores2];
     shuffleArray(rounds, this.rng);
     rounds.push(winningRound);
-
-    console.log('rounds', rounds);
 
     let playIndex = 0;
     let totals = [0, 0];
