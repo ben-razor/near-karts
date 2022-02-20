@@ -6,7 +6,7 @@ import imageFrame from '../../images/frame-dark-1.png';
 import BrButton from './lib/BrButton';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { setAlphaToEmissive, loadImageToMaterial, hueToColor, hexColorToInt, intToHexColor, HitTester } from '../helpers/3d';
-import { cloneObj, StateCheck, isLocal } from '../helpers/helpers';
+import { cloneObj, StateCheck, isLocal, localLog } from '../helpers/helpers';
 import gameConfig, { partIdToName } from '../../data/world/config';
 import getText, { exclamation } from '../../data/world/text';
 import { CompactPicker } from 'react-color';
@@ -277,10 +277,8 @@ function NearKarts(props) {
 
       if(o.name === 'BotBody1') {
         for(let child of o.children) {
-          console.log('child material name', child.material.name);
 
           if(child.material.name === 'MatBodyDecal1') {
-            console.log('LITM', getTextureURL('badge', controlEntry.decal1));
             loadImageToMaterial(child.material, getTextureURL('badge', controlEntry.decal1));
           }
           if(child.material.name === 'MatBody' || child.material.name === 'MatBodyDecal1') {
@@ -425,7 +423,6 @@ function NearKarts(props) {
   }
 
   function getControl(action, src) {
-    console.log('PA', processingActions);
     let processing = processingActions?.[action];
 
     return <div className={"br-strange-juice-control " + (processing ? 'br-border-hide' : '')} onClick={e => execute(action)} key={action}>
@@ -447,7 +444,6 @@ function NearKarts(props) {
     let index = 0;
     let disabled;
     let validIndex = getMaxWeaponIndexForLevel(nftData.level);
-    console.log('vi', nftData.level, validIndex);
 
     if(setId === 'left' || setId === 'right') {
       let optionsWeapon = [];
@@ -517,7 +513,6 @@ function NearKarts(props) {
 
   function changeControl(setId, value) {
     let _controlEntry = {...controlEntry};
-    console.log('cc', setId, value, _controlEntry);
     _controlEntry[setId] = value;
     setControlEntry(_controlEntry);
   }
@@ -624,7 +619,6 @@ function NearKarts(props) {
   }, [battleEnded, toast, battleConfig]);
 
   useEffect(() => {
-    console.log(postBattleScreen);
     if(postBattleScreen !== postBattleScreens.NONE) {
       clearInterval(battleTimer);
       battleTimer = setTimeout(() => {
@@ -864,19 +858,17 @@ function NearKarts(props) {
       if(j.success) {
         if(true) {
           toast(getText('success_image_upload'));
-          console.log('image data ', getImageURL(j.data.cid));
+          localLog('image data ', getImageURL(j.data.cid));
           if(!DEBUG_NO_MINT) {
             mintOrUpgrade(j.data);
           }
         }
       }
       else {
-        console.log('error_image_upload_failed', j);
         toast(getText('error_image_upload_failed'), 'error');
       }
     }
     catch(e) {
-      console.log('error_image_upload_failed', e);
       toast(getText('error_image_upload_failed'), 'error');
     }
 
@@ -906,7 +898,7 @@ function NearKarts(props) {
       b.load(battle);
       b.generate();
 
-      console.log('battle', b, b.rounds.length);
+      localLog('battle', b, b.rounds.length);
 
       let _battleText = [];
       while(!b.finished) {
@@ -1164,11 +1156,11 @@ function NearKarts(props) {
         {nftListUI}
         <div className="br-garage loading-fade-in">
           <div className="br-strange-juice-3d" ref={threeRef}>
-            <div className="br-3d-overlay loading-fade-out-slow" onselectstart="return false;" ondragstart="return false;">
+            <div className="br-3d-overlay loading-fade-out-slow">
             </div>
-            <div className='br-level' onselectstart="return false;" ondragstart="return false;">
+            <div className='br-level'>
               {getText('text_level')}
-              <div className="br-level-number" onselectstart="return false;" ondragstart="return false;">
+              <div className="br-level-number">
                 {nftData.level}
               </div>
             </div>
@@ -1235,7 +1227,6 @@ function NearKarts(props) {
   }
 
   function replay() {
-    console.log('Replay pb')
     setPostBattleScreen(DEBUG_FORCE_POST_BATTLE ? postBattleScreens.RESULT : postBattleScreen.NONE);
     setLineIndex(0);
     setGroupIndex(0);

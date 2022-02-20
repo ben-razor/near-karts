@@ -2,6 +2,12 @@ export function isLocal() {
   return window.location.href.includes('localhost');
 }
 
+export function localLog(...args) {
+  if(isLocal()) {
+    console.log(...args);
+  }
+}
+
 export async function fetchWithTimeout(resource, options = {}) {
   const { timeout = 8000 } = options;
 

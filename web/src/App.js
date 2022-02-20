@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import * as nearAPI from 'near-api-js';
 import BrButton from './js/components/lib/BrButton';
 import { initNear } from './js/helpers/near';
+import { localLog } from './js/helpers/helpers';
 import NearKarts from './js/components/NearKarts';
 import getText from './data/world/text';
 import bigInt from 'big-integer';
@@ -146,10 +147,6 @@ function App() {
           }
 
           setHighScoreData(_highScoreData); 
-          console.log('High score data: ', _highScoreData);
-        }
-        else {
-          console.log('No high score data');
         }
       })
       .catch((err) => {
@@ -160,7 +157,7 @@ function App() {
 
   const connect = useCallback(async() => {
     (async () => {
-      console.log('connecting');
+      localLog('connecting');
       try {
         let { currentUser, nearConfig, walletConnection, provider } = 
           await initNear(NEAR_ENV, '.benrazor.testnet');
@@ -168,7 +165,7 @@ function App() {
         setContract(contract);
         setCurrentUser(currentUser);
         setNearConfig(nearConfig);
-        console.log('wallet', walletConnection);
+        localLog('wallet', walletConnection);
         setWallet(walletConnection);
         setNearProvider(provider);
       }
@@ -257,8 +254,8 @@ function App() {
       let pointOneNear = nearPenny.times(bigInt(10));
 
       if(action === 'mintWithImage') {
-        console.log('mwi', data);
-        console.log('mwi', data.nftData);
+        localLog('mwi', data);
+        localLog('mwi', data.nftData);
         let name = data.name.slice(0, 32);
 
         if(!name) {
@@ -285,8 +282,8 @@ function App() {
         }
       }
       if(action === 'upgrade') {
-        console.log('upgrade', data);
-        console.log('upgrade', data.nftData);
+        localLog('upgrade', data);
+        localLog('upgrade', data.nftData);
 
         if(data.nftData.locked) {
           toast(getText('error_upgrade_kart_locked', 'warning'));
@@ -309,7 +306,7 @@ function App() {
               reloadTokens = true;
             } catch(e) {
               toast(getText('error_upgrade_kart'), 'error');
-              console.log(e);
+              localLog(e);
             }
           }
         }
@@ -429,7 +426,7 @@ function App() {
 
   useEffect(() => {
     if(nftList.length) {
-      console.log('ATID', activeTokenId);
+      localLog('ATID', activeTokenId);
       if(activeTokenId) {
         for(let nft of nftList) {
           if(nft.token_id === activeTokenId) {
@@ -481,7 +478,6 @@ function App() {
 
   function viewBattle(battle) {
     setBattleConfig(battle);
-    console.log('lbk', battle.karts);
     setBattleKarts(battle.metadata);
     setScreen(screens.BATTLE_SETUP);
   }
@@ -656,10 +652,10 @@ function App() {
     setShowingHighScores(true);
   }
 
-  console.log('nftList', nftList);
-  console.log('nftData', nftData);
-  console.log('nftMetadata', nftMetadata);
-  console.log('Last battle: ', lastBattle);
+  localLog('nftList', nftList);
+  localLog('nftData', nftData);
+  localLog('nftMetadata', nftMetadata);
+  localLog('Last battle: ', lastBattle);
 
   let isSignedIn = wallet?.isSignedIn() && walletSignedIn;  // NEAR sign out doesn't have await so need this trick with walletSignedIn 
 
