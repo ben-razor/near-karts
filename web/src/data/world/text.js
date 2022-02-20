@@ -75,6 +75,7 @@ const text_battle = {
 
     "text_battle_shield_kitten_1": "{victim}'s fluffy kitten paws it away",
     "text_battle_shield_kevlar_1": "{victim}'s kevlar shield blocks the attack",
+    "text_battle_shield_kevlar_2": "{victim}'s kevlar shield holds steady",
 
     "text_battle_battle_won": `{winner} wins the battle!!`,
     "text_you_won": "Victorious",
@@ -127,6 +128,7 @@ const text = {
     "text_help_kart_name": `The name of your ${text_consts.nft_name} cannot be changed so choose wisely!`,
     "text_help_no_equip_benefit": `Your equipment does not effect on the battle outcome`,
     "text_help_look_cool": `It just makes your ${text_consts.nft_name} look cool!`,
+    "text_try_later": `Please try again later`,
 
     "text_alpha_warning": `${text_consts.app_name} is an alpha demo running on ${text_consts.blockchain_name} testnet`,
     "text_data_loss_warning": `${text_consts.nft_name} and data may be removed as the app is developed`,
@@ -134,6 +136,7 @@ const text = {
     "success_save_kart": `${text_consts.nft_name} saved!!`,
     "success_image_upload": `${text_consts.nft_short_name} image uploaded`,
 
+    "error_chain_unavailable": `${text_consts.blockchain_name} is currently unavailable`,
     "error_save_kart": `Error saving ${text_consts.nft_name}`,
     "error_no_active_kart": `No ${text_consts.nft_name} is active`,
     "error_check_console": "Check console for details",

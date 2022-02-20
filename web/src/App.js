@@ -161,15 +161,22 @@ function App() {
   const connect = useCallback(async() => {
     (async () => {
       console.log('connecting');
-      let { currentUser, nearConfig, walletConnection, provider } = 
-        await initNear(NEAR_ENV, '.benrazor.testnet');
+      try {
+        let { currentUser, nearConfig, walletConnection, provider } = 
+          await initNear(NEAR_ENV, '.benrazor.testnet');
 
-      setContract(contract);
-      setCurrentUser(currentUser);
-      setNearConfig(nearConfig);
-      console.log('wallet', walletConnection);
-      setWallet(walletConnection);
-      setNearProvider(provider);
+        setContract(contract);
+        setCurrentUser(currentUser);
+        setNearConfig(nearConfig);
+        console.log('wallet', walletConnection);
+        setWallet(walletConnection);
+        setNearProvider(provider);
+      }
+      catch(e) {
+        doubleToast(getText('error_chain_unavailable'), getText('text_try_later'), 'error');
+        console.log(e);
+      }
+
     })();
   }, [contract]);
 
@@ -507,7 +514,7 @@ function App() {
     ui = <Fragment>
       <div className="br-help-controls">
         <div className="br-pills">
-          <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + introActiveClass } onClick={ e => setHelpMode(helpModes.INTRO) }>
+          <div className={ "br-pill br-pill-border br-pill-left br-pill-left-border" + introActiveClass } onClick={ e => setHelpMode(helpModes.INTRO) }>
             Intro 
           </div>
           <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + battleActiveClass } onClick={ e => setHelpMode(helpModes.BATTLE)}>
@@ -519,7 +526,6 @@ function App() {
         <div className="br-help-panel">
           <div className="br-help-line">{ getText('text_help_welcome') }</div>
           <div className="br-help-line">{ getText('text_help_near_karts') }</div>
-          <h3 className="br-help-title">{ getText('text_help_garage_title') }</h3>
           <div className="br-help-line">{ getText('text_help_garage') }</div>
           <div className="br-help-line">{ getText('text_help_mint') }</div>
           <div className="br-help-highlight">{ getText('text_help_kart_name') }</div>
@@ -588,7 +594,7 @@ function App() {
     ui = <Fragment>
       <div className="br-highscore-controls">
       <div className="br-pills">
-        <div className={ "br-pill br-pill-border br-pill-left br-pill-right-border" + dailyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.DAILY) }>
+        <div className={ "br-pill br-pill-border br-pill-left br-pill-left-border" + dailyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.DAILY) }>
           Daily 
         </div>
         <div className={ "br-pill br-pill-border br-pill-right br-pill-right-border" + monthlyActiveClass } onClick={ e => setHighScoreMode(highScoreModes.MONTHLY)}>
