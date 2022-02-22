@@ -35,6 +35,8 @@ non_fungible_token_core, non_fungible_token_approval and impl_non_fungible_token
 
 #### The Graph Integration
 
+**⚠ The graph indexer reaches a certain block and then stops indexing so the leaderboard in the application does not stay up to date. This has been reported on Discord**
+
 The Graph is integrated into the application to provide daily and monthly leaderboards.
 
 The [NEAR Karts Subgraph](https://thegraph.com/hosted-service/subgraph/ben-razor/near-karts) also provides:
