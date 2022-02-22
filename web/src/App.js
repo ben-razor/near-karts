@@ -21,11 +21,11 @@ const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
 const BOATLOAD_OF_GAS = '100000000000000';
 
-const nearkartsAddress = 'nearkarts2.benrazor.testnet';
+const nearkartsAddress = 'nearkarts1.benrazor.testnet';
 const nearContractConfig = {
   [nearkartsAddress]: {
     viewMethods: [
-      'nft_tokens_for_owner', 'nft_get_near_kart', 'nft_get_token_metadata', 
+      'nft_tokens_for_owner', 'near_kart_get_config', 'nft_get_token_metadata', 
       'get_num_karts', 'get_token_id_by_index', 'get_last_battle'
     ],
     changeMethods: [
@@ -322,8 +322,8 @@ function App() {
               token_id: tokenId, 
             }, BOATLOAD_OF_GAS, '0');
 
-            let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
-            let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
+            let homeKart = await nftContract.near_kart_get_config({ token_id: result.home_token_id });
+            let awayKart = await nftContract.near_kart_get_config({ token_id: result.away_token_id });
 
             let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
             let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
@@ -372,7 +372,7 @@ function App() {
     (async () => {
       for(let token of nftList) {
         if(token.token_id === tokenId) {
-          let nftData = await nftContract.nft_get_near_kart({ token_id: tokenId });
+          let nftData = await nftContract.near_kart_get_config({ token_id: tokenId });
           setNFTData(nftData);
           let _tokenMetadata = await nftContract.nft_get_token_metadata({ token_id: tokenId});
           setNFTMetadata(_tokenMetadata);
@@ -406,8 +406,8 @@ function App() {
         try {
           let result = await nftContract.get_last_battle({ account_id: wallet.getAccountId()});
 
-          let homeKart = await nftContract.nft_get_near_kart({ token_id: result.home_token_id });
-          let awayKart = await nftContract.nft_get_near_kart({ token_id: result.away_token_id });
+          let homeKart = await nftContract.near_kart_get_config({ token_id: result.home_token_id });
+          let awayKart = await nftContract.near_kart_get_config({ token_id: result.away_token_id });
 
           let homeMetadata = await nftContract.nft_get_token_metadata({ token_id: result.home_token_id });
           let awayMetadata = await nftContract.nft_get_token_metadata({ token_id: result.away_token_id });
@@ -460,7 +460,7 @@ function App() {
         </div>
       </div>
       <Fragment>
-        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in"} id="signIn" className="br-button" onClick={signIn} />
+        <BrButton label={wallet?.isSignedIn() ? "Sign out" : "Sign in (NEAR Testnet)"} id="signIn" className="br-button" onClick={signIn} />
       </Fragment>
       <div className="br-front-screen-image"></div>
       <div className="br-intro-section">

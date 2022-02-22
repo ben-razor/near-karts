@@ -146,6 +146,9 @@ export function handleReceipt(
           }
         }
       }
+      else {
+        log.info('Unregistered event {}', [obj.value.toString()]);
+      }
     }
   }
 }
