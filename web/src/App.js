@@ -19,7 +19,7 @@ import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 const baseImageURL = 'https://storage.googleapis.com/birdfeed-01000101.appspot.com/strange-juice-1/';
 const TOAST_TIMEOUT = 4000;
 const NEAR_ENV='testnet';
-const BOATLOAD_OF_GAS = '100000000000000';
+const BOATLOAD_OF_GAS = '300000000000000';
 
 const nearkartsAddress = 'nearkarts1.benrazor.testnet';
 const nearContractConfig = {

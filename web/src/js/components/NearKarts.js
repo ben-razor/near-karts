@@ -18,7 +18,7 @@ function getNearKartsServerURL(forceRemote=false) {
   let url = 'https://localhost:8926';
 
   if(!isLocal() || forceRemote) {
-    url =  'https://benrazor.net:8926';
+    url =  'https://i1.benrazor.net:8926';
   }
 
   return url;
