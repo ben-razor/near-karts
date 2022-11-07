@@ -878,7 +878,7 @@ function NearKarts(props) {
 
   useEffect(() => {
     if(stateCheck.changed('kartImageRendered', kartImageRendered, false) && kartImageRendered) { 
-      domtoimage.toPng(photoComposerRef.current, { style: { display: 'block'}})
+      domtoimage.toPng(photoComposerRef.current, { width: 400, height: 400, style: { display: 'block'}})
       .then(function (dataUrl) {
          saveImageData(dataUrl);
       })
@@ -1175,7 +1175,7 @@ function NearKarts(props) {
         </div>
 
         <div className="br-offscreen">
-          <div className="br-photo-composer" ref={photoComposerRef} style={{ width: wPhoto, height: hPhoto, borderRadius: '20px'}}>
+          <div className="br-photo-composer" ref={photoComposerRef} style={{ width: wPhoto, height: hPhoto}}>
             <img className="br-photo-frame" src={imageFrame} alt="Frame" />
             <img alt="Kart NFT" src={imageDataURL} style={ { width: '400px', height: '400px', borderRadius: '80px' } } />
           </div>
